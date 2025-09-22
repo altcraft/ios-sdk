@@ -1,0 +1,11 @@
+# macOS system files
+.DS_Store
+
+# SwiftPM metadata
+.swiftpm/
+Package.resolved
+
+# Xcode
+xcuserdata/
+DerivedData/
+*.xcworkspace
