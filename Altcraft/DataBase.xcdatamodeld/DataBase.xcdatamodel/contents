@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<model type="com.apple.IDECoreDataModeler.DataModel" documentVersion="1.0" lastSavedToolsVersion="22757" systemVersion="23B81" minimumToolsVersion="Automatic" sourceLanguage="Swift" usedWithSwiftData="YES" userDefinedModelVersionIdentifier="">
+    <entity name="ConfigurationEntity" representedClassName="ConfigurationEntity" syncable="YES" codeGenerationType="class">
+        <attribute name="appInfo" optional="YES" attributeType="Binary"/>
+        <attribute name="providerPriorityList" optional="YES" attributeType="Binary"/>
+        <attribute name="rToken" optional="YES" attributeType="String"/>
+        <attribute name="url" optional="YES" attributeType="String"/>
+    </entity>
+    <entity name="PushEventEntity" representedClassName="PushEventEntity" syncable="YES" codeGenerationType="class">
+        <attribute name="maxRetryCount" optional="YES" attributeType="Integer 16" defaultValueString="0" usesScalarValueType="YES"/>
+        <attribute name="retryCount" optional="YES" attributeType="Integer 16" defaultValueString="0" usesScalarValueType="YES"/>
+        <attribute name="time" optional="YES" attributeType="Integer 64" defaultValueString="0" usesScalarValueType="YES"/>
+        <attribute name="type" optional="YES" attributeType="String"/>
+        <attribute name="uid" optional="YES" attributeType="String"/>
+    </entity>
+    <entity name="SubscribeEntity" representedClassName="SubscribeEntity" syncable="YES" codeGenerationType="class">
+        <attribute name="cats" optional="YES" attributeType="Binary"/>
+        <attribute name="customFields" optional="YES" attributeType="Binary"/>
+        <attribute name="maxRetryCount" optional="YES" attributeType="Integer 16" defaultValueString="0" usesScalarValueType="YES"/>
+        <attribute name="profileFields" optional="YES" attributeType="Binary"/>
+        <attribute name="replace" optional="YES" attributeType="Boolean" usesScalarValueType="YES"/>
+        <attribute name="retryCount" optional="YES" attributeType="Integer 16" defaultValueString="0" usesScalarValueType="YES"/>
+        <attribute name="skipTriggers" optional="YES" attributeType="Boolean" usesScalarValueType="YES"/>
+        <attribute name="status" optional="YES" attributeType="String"/>
+        <attribute name="sync" optional="YES" attributeType="Integer 16" defaultValueString="0" usesScalarValueType="YES"/>
+        <attribute name="time" optional="YES" attributeType="Integer 64" defaultValueString="0.0" usesScalarValueType="YES"/>
+        <attribute name="uid" optional="YES" attributeType="String"/>
+        <attribute name="userTag" optional="YES" attributeType="String"/>
+    </entity>
+</model>

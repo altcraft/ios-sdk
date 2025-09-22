@@ -1,0 +1,1179 @@
+// !$*UTF8*$!
+{
+	archiveVersion = 1;
+	classes = {
+	};
+	objectVersion = 56;
+	objects = {
+
+/* Begin PBXBuildFile section */
+		550956082E7951ED000BFBA8 /* RetryManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 550956072E7951ED000BFBA8 /* RetryManager.swift */; };
+		5509560C2E79916B000BFBA8 /* ConfigManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5509560B2E79916B000BFBA8 /* ConfigManager.swift */; };
+		550956232E7AB38B000BFBA8 /* Altcraft.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 559B61B02C903EF90081192F /* Altcraft.framework */; };
+		5509FA9C2D5114F700B1DE03 /* SubscribeDbQueries.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5509FA9B2D5114F700B1DE03 /* SubscribeDbQueries.swift */; };
+		5509FAA42D6CC8DC00B1DE03 /* EventList.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5509FAA32D6CC8DC00B1DE03 /* EventList.swift */; };
+		5516B3332D7AF881001FAF66 /* JWTManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5516B3322D7AF881001FAF66 /* JWTManager.swift */; };
+		5516B3362D7AFB96001FAF66 /* DeviceInfo.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5516B3352D7AFB96001FAF66 /* DeviceInfo.swift */; };
+		5516B3382D7B139E001FAF66 /* AuthManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5516B3372D7B139E001FAF66 /* AuthManager.swift */; };
+		5516B3482D93F3D1001FAF66 /* Converter.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5516B3472D93F3D1001FAF66 /* Converter.swift */; };
+		5516B34A2D942811001FAF66 /* Extension.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5516B3492D942811001FAF66 /* Extension.swift */; };
+		5516B34C2D958762001FAF66 /* MapBuilder.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5516B34B2D958762001FAF66 /* MapBuilder.swift */; };
+		5516B3522D96AF65001FAF66 /* Repository.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5516B3512D96AF65001FAF66 /* Repository.swift */; };
+		5516B3542D9C0517001FAF66 /* PushEventDbQueries.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5516B3532D9C0517001FAF66 /* PushEventDbQueries.swift */; };
+		5516B3582D9C1B3F001FAF66 /* JsonFactory.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5516B3572D9C1B3F001FAF66 /* JsonFactory.swift */; };
+		552BCF832E7D61B5008A9116 /* ConfigDbQueriesTest.swift in Sources */ = {isa = PBXBuildFile; fileRef = 552BCF822E7D61B5008A9116 /* ConfigDbQueriesTest.swift */; };
+		552BCF852E7D65EB008A9116 /* SubscribeDbQueriesTest.swift in Sources */ = {isa = PBXBuildFile; fileRef = 552BCF842E7D65EB008A9116 /* SubscribeDbQueriesTest.swift */; };
+		552BCF872E7D6DDF008A9116 /* PushEventDbQueriesTest.swift in Sources */ = {isa = PBXBuildFile; fileRef = 552BCF862E7D6DDF008A9116 /* PushEventDbQueriesTest.swift */; };
+		552BCF8A2E7D753F008A9116 /* DeviceInfoTest.swift in Sources */ = {isa = PBXBuildFile; fileRef = 552BCF892E7D753F008A9116 /* DeviceInfoTest.swift */; };
+		552BCF8E2E7D7A4D008A9116 /* SDKEventsTest.swift in Sources */ = {isa = PBXBuildFile; fileRef = 552BCF8D2E7D7A4D008A9116 /* SDKEventsTest.swift */; };
+		552BCF912E7D7AE9008A9116 /* RequestFactoryTest.swift in Sources */ = {isa = PBXBuildFile; fileRef = 552BCF902E7D7AE9008A9116 /* RequestFactoryTest.swift */; };
+		552BCF932E7D7C19008A9116 /* JsonFactoryTest.swift in Sources */ = {isa = PBXBuildFile; fileRef = 552BCF922E7D7C19008A9116 /* JsonFactoryTest.swift */; };
+		552BCF972E7D8413008A9116 /* PushEventTest.swift in Sources */ = {isa = PBXBuildFile; fileRef = 552BCF962E7D8413008A9116 /* PushEventTest.swift */; };
+		552BCF992E7D84D5008A9116 /* PublicPushEventFunctionsTest.swift in Sources */ = {isa = PBXBuildFile; fileRef = 552BCF982E7D84D5008A9116 /* PublicPushEventFunctionsTest.swift */; };
+		552BCF9D2E7D8680008A9116 /* RequestManagerTest.swift in Sources */ = {isa = PBXBuildFile; fileRef = 552BCF9C2E7D8680008A9116 /* RequestManagerTest.swift */; };
+		552BCF9F2E7D87DF008A9116 /* TokenUpdateTest.swift in Sources */ = {isa = PBXBuildFile; fileRef = 552BCF9E2E7D87DF008A9116 /* TokenUpdateTest.swift */; };
+		552BCFA12E7D886F008A9116 /* TokenManagerTest.swift in Sources */ = {isa = PBXBuildFile; fileRef = 552BCFA02E7D886F008A9116 /* TokenManagerTest.swift */; };
+		552BCFA32E7D8E24008A9116 /* PublicPushTokenFunctionsTest.swift in Sources */ = {isa = PBXBuildFile; fileRef = 552BCFA22E7D8E24008A9116 /* PublicPushTokenFunctionsTest.swift */; };
+		552BCFA62E7D90A7008A9116 /* PushSubscribeTest.swift in Sources */ = {isa = PBXBuildFile; fileRef = 552BCFA52E7D90A7008A9116 /* PushSubscribeTest.swift */; };
+		552BCFA82E7D9154008A9116 /* PublicPushSubscriptionTest.swift in Sources */ = {isa = PBXBuildFile; fileRef = 552BCFA72E7D9154008A9116 /* PublicPushSubscriptionTest.swift */; };
+		552BCFAA2E7D92DC008A9116 /* SubscribeQueueTest.swift in Sources */ = {isa = PBXBuildFile; fileRef = 552BCFA92E7D92DC008A9116 /* SubscribeQueueTest.swift */; };
+		552BCFAC2E7D9E41008A9116 /* ImageFormat.swift in Sources */ = {isa = PBXBuildFile; fileRef = 552BCFAB2E7D9E41008A9116 /* ImageFormat.swift */; };
+		552BCFAE2E7DA0E4008A9116 /* AltcraftPushReceiverTest.swift in Sources */ = {isa = PBXBuildFile; fileRef = 552BCFAD2E7DA0E4008A9116 /* AltcraftPushReceiverTest.swift */; };
+		552BCFB02E7DA289008A9116 /* NotificationManagerTest.swift in Sources */ = {isa = PBXBuildFile; fileRef = 552BCFAF2E7DA289008A9116 /* NotificationManagerTest.swift */; };
+		552BCFB22E7DA32C008A9116 /* PushActionTest.swift in Sources */ = {isa = PBXBuildFile; fileRef = 552BCFB12E7DA32C008A9116 /* PushActionTest.swift */; };
+		552BCFB42E7DA8EF008A9116 /* CoreTest.swift in Sources */ = {isa = PBXBuildFile; fileRef = 552BCFB32E7DA8EF008A9116 /* CoreTest.swift */; };
+		552BCFB72E7DA9F7008A9116 /* RetryTest.swift in Sources */ = {isa = PBXBuildFile; fileRef = 552BCFB62E7DA9F7008A9116 /* RetryTest.swift */; };
+		552BCFB92E7DAA99008A9116 /* RetryManagerTest.swift in Sources */ = {isa = PBXBuildFile; fileRef = 552BCFB82E7DAA99008A9116 /* RetryManagerTest.swift */; };
+		552BCFBC2E7DADD3008A9116 /* ClearCacheTest.swift in Sources */ = {isa = PBXBuildFile; fileRef = 552BCFBB2E7DADD3008A9116 /* ClearCacheTest.swift */; };
+		552BCFBF2E7DAE43008A9116 /* InitTest.swift in Sources */ = {isa = PBXBuildFile; fileRef = 552BCFBE2E7DAE43008A9116 /* InitTest.swift */; };
+		552BCFC12E7DAF49008A9116 /* AccessToBackgroundTest.swift in Sources */ = {isa = PBXBuildFile; fileRef = 552BCFC02E7DAF49008A9116 /* AccessToBackgroundTest.swift */; };
+		552BCFC32E7DB253008A9116 /* BackgroundTaskTest.swift in Sources */ = {isa = PBXBuildFile; fileRef = 552BCFC22E7DB253008A9116 /* BackgroundTaskTest.swift */; };
+		553B085D2E5DD49C004526D6 /* SubscribeQueue.swift in Sources */ = {isa = PBXBuildFile; fileRef = 553B085C2E5DD49C004526D6 /* SubscribeQueue.swift */; };
+		55527FB12D314BCE00919755 /* StringBuilder.swift in Sources */ = {isa = PBXBuildFile; fileRef = 55527FB02D314BCE00919755 /* StringBuilder.swift */; };
+		556FC7392E30D2D2000584AA /* Init.swift in Sources */ = {isa = PBXBuildFile; fileRef = 556FC7382E30D2D2000584AA /* Init.swift */; };
+		556FC73B2E30EE99000584AA /* Core.swift in Sources */ = {isa = PBXBuildFile; fileRef = 556FC73A2E30EE99000584AA /* Core.swift */; };
+		557556D32CE2566900F6B50C /* NetworkMonitor.swift in Sources */ = {isa = PBXBuildFile; fileRef = 557556D22CE2566900F6B50C /* NetworkMonitor.swift */; };
+		5579FD5F2D9D6F110000131C /* RequestManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5579FD5E2D9D6F110000131C /* RequestManager.swift */; };
+		559B61B52C903EF90081192F /* Altcraft.docc in Sources */ = {isa = PBXBuildFile; fileRef = 559B61B42C903EF90081192F /* Altcraft.docc */; };
+		559B61C12C903EF90081192F /* Altcraft.h in Headers */ = {isa = PBXBuildFile; fileRef = 559B61B32C903EF90081192F /* Altcraft.h */; settings = {ATTRIBUTES = (Public, ); }; };
+		559B61F12C90461F0081192F /* AltcraftConfiguration.swift in Sources */ = {isa = PBXBuildFile; fileRef = 559B61CA2C90461F0081192F /* AltcraftConfiguration.swift */; };
+		559B61F22C90461F0081192F /* AccessToBackground.swift in Sources */ = {isa = PBXBuildFile; fileRef = 559B61CC2C90461F0081192F /* AccessToBackground.swift */; };
+		559B61F32C90461F0081192F /* BackgroundTasks.swift in Sources */ = {isa = PBXBuildFile; fileRef = 559B61CD2C90461F0081192F /* BackgroundTasks.swift */; };
+		559B61F42C90461F0081192F /* CoreDataManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 559B61CF2C90461F0081192F /* CoreDataManager.swift */; };
+		559B61F62C90461F0081192F /* RequestFactory.swift in Sources */ = {isa = PBXBuildFile; fileRef = 559B61D12C90461F0081192F /* RequestFactory.swift */; };
+		559B61F72C90461F0081192F /* ClearCache.swift in Sources */ = {isa = PBXBuildFile; fileRef = 559B61D32C90461F0081192F /* ClearCache.swift */; };
+		559B61F92C90461F0081192F /* PushSubscribe.swift in Sources */ = {isa = PBXBuildFile; fileRef = 559B61D52C90461F0081192F /* PushSubscribe.swift */; };
+		559B61FA2C90461F0081192F /* Retry.swift in Sources */ = {isa = PBXBuildFile; fileRef = 559B61D62C90461F0081192F /* Retry.swift */; };
+		559B61FB2C90461F0081192F /* StoredVariablesManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 559B61D72C90461F0081192F /* StoredVariablesManager.swift */; };
+		559B61FC2C90461F0081192F /* TokenUpdate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 559B61D82C90461F0081192F /* TokenUpdate.swift */; };
+		559B61FD2C90461F0081192F /* ClearingDb.swift in Sources */ = {isa = PBXBuildFile; fileRef = 559B61DA2C90461F0081192F /* ClearingDb.swift */; };
+		559B61FE2C90461F0081192F /* ConfigDbQueries.swift in Sources */ = {isa = PBXBuildFile; fileRef = 559B61DB2C90461F0081192F /* ConfigDbQueries.swift */; };
+		559B62032C90461F0081192F /* Events.swift in Sources */ = {isa = PBXBuildFile; fileRef = 559B61E12C90461F0081192F /* Events.swift */; };
+		559B62052C90461F0081192F /* AltcraftSDK.swift in Sources */ = {isa = PBXBuildFile; fileRef = 559B61E52C90461F0081192F /* AltcraftSDK.swift */; };
+		559B62062C90461F0081192F /* DataBase.xcdatamodeld in Sources */ = {isa = PBXBuildFile; fileRef = 559B61E62C90461F0081192F /* DataBase.xcdatamodeld */; };
+		559B62072C90461F0081192F /* Constants.swift in Sources */ = {isa = PBXBuildFile; fileRef = 559B61E82C90461F0081192F /* Constants.swift */; };
+		559B62092C90461F0081192F /* Structures.swift in Sources */ = {isa = PBXBuildFile; fileRef = 559B61EA2C90461F0081192F /* Structures.swift */; };
+		559B620A2C90461F0081192F /* AltcraftPushReceiver.swift in Sources */ = {isa = PBXBuildFile; fileRef = 559B61EC2C90461F0081192F /* AltcraftPushReceiver.swift */; };
+		559B620B2C90461F0081192F /* NotificationManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 559B61ED2C90461F0081192F /* NotificationManager.swift */; };
+		559B620C2C90461F0081192F /* PushAction.swift in Sources */ = {isa = PBXBuildFile; fileRef = 559B61EE2C90461F0081192F /* PushAction.swift */; };
+		559F2D4D2E251CB000C5B7EE /* TokenManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 559F2D4C2E251CB000C5B7EE /* TokenManager.swift */; };
+		559F2D592E252BF000C5B7EE /* APNSInterface.swift in Sources */ = {isa = PBXBuildFile; fileRef = 559F2D582E252BF000C5B7EE /* APNSInterface.swift */; };
+		559F2D5B2E252C0D00C5B7EE /* FCMInterface.swift in Sources */ = {isa = PBXBuildFile; fileRef = 559F2D5A2E252C0D00C5B7EE /* FCMInterface.swift */; };
+		559F2D5D2E252C2600C5B7EE /* HMSInterface.swift in Sources */ = {isa = PBXBuildFile; fileRef = 559F2D5C2E252C2600C5B7EE /* HMSInterface.swift */; };
+		559F2D602E2532FE00C5B7EE /* JWTInterface.swift in Sources */ = {isa = PBXBuildFile; fileRef = 559F2D5F2E2532FE00C5B7EE /* JWTInterface.swift */; };
+		559F2D622E2533C800C5B7EE /* PublicPushTokenFunctions.swift in Sources */ = {isa = PBXBuildFile; fileRef = 559F2D612E2533C800C5B7EE /* PublicPushTokenFunctions.swift */; };
+		55B314902E7AC77F00A3F9E4 /* TestCoreDataStack.swift in Sources */ = {isa = PBXBuildFile; fileRef = 55B3148F2E7AC77F00A3F9E4 /* TestCoreDataStack.swift */; };
+		55B314922E7AC85000A3F9E4 /* UserDefaultsSandbox.swift in Sources */ = {isa = PBXBuildFile; fileRef = 55B314912E7AC85000A3F9E4 /* UserDefaultsSandbox.swift */; };
+		55B314942E7AC88100A3F9E4 /* MockURLSession.swift in Sources */ = {isa = PBXBuildFile; fileRef = 55B314932E7AC88100A3F9E4 /* MockURLSession.swift */; };
+		55B314992E7ACF8B00A3F9E4 /* StringBuilderTest.swift in Sources */ = {isa = PBXBuildFile; fileRef = 55B314982E7ACF8B00A3F9E4 /* StringBuilderTest.swift */; };
+		55B3149B2E7AD39E00A3F9E4 /* ExtensionTest.swift in Sources */ = {isa = PBXBuildFile; fileRef = 55B3149A2E7AD39E00A3F9E4 /* ExtensionTest.swift */; };
+		55B3149D2E7C542900A3F9E4 /* MapBuilderTest.swift in Sources */ = {isa = PBXBuildFile; fileRef = 55B3149C2E7C542900A3F9E4 /* MapBuilderTest.swift */; };
+		55B3149F2E7C564400A3F9E4 /* ActionFieldBuilderTest.swift in Sources */ = {isa = PBXBuildFile; fileRef = 55B3149E2E7C564400A3F9E4 /* ActionFieldBuilderTest.swift */; };
+		55B314A12E7C56DA00A3F9E4 /* PairBuilderTest.swift in Sources */ = {isa = PBXBuildFile; fileRef = 55B314A02E7C56DA00A3F9E4 /* PairBuilderTest.swift */; };
+		55B314A52E7C588100A3F9E4 /* AuthManagerTest.swift in Sources */ = {isa = PBXBuildFile; fileRef = 55B314A42E7C588100A3F9E4 /* AuthManagerTest.swift */; };
+		55B314AA2E7C5F1D00A3F9E4 /* AltcraftConfigurationTest.swift in Sources */ = {isa = PBXBuildFile; fileRef = 55B314A92E7C5F1D00A3F9E4 /* AltcraftConfigurationTest.swift */; };
+		55B314AC2E7C62CC00A3F9E4 /* ConfigManagerTest.swift in Sources */ = {isa = PBXBuildFile; fileRef = 55B314AB2E7C62CC00A3F9E4 /* ConfigManagerTest.swift */; };
+		55B314AF2E7C635A00A3F9E4 /* StoredVariablesManagerTest.swift in Sources */ = {isa = PBXBuildFile; fileRef = 55B314AE2E7C635A00A3F9E4 /* StoredVariablesManagerTest.swift */; };
+		55B314B12E7C669200A3F9E4 /* ConverterTest.swift in Sources */ = {isa = PBXBuildFile; fileRef = 55B314B02E7C669200A3F9E4 /* ConverterTest.swift */; };
+		55B314B32E7D444B00A3F9E4 /* RepositoryTest.swift in Sources */ = {isa = PBXBuildFile; fileRef = 55B314B22E7D444B00A3F9E4 /* RepositoryTest.swift */; };
+		55B314B62E7D469C00A3F9E4 /* CoreDataManagerTest.swift in Sources */ = {isa = PBXBuildFile; fileRef = 55B314B52E7D469C00A3F9E4 /* CoreDataManagerTest.swift */; };
+		55B314B82E7D484400A3F9E4 /* ClearingDbTest.swift in Sources */ = {isa = PBXBuildFile; fileRef = 55B314B72E7D484400A3F9E4 /* ClearingDbTest.swift */; };
+		55D3CCB62DB78BE700A4F2D7 /* PublicPushSubscriptionFunctions.swift in Sources */ = {isa = PBXBuildFile; fileRef = 55D3CCB52DB78BE700A4F2D7 /* PublicPushSubscriptionFunctions.swift */; };
+		55D3CCB82DB7B0E600A4F2D7 /* ActionFieldBuilder.swift in Sources */ = {isa = PBXBuildFile; fileRef = 55D3CCB72DB7B0E600A4F2D7 /* ActionFieldBuilder.swift */; };
+		55D3CCCB2DD201DA00A4F2D7 /* PairBuilder.swift in Sources */ = {isa = PBXBuildFile; fileRef = 55D3CCCA2DD201DA00A4F2D7 /* PairBuilder.swift */; };
+		55EA85CF2E66E6C3001CC5A5 /* ForegroundCheck.swift in Sources */ = {isa = PBXBuildFile; fileRef = 55EA85CE2E66E6C3001CC5A5 /* ForegroundCheck.swift */; };
+		55EA85ED2E6F3AB4001CC5A5 /* PublicPushEventFunctions.swift in Sources */ = {isa = PBXBuildFile; fileRef = 55EA85EC2E6F3AB4001CC5A5 /* PublicPushEventFunctions.swift */; };
+		55EA85F02E6F3ADC001CC5A5 /* PushEvent.swift in Sources */ = {isa = PBXBuildFile; fileRef = 55EA85EF2E6F3ADC001CC5A5 /* PushEvent.swift */; };
+/* End PBXBuildFile section */
+
+/* Begin PBXContainerItemProxy section */
+		550956242E7AB38B000BFBA8 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 559B61A72C903EF90081192F /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = 559B61AF2C903EF90081192F;
+			remoteInfo = Altcraft;
+		};
+/* End PBXContainerItemProxy section */
+
+/* Begin PBXFileReference section */
+		550956072E7951ED000BFBA8 /* RetryManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RetryManager.swift; sourceTree = "<group>"; };
+		5509560B2E79916B000BFBA8 /* ConfigManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ConfigManager.swift; sourceTree = "<group>"; };
+		5509561F2E7AB38B000BFBA8 /* AltcraftTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = AltcraftTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
+		5509FA9B2D5114F700B1DE03 /* SubscribeDbQueries.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SubscribeDbQueries.swift; sourceTree = "<group>"; };
+		5509FAA32D6CC8DC00B1DE03 /* EventList.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = EventList.swift; sourceTree = "<group>"; };
+		5516B3322D7AF881001FAF66 /* JWTManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = JWTManager.swift; sourceTree = "<group>"; };
+		5516B3352D7AFB96001FAF66 /* DeviceInfo.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DeviceInfo.swift; sourceTree = "<group>"; };
+		5516B3372D7B139E001FAF66 /* AuthManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AuthManager.swift; sourceTree = "<group>"; };
+		5516B3472D93F3D1001FAF66 /* Converter.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Converter.swift; sourceTree = "<group>"; };
+		5516B3492D942811001FAF66 /* Extension.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Extension.swift; sourceTree = "<group>"; };
+		5516B34B2D958762001FAF66 /* MapBuilder.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MapBuilder.swift; sourceTree = "<group>"; };
+		5516B3512D96AF65001FAF66 /* Repository.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Repository.swift; sourceTree = "<group>"; };
+		5516B3532D9C0517001FAF66 /* PushEventDbQueries.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PushEventDbQueries.swift; sourceTree = "<group>"; };
+		5516B3572D9C1B3F001FAF66 /* JsonFactory.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = JsonFactory.swift; sourceTree = "<group>"; };
+		552BCF822E7D61B5008A9116 /* ConfigDbQueriesTest.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ConfigDbQueriesTest.swift; sourceTree = "<group>"; };
+		552BCF842E7D65EB008A9116 /* SubscribeDbQueriesTest.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SubscribeDbQueriesTest.swift; sourceTree = "<group>"; };
+		552BCF862E7D6DDF008A9116 /* PushEventDbQueriesTest.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PushEventDbQueriesTest.swift; sourceTree = "<group>"; };
+		552BCF892E7D753F008A9116 /* DeviceInfoTest.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DeviceInfoTest.swift; sourceTree = "<group>"; };
+		552BCF8D2E7D7A4D008A9116 /* SDKEventsTest.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SDKEventsTest.swift; sourceTree = "<group>"; };
+		552BCF902E7D7AE9008A9116 /* RequestFactoryTest.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RequestFactoryTest.swift; sourceTree = "<group>"; };
+		552BCF922E7D7C19008A9116 /* JsonFactoryTest.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = JsonFactoryTest.swift; sourceTree = "<group>"; };
+		552BCF962E7D8413008A9116 /* PushEventTest.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PushEventTest.swift; sourceTree = "<group>"; };
+		552BCF982E7D84D5008A9116 /* PublicPushEventFunctionsTest.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PublicPushEventFunctionsTest.swift; sourceTree = "<group>"; };
+		552BCF9C2E7D8680008A9116 /* RequestManagerTest.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RequestManagerTest.swift; sourceTree = "<group>"; };
+		552BCF9E2E7D87DF008A9116 /* TokenUpdateTest.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TokenUpdateTest.swift; sourceTree = "<group>"; };
+		552BCFA02E7D886F008A9116 /* TokenManagerTest.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TokenManagerTest.swift; sourceTree = "<group>"; };
+		552BCFA22E7D8E24008A9116 /* PublicPushTokenFunctionsTest.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PublicPushTokenFunctionsTest.swift; sourceTree = "<group>"; };
+		552BCFA52E7D90A7008A9116 /* PushSubscribeTest.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PushSubscribeTest.swift; sourceTree = "<group>"; };
+		552BCFA72E7D9154008A9116 /* PublicPushSubscriptionTest.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PublicPushSubscriptionTest.swift; sourceTree = "<group>"; };
+		552BCFA92E7D92DC008A9116 /* SubscribeQueueTest.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SubscribeQueueTest.swift; sourceTree = "<group>"; };
+		552BCFAB2E7D9E41008A9116 /* ImageFormat.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ImageFormat.swift; sourceTree = "<group>"; };
+		552BCFAD2E7DA0E4008A9116 /* AltcraftPushReceiverTest.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AltcraftPushReceiverTest.swift; sourceTree = "<group>"; };
+		552BCFAF2E7DA289008A9116 /* NotificationManagerTest.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NotificationManagerTest.swift; sourceTree = "<group>"; };
+		552BCFB12E7DA32C008A9116 /* PushActionTest.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PushActionTest.swift; sourceTree = "<group>"; };
+		552BCFB32E7DA8EF008A9116 /* CoreTest.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CoreTest.swift; sourceTree = "<group>"; };
+		552BCFB62E7DA9F7008A9116 /* RetryTest.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RetryTest.swift; sourceTree = "<group>"; };
+		552BCFB82E7DAA99008A9116 /* RetryManagerTest.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RetryManagerTest.swift; sourceTree = "<group>"; };
+		552BCFBB2E7DADD3008A9116 /* ClearCacheTest.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ClearCacheTest.swift; sourceTree = "<group>"; };
+		552BCFBE2E7DAE43008A9116 /* InitTest.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = InitTest.swift; sourceTree = "<group>"; };
+		552BCFC02E7DAF49008A9116 /* AccessToBackgroundTest.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AccessToBackgroundTest.swift; sourceTree = "<group>"; };
+		552BCFC22E7DB253008A9116 /* BackgroundTaskTest.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BackgroundTaskTest.swift; sourceTree = "<group>"; };
+		553B085C2E5DD49C004526D6 /* SubscribeQueue.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SubscribeQueue.swift; sourceTree = "<group>"; };
+		55527FB02D314BCE00919755 /* StringBuilder.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StringBuilder.swift; sourceTree = "<group>"; };
+		556FC7382E30D2D2000584AA /* Init.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Init.swift; sourceTree = "<group>"; };
+		556FC73A2E30EE99000584AA /* Core.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Core.swift; sourceTree = "<group>"; };
+		557556D22CE2566900F6B50C /* NetworkMonitor.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NetworkMonitor.swift; sourceTree = "<group>"; };
+		5579FD5E2D9D6F110000131C /* RequestManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RequestManager.swift; sourceTree = "<group>"; };
+		559B61B02C903EF90081192F /* Altcraft.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; includeInIndex = 0; path = Altcraft.framework; sourceTree = BUILT_PRODUCTS_DIR; };
+		559B61B32C903EF90081192F /* Altcraft.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = Altcraft.h; sourceTree = "<group>"; };
+		559B61B42C903EF90081192F /* Altcraft.docc */ = {isa = PBXFileReference; lastKnownFileType = folder.documentationcatalog; path = Altcraft.docc; sourceTree = "<group>"; };
+		559B61CA2C90461F0081192F /* AltcraftConfiguration.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = AltcraftConfiguration.swift; sourceTree = "<group>"; };
+		559B61CC2C90461F0081192F /* AccessToBackground.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = AccessToBackground.swift; sourceTree = "<group>"; };
+		559B61CD2C90461F0081192F /* BackgroundTasks.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = BackgroundTasks.swift; sourceTree = "<group>"; };
+		559B61CF2C90461F0081192F /* CoreDataManager.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = CoreDataManager.swift; sourceTree = "<group>"; };
+		559B61D12C90461F0081192F /* RequestFactory.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = RequestFactory.swift; sourceTree = "<group>"; };
+		559B61D32C90461F0081192F /* ClearCache.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = ClearCache.swift; sourceTree = "<group>"; };
+		559B61D52C90461F0081192F /* PushSubscribe.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = PushSubscribe.swift; sourceTree = "<group>"; };
+		559B61D62C90461F0081192F /* Retry.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = Retry.swift; sourceTree = "<group>"; };
+		559B61D72C90461F0081192F /* StoredVariablesManager.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = StoredVariablesManager.swift; sourceTree = "<group>"; };
+		559B61D82C90461F0081192F /* TokenUpdate.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = TokenUpdate.swift; sourceTree = "<group>"; };
+		559B61DA2C90461F0081192F /* ClearingDb.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = ClearingDb.swift; sourceTree = "<group>"; };
+		559B61DB2C90461F0081192F /* ConfigDbQueries.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = ConfigDbQueries.swift; sourceTree = "<group>"; };
+		559B61E12C90461F0081192F /* Events.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = Events.swift; sourceTree = "<group>"; };
+		559B61E52C90461F0081192F /* AltcraftSDK.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = AltcraftSDK.swift; sourceTree = "<group>"; };
+		559B61E72C90461F0081192F /* DataBase.xcdatamodel */ = {isa = PBXFileReference; lastKnownFileType = wrapper.xcdatamodel; path = DataBase.xcdatamodel; sourceTree = "<group>"; };
+		559B61E82C90461F0081192F /* Constants.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = Constants.swift; sourceTree = "<group>"; };
+		559B61EA2C90461F0081192F /* Structures.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = Structures.swift; sourceTree = "<group>"; };
+		559B61EC2C90461F0081192F /* AltcraftPushReceiver.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = AltcraftPushReceiver.swift; sourceTree = "<group>"; };
+		559B61ED2C90461F0081192F /* NotificationManager.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = NotificationManager.swift; sourceTree = "<group>"; };
+		559B61EE2C90461F0081192F /* PushAction.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = PushAction.swift; sourceTree = "<group>"; };
+		559F2D4C2E251CB000C5B7EE /* TokenManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TokenManager.swift; sourceTree = "<group>"; };
+		559F2D582E252BF000C5B7EE /* APNSInterface.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = APNSInterface.swift; sourceTree = "<group>"; };
+		559F2D5A2E252C0D00C5B7EE /* FCMInterface.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FCMInterface.swift; sourceTree = "<group>"; };
+		559F2D5C2E252C2600C5B7EE /* HMSInterface.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HMSInterface.swift; sourceTree = "<group>"; };
+		559F2D5F2E2532FE00C5B7EE /* JWTInterface.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = JWTInterface.swift; sourceTree = "<group>"; };
+		559F2D612E2533C800C5B7EE /* PublicPushTokenFunctions.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PublicPushTokenFunctions.swift; sourceTree = "<group>"; };
+		55B3148F2E7AC77F00A3F9E4 /* TestCoreDataStack.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TestCoreDataStack.swift; sourceTree = "<group>"; };
+		55B314912E7AC85000A3F9E4 /* UserDefaultsSandbox.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = UserDefaultsSandbox.swift; sourceTree = "<group>"; };
+		55B314932E7AC88100A3F9E4 /* MockURLSession.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MockURLSession.swift; sourceTree = "<group>"; };
+		55B314982E7ACF8B00A3F9E4 /* StringBuilderTest.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StringBuilderTest.swift; sourceTree = "<group>"; };
+		55B3149A2E7AD39E00A3F9E4 /* ExtensionTest.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ExtensionTest.swift; sourceTree = "<group>"; };
+		55B3149C2E7C542900A3F9E4 /* MapBuilderTest.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MapBuilderTest.swift; sourceTree = "<group>"; };
+		55B3149E2E7C564400A3F9E4 /* ActionFieldBuilderTest.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ActionFieldBuilderTest.swift; sourceTree = "<group>"; };
+		55B314A02E7C56DA00A3F9E4 /* PairBuilderTest.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PairBuilderTest.swift; sourceTree = "<group>"; };
+		55B314A42E7C588100A3F9E4 /* AuthManagerTest.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AuthManagerTest.swift; sourceTree = "<group>"; };
+		55B314A92E7C5F1D00A3F9E4 /* AltcraftConfigurationTest.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AltcraftConfigurationTest.swift; sourceTree = "<group>"; };
+		55B314AB2E7C62CC00A3F9E4 /* ConfigManagerTest.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ConfigManagerTest.swift; sourceTree = "<group>"; };
+		55B314AE2E7C635A00A3F9E4 /* StoredVariablesManagerTest.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StoredVariablesManagerTest.swift; sourceTree = "<group>"; };
+		55B314B02E7C669200A3F9E4 /* ConverterTest.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ConverterTest.swift; sourceTree = "<group>"; };
+		55B314B22E7D444B00A3F9E4 /* RepositoryTest.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RepositoryTest.swift; sourceTree = "<group>"; };
+		55B314B52E7D469C00A3F9E4 /* CoreDataManagerTest.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CoreDataManagerTest.swift; sourceTree = "<group>"; };
+		55B314B72E7D484400A3F9E4 /* ClearingDbTest.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ClearingDbTest.swift; sourceTree = "<group>"; };
+		55D3CCB52DB78BE700A4F2D7 /* PublicPushSubscriptionFunctions.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PublicPushSubscriptionFunctions.swift; sourceTree = "<group>"; };
+		55D3CCB72DB7B0E600A4F2D7 /* ActionFieldBuilder.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ActionFieldBuilder.swift; sourceTree = "<group>"; };
+		55D3CCCA2DD201DA00A4F2D7 /* PairBuilder.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PairBuilder.swift; sourceTree = "<group>"; };
+		55EA85CE2E66E6C3001CC5A5 /* ForegroundCheck.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ForegroundCheck.swift; sourceTree = "<group>"; };
+		55EA85EC2E6F3AB4001CC5A5 /* PublicPushEventFunctions.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PublicPushEventFunctions.swift; sourceTree = "<group>"; };
+		55EA85EF2E6F3ADC001CC5A5 /* PushEvent.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PushEvent.swift; sourceTree = "<group>"; };
+/* End PBXFileReference section */
+
+/* Begin PBXFrameworksBuildPhase section */
+		5509561C2E7AB38B000BFBA8 /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				550956232E7AB38B000BFBA8 /* Altcraft.framework in Frameworks */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		559B61AD2C903EF90081192F /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXFrameworksBuildPhase section */
+
+/* Begin PBXGroup section */
+		550956122E7AB318000BFBA8 /* AltcraftTests */ = {
+			isa = PBXGroup;
+			children = (
+				55B3148D2E7AC75D00A3F9E4 /* Helpers */,
+				55B3148A2E7AC4DE00A3F9E4 /* Mocks */,
+				55B314882E7AC4BD00A3F9E4 /* Unit */,
+			);
+			path = AltcraftTests;
+			sourceTree = "<group>";
+		};
+		5516B3312D7AF81E001FAF66 /* auth */ = {
+			isa = PBXGroup;
+			children = (
+				5516B3322D7AF881001FAF66 /* JWTManager.swift */,
+				5516B3372D7B139E001FAF66 /* AuthManager.swift */,
+			);
+			path = auth;
+			sourceTree = "<group>";
+		};
+		5516B3342D7AFB70001FAF66 /* device */ = {
+			isa = PBXGroup;
+			children = (
+				5516B3352D7AFB96001FAF66 /* DeviceInfo.swift */,
+			);
+			path = device;
+			sourceTree = "<group>";
+		};
+		552BCF882E7D752A008A9116 /* device */ = {
+			isa = PBXGroup;
+			children = (
+				552BCF892E7D753F008A9116 /* DeviceInfoTest.swift */,
+			);
+			path = device;
+			sourceTree = "<group>";
+		};
+		552BCF8B2E7D7A2B008A9116 /* event */ = {
+			isa = PBXGroup;
+			children = (
+				552BCF8D2E7D7A4D008A9116 /* SDKEventsTest.swift */,
+			);
+			path = event;
+			sourceTree = "<group>";
+		};
+		552BCF8F2E7D7A7E008A9116 /* factory */ = {
+			isa = PBXGroup;
+			children = (
+				552BCF902E7D7AE9008A9116 /* RequestFactoryTest.swift */,
+				552BCF922E7D7C19008A9116 /* JsonFactoryTest.swift */,
+			);
+			path = factory;
+			sourceTree = "<group>";
+		};
+		552BCF942E7D83D8008A9116 /* push */ = {
+			isa = PBXGroup;
+			children = (
+				552BCFB32E7DA8EF008A9116 /* CoreTest.swift */,
+				552BCFB12E7DA32C008A9116 /* PushActionTest.swift */,
+				552BCFAD2E7DA0E4008A9116 /* AltcraftPushReceiverTest.swift */,
+				552BCFAF2E7DA289008A9116 /* NotificationManagerTest.swift */,
+				552BCFA42E7D8E6E008A9116 /* subscribe */,
+				552BCF9B2E7D85CB008A9116 /* token */,
+				552BCF952E7D83E3008A9116 /* events */,
+			);
+			path = push;
+			sourceTree = "<group>";
+		};
+		552BCF952E7D83E3008A9116 /* events */ = {
+			isa = PBXGroup;
+			children = (
+				552BCF962E7D8413008A9116 /* PushEventTest.swift */,
+				552BCF982E7D84D5008A9116 /* PublicPushEventFunctionsTest.swift */,
+			);
+			path = events;
+			sourceTree = "<group>";
+		};
+		552BCF9A2E7D84F5008A9116 /* network */ = {
+			isa = PBXGroup;
+			children = (
+				552BCF9C2E7D8680008A9116 /* RequestManagerTest.swift */,
+			);
+			path = network;
+			sourceTree = "<group>";
+		};
+		552BCF9B2E7D85CB008A9116 /* token */ = {
+			isa = PBXGroup;
+			children = (
+				552BCF9E2E7D87DF008A9116 /* TokenUpdateTest.swift */,
+				552BCFA02E7D886F008A9116 /* TokenManagerTest.swift */,
+				552BCFA22E7D8E24008A9116 /* PublicPushTokenFunctionsTest.swift */,
+			);
+			path = token;
+			sourceTree = "<group>";
+		};
+		552BCFA42E7D8E6E008A9116 /* subscribe */ = {
+			isa = PBXGroup;
+			children = (
+				552BCFA52E7D90A7008A9116 /* PushSubscribeTest.swift */,
+				552BCFA72E7D9154008A9116 /* PublicPushSubscriptionTest.swift */,
+				552BCFA92E7D92DC008A9116 /* SubscribeQueueTest.swift */,
+			);
+			path = subscribe;
+			sourceTree = "<group>";
+		};
+		552BCFB52E7DA9DE008A9116 /* retry */ = {
+			isa = PBXGroup;
+			children = (
+				552BCFB62E7DA9F7008A9116 /* RetryTest.swift */,
+				552BCFB82E7DAA99008A9116 /* RetryManagerTest.swift */,
+			);
+			path = retry;
+			sourceTree = "<group>";
+		};
+		552BCFBA2E7DADC4008A9116 /* system */ = {
+			isa = PBXGroup;
+			children = (
+				552BCFBB2E7DADD3008A9116 /* ClearCacheTest.swift */,
+				552BCFBE2E7DAE43008A9116 /* InitTest.swift */,
+			);
+			path = system;
+			sourceTree = "<group>";
+		};
+		552BCFBD2E7DAE25008A9116 /* background */ = {
+			isa = PBXGroup;
+			children = (
+				552BCFC02E7DAF49008A9116 /* AccessToBackgroundTest.swift */,
+				552BCFC22E7DB253008A9116 /* BackgroundTaskTest.swift */,
+			);
+			path = background;
+			sourceTree = "<group>";
+		};
+		556FC7372E30D2B5000584AA /* retry */ = {
+			isa = PBXGroup;
+			children = (
+				559B61D62C90461F0081192F /* Retry.swift */,
+				550956072E7951ED000BFBA8 /* RetryManager.swift */,
+			);
+			path = retry;
+			sourceTree = "<group>";
+		};
+		559B61A62C903EF90081192F = {
+			isa = PBXGroup;
+			children = (
+				559B61B22C903EF90081192F /* Altcraft */,
+				550956122E7AB318000BFBA8 /* AltcraftTests */,
+				559B61B12C903EF90081192F /* Products */,
+			);
+			sourceTree = "<group>";
+		};
+		559B61B12C903EF90081192F /* Products */ = {
+			isa = PBXGroup;
+			children = (
+				559B61B02C903EF90081192F /* Altcraft.framework */,
+				5509561F2E7AB38B000BFBA8 /* AltcraftTests.xctest */,
+			);
+			name = Products;
+			sourceTree = "<group>";
+		};
+		559B61B22C903EF90081192F /* Altcraft */ = {
+			isa = PBXGroup;
+			children = (
+				559B61B42C903EF90081192F /* Altcraft.docc */,
+				559B61B32C903EF90081192F /* Altcraft.h */,
+				559B61E52C90461F0081192F /* AltcraftSDK.swift */,
+				559B61E42C90461F0081192F /* additional */,
+				5516B3312D7AF81E001FAF66 /* auth */,
+				559B61CE2C90461F0081192F /* background */,
+				559B61CB2C90461F0081192F /* configuration */,
+				559B61EB2C90461F0081192F /* data */,
+				559B61E02C90461F0081192F /* dataBase */,
+				559B61E62C90461F0081192F /* DataBase.xcdatamodeld */,
+				5516B3342D7AFB70001FAF66 /* device */,
+				559B61E22C90461F0081192F /* event */,
+				559B61D22C90461F0081192F /* factory */,
+				559F2D5E2E2532C400C5B7EE /* interfaces */,
+				55E406602D9EE5B800F375EC /* network */,
+				559B61F02C90461F0081192F /* push */,
+				556FC7372E30D2B5000584AA /* retry */,
+				559B61D92C90461F0081192F /* system */,
+			);
+			path = Altcraft;
+			sourceTree = "<group>";
+		};
+		559B61CB2C90461F0081192F /* configuration */ = {
+			isa = PBXGroup;
+			children = (
+				559B61CA2C90461F0081192F /* AltcraftConfiguration.swift */,
+				5509560B2E79916B000BFBA8 /* ConfigManager.swift */,
+			);
+			path = configuration;
+			sourceTree = "<group>";
+		};
+		559B61CE2C90461F0081192F /* background */ = {
+			isa = PBXGroup;
+			children = (
+				559B61CC2C90461F0081192F /* AccessToBackground.swift */,
+				559B61CD2C90461F0081192F /* BackgroundTasks.swift */,
+			);
+			path = background;
+			sourceTree = "<group>";
+		};
+		559B61D22C90461F0081192F /* factory */ = {
+			isa = PBXGroup;
+			children = (
+				559B61D12C90461F0081192F /* RequestFactory.swift */,
+				5516B3572D9C1B3F001FAF66 /* JsonFactory.swift */,
+			);
+			path = factory;
+			sourceTree = "<group>";
+		};
+		559B61D92C90461F0081192F /* system */ = {
+			isa = PBXGroup;
+			children = (
+				559B61D32C90461F0081192F /* ClearCache.swift */,
+				556FC7382E30D2D2000584AA /* Init.swift */,
+			);
+			path = system;
+			sourceTree = "<group>";
+		};
+		559B61E02C90461F0081192F /* dataBase */ = {
+			isa = PBXGroup;
+			children = (
+				559B61CF2C90461F0081192F /* CoreDataManager.swift */,
+				559B61DA2C90461F0081192F /* ClearingDb.swift */,
+				559B61DB2C90461F0081192F /* ConfigDbQueries.swift */,
+				5509FA9B2D5114F700B1DE03 /* SubscribeDbQueries.swift */,
+				5516B3532D9C0517001FAF66 /* PushEventDbQueries.swift */,
+			);
+			path = dataBase;
+			sourceTree = "<group>";
+		};
+		559B61E22C90461F0081192F /* event */ = {
+			isa = PBXGroup;
+			children = (
+				559B61E12C90461F0081192F /* Events.swift */,
+				5509FAA32D6CC8DC00B1DE03 /* EventList.swift */,
+			);
+			path = event;
+			sourceTree = "<group>";
+		};
+		559B61E42C90461F0081192F /* additional */ = {
+			isa = PBXGroup;
+			children = (
+				55527FB02D314BCE00919755 /* StringBuilder.swift */,
+				5516B3492D942811001FAF66 /* Extension.swift */,
+				5516B34B2D958762001FAF66 /* MapBuilder.swift */,
+				55D3CCB72DB7B0E600A4F2D7 /* ActionFieldBuilder.swift */,
+				55D3CCCA2DD201DA00A4F2D7 /* PairBuilder.swift */,
+				55EA85CE2E66E6C3001CC5A5 /* ForegroundCheck.swift */,
+				552BCFAB2E7D9E41008A9116 /* ImageFormat.swift */,
+			);
+			path = additional;
+			sourceTree = "<group>";
+		};
+		559B61EB2C90461F0081192F /* data */ = {
+			isa = PBXGroup;
+			children = (
+				559B61D72C90461F0081192F /* StoredVariablesManager.swift */,
+				559B61E82C90461F0081192F /* Constants.swift */,
+				559B61EA2C90461F0081192F /* Structures.swift */,
+				5516B3472D93F3D1001FAF66 /* Converter.swift */,
+				5516B3512D96AF65001FAF66 /* Repository.swift */,
+			);
+			path = data;
+			sourceTree = "<group>";
+		};
+		559B61F02C90461F0081192F /* push */ = {
+			isa = PBXGroup;
+			children = (
+				55EA85EB2E6F3A9F001CC5A5 /* events */,
+				55D3CCC72DD1ECCE00A4F2D7 /* token */,
+				55D3CCB12DB78B9300A4F2D7 /* subscribe */,
+				559B61EC2C90461F0081192F /* AltcraftPushReceiver.swift */,
+				559B61ED2C90461F0081192F /* NotificationManager.swift */,
+				559B61EE2C90461F0081192F /* PushAction.swift */,
+				556FC73A2E30EE99000584AA /* Core.swift */,
+			);
+			path = push;
+			sourceTree = "<group>";
+		};
+		559F2D5E2E2532C400C5B7EE /* interfaces */ = {
+			isa = PBXGroup;
+			children = (
+				559F2D582E252BF000C5B7EE /* APNSInterface.swift */,
+				559F2D5A2E252C0D00C5B7EE /* FCMInterface.swift */,
+				559F2D5C2E252C2600C5B7EE /* HMSInterface.swift */,
+				559F2D5F2E2532FE00C5B7EE /* JWTInterface.swift */,
+			);
+			path = interfaces;
+			sourceTree = "<group>";
+		};
+		55B314882E7AC4BD00A3F9E4 /* Unit */ = {
+			isa = PBXGroup;
+			children = (
+				552BCFBD2E7DAE25008A9116 /* background */,
+				552BCFBA2E7DADC4008A9116 /* system */,
+				552BCFB52E7DA9DE008A9116 /* retry */,
+				552BCF9A2E7D84F5008A9116 /* network */,
+				552BCF942E7D83D8008A9116 /* push */,
+				552BCF8F2E7D7A7E008A9116 /* factory */,
+				552BCF8B2E7D7A2B008A9116 /* event */,
+				552BCF882E7D752A008A9116 /* device */,
+				55B314B42E7D467300A3F9E4 /* dataBase */,
+				55B314AD2E7C634D00A3F9E4 /* data */,
+				55B314A82E7C5DFE00A3F9E4 /* configuration */,
+				55B314A32E7C571F00A3F9E4 /* auth */,
+				55B314972E7ACD0300A3F9E4 /* additional */,
+			);
+			path = Unit;
+			sourceTree = "<group>";
+		};
+		55B3148A2E7AC4DE00A3F9E4 /* Mocks */ = {
+			isa = PBXGroup;
+			children = (
+				55B314932E7AC88100A3F9E4 /* MockURLSession.swift */,
+			);
+			path = Mocks;
+			sourceTree = "<group>";
+		};
+		55B3148D2E7AC75D00A3F9E4 /* Helpers */ = {
+			isa = PBXGroup;
+			children = (
+				55B3148F2E7AC77F00A3F9E4 /* TestCoreDataStack.swift */,
+				55B314912E7AC85000A3F9E4 /* UserDefaultsSandbox.swift */,
+			);
+			path = Helpers;
+			sourceTree = "<group>";
+		};
+		55B314972E7ACD0300A3F9E4 /* additional */ = {
+			isa = PBXGroup;
+			children = (
+				55B314982E7ACF8B00A3F9E4 /* StringBuilderTest.swift */,
+				55B3149A2E7AD39E00A3F9E4 /* ExtensionTest.swift */,
+				55B3149C2E7C542900A3F9E4 /* MapBuilderTest.swift */,
+				55B3149E2E7C564400A3F9E4 /* ActionFieldBuilderTest.swift */,
+				55B314A02E7C56DA00A3F9E4 /* PairBuilderTest.swift */,
+			);
+			path = additional;
+			sourceTree = "<group>";
+		};
+		55B314A32E7C571F00A3F9E4 /* auth */ = {
+			isa = PBXGroup;
+			children = (
+				55B314A42E7C588100A3F9E4 /* AuthManagerTest.swift */,
+			);
+			path = auth;
+			sourceTree = "<group>";
+		};
+		55B314A82E7C5DFE00A3F9E4 /* configuration */ = {
+			isa = PBXGroup;
+			children = (
+				55B314A92E7C5F1D00A3F9E4 /* AltcraftConfigurationTest.swift */,
+				55B314AB2E7C62CC00A3F9E4 /* ConfigManagerTest.swift */,
+			);
+			path = configuration;
+			sourceTree = "<group>";
+		};
+		55B314AD2E7C634D00A3F9E4 /* data */ = {
+			isa = PBXGroup;
+			children = (
+				55B314AE2E7C635A00A3F9E4 /* StoredVariablesManagerTest.swift */,
+				55B314B02E7C669200A3F9E4 /* ConverterTest.swift */,
+				55B314B22E7D444B00A3F9E4 /* RepositoryTest.swift */,
+			);
+			path = data;
+			sourceTree = "<group>";
+		};
+		55B314B42E7D467300A3F9E4 /* dataBase */ = {
+			isa = PBXGroup;
+			children = (
+				55B314B52E7D469C00A3F9E4 /* CoreDataManagerTest.swift */,
+				55B314B72E7D484400A3F9E4 /* ClearingDbTest.swift */,
+				552BCF822E7D61B5008A9116 /* ConfigDbQueriesTest.swift */,
+				552BCF842E7D65EB008A9116 /* SubscribeDbQueriesTest.swift */,
+				552BCF862E7D6DDF008A9116 /* PushEventDbQueriesTest.swift */,
+			);
+			path = dataBase;
+			sourceTree = "<group>";
+		};
+		55D3CCB12DB78B9300A4F2D7 /* subscribe */ = {
+			isa = PBXGroup;
+			children = (
+				559B61D52C90461F0081192F /* PushSubscribe.swift */,
+				55D3CCB52DB78BE700A4F2D7 /* PublicPushSubscriptionFunctions.swift */,
+				553B085C2E5DD49C004526D6 /* SubscribeQueue.swift */,
+			);
+			path = subscribe;
+			sourceTree = "<group>";
+		};
+		55D3CCC72DD1ECCE00A4F2D7 /* token */ = {
+			isa = PBXGroup;
+			children = (
+				559B61D82C90461F0081192F /* TokenUpdate.swift */,
+				559F2D4C2E251CB000C5B7EE /* TokenManager.swift */,
+				559F2D612E2533C800C5B7EE /* PublicPushTokenFunctions.swift */,
+			);
+			path = token;
+			sourceTree = "<group>";
+		};
+		55E406602D9EE5B800F375EC /* network */ = {
+			isa = PBXGroup;
+			children = (
+				557556D22CE2566900F6B50C /* NetworkMonitor.swift */,
+				5579FD5E2D9D6F110000131C /* RequestManager.swift */,
+			);
+			path = network;
+			sourceTree = "<group>";
+		};
+		55EA85EB2E6F3A9F001CC5A5 /* events */ = {
+			isa = PBXGroup;
+			children = (
+				55EA85EC2E6F3AB4001CC5A5 /* PublicPushEventFunctions.swift */,
+				55EA85EF2E6F3ADC001CC5A5 /* PushEvent.swift */,
+			);
+			path = events;
+			sourceTree = "<group>";
+		};
+/* End PBXGroup section */
+
+/* Begin PBXHeadersBuildPhase section */
+		559B61AB2C903EF90081192F /* Headers */ = {
+			isa = PBXHeadersBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				559B61C12C903EF90081192F /* Altcraft.h in Headers */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXHeadersBuildPhase section */
+
+/* Begin PBXNativeTarget section */
+		5509561E2E7AB38B000BFBA8 /* AltcraftTests */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = 550956262E7AB38B000BFBA8 /* Build configuration list for PBXNativeTarget "AltcraftTests" */;
+			buildPhases = (
+				5509561B2E7AB38B000BFBA8 /* Sources */,
+				5509561C2E7AB38B000BFBA8 /* Frameworks */,
+				5509561D2E7AB38B000BFBA8 /* Resources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+				550956252E7AB38B000BFBA8 /* PBXTargetDependency */,
+			);
+			name = AltcraftTests;
+			productName = AltcraftTests;
+			productReference = 5509561F2E7AB38B000BFBA8 /* AltcraftTests.xctest */;
+			productType = "com.apple.product-type.bundle.unit-test";
+		};
+		559B61AF2C903EF90081192F /* Altcraft */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = 559B61C42C903EF90081192F /* Build configuration list for PBXNativeTarget "Altcraft" */;
+			buildPhases = (
+				559B61AB2C903EF90081192F /* Headers */,
+				559B61AC2C903EF90081192F /* Sources */,
+				559B61AD2C903EF90081192F /* Frameworks */,
+				559B61AE2C903EF90081192F /* Resources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+			);
+			name = Altcraft;
+			productName = Altcraft;
+			productReference = 559B61B02C903EF90081192F /* Altcraft.framework */;
+			productType = "com.apple.product-type.framework";
+		};
+/* End PBXNativeTarget section */
+
+/* Begin PBXProject section */
+		559B61A72C903EF90081192F /* Project object */ = {
+			isa = PBXProject;
+			attributes = {
+				BuildIndependentTargetsInParallel = 1;
+				LastSwiftUpdateCheck = 1530;
+				LastUpgradeCheck = 1530;
+				TargetAttributes = {
+					5509561E2E7AB38B000BFBA8 = {
+						CreatedOnToolsVersion = 15.3;
+						LastSwiftMigration = 1530;
+					};
+					559B61AF2C903EF90081192F = {
+						CreatedOnToolsVersion = 15.3;
+					};
+				};
+			};
+			buildConfigurationList = 559B61AA2C903EF90081192F /* Build configuration list for PBXProject "Altcraft" */;
+			compatibilityVersion = "Xcode 14.0";
+			developmentRegion = en;
+			hasScannedForEncodings = 0;
+			knownRegions = (
+				en,
+				Base,
+			);
+			mainGroup = 559B61A62C903EF90081192F;
+			productRefGroup = 559B61B12C903EF90081192F /* Products */;
+			projectDirPath = "";
+			projectRoot = "";
+			targets = (
+				559B61AF2C903EF90081192F /* Altcraft */,
+				5509561E2E7AB38B000BFBA8 /* AltcraftTests */,
+			);
+		};
+/* End PBXProject section */
+
+/* Begin PBXResourcesBuildPhase section */
+		5509561D2E7AB38B000BFBA8 /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		559B61AE2C903EF90081192F /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXResourcesBuildPhase section */
+
+/* Begin PBXSourcesBuildPhase section */
+		5509561B2E7AB38B000BFBA8 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				55B314B62E7D469C00A3F9E4 /* CoreDataManagerTest.swift in Sources */,
+				552BCFA32E7D8E24008A9116 /* PublicPushTokenFunctionsTest.swift in Sources */,
+				552BCFB72E7DA9F7008A9116 /* RetryTest.swift in Sources */,
+				552BCF9F2E7D87DF008A9116 /* TokenUpdateTest.swift in Sources */,
+				552BCFB92E7DAA99008A9116 /* RetryManagerTest.swift in Sources */,
+				552BCF852E7D65EB008A9116 /* SubscribeDbQueriesTest.swift in Sources */,
+				552BCF992E7D84D5008A9116 /* PublicPushEventFunctionsTest.swift in Sources */,
+				55B3149F2E7C564400A3F9E4 /* ActionFieldBuilderTest.swift in Sources */,
+				552BCF8E2E7D7A4D008A9116 /* SDKEventsTest.swift in Sources */,
+				55B314A52E7C588100A3F9E4 /* AuthManagerTest.swift in Sources */,
+				55B3149D2E7C542900A3F9E4 /* MapBuilderTest.swift in Sources */,
+				55B3149B2E7AD39E00A3F9E4 /* ExtensionTest.swift in Sources */,
+				55B314AF2E7C635A00A3F9E4 /* StoredVariablesManagerTest.swift in Sources */,
+				552BCFBF2E7DAE43008A9116 /* InitTest.swift in Sources */,
+				55B314A12E7C56DA00A3F9E4 /* PairBuilderTest.swift in Sources */,
+				55B314942E7AC88100A3F9E4 /* MockURLSession.swift in Sources */,
+				55B314B32E7D444B00A3F9E4 /* RepositoryTest.swift in Sources */,
+				552BCFA12E7D886F008A9116 /* TokenManagerTest.swift in Sources */,
+				552BCF832E7D61B5008A9116 /* ConfigDbQueriesTest.swift in Sources */,
+				552BCFC12E7DAF49008A9116 /* AccessToBackgroundTest.swift in Sources */,
+				552BCF972E7D8413008A9116 /* PushEventTest.swift in Sources */,
+				552BCFC32E7DB253008A9116 /* BackgroundTaskTest.swift in Sources */,
+				552BCFBC2E7DADD3008A9116 /* ClearCacheTest.swift in Sources */,
+				552BCFAE2E7DA0E4008A9116 /* AltcraftPushReceiverTest.swift in Sources */,
+				55B314902E7AC77F00A3F9E4 /* TestCoreDataStack.swift in Sources */,
+				552BCF9D2E7D8680008A9116 /* RequestManagerTest.swift in Sources */,
+				552BCFB02E7DA289008A9116 /* NotificationManagerTest.swift in Sources */,
+				552BCFA82E7D9154008A9116 /* PublicPushSubscriptionTest.swift in Sources */,
+				552BCF872E7D6DDF008A9116 /* PushEventDbQueriesTest.swift in Sources */,
+				55B314B82E7D484400A3F9E4 /* ClearingDbTest.swift in Sources */,
+				552BCFAA2E7D92DC008A9116 /* SubscribeQueueTest.swift in Sources */,
+				55B314AA2E7C5F1D00A3F9E4 /* AltcraftConfigurationTest.swift in Sources */,
+				552BCFB42E7DA8EF008A9116 /* CoreTest.swift in Sources */,
+				552BCFB22E7DA32C008A9116 /* PushActionTest.swift in Sources */,
+				55B314922E7AC85000A3F9E4 /* UserDefaultsSandbox.swift in Sources */,
+				55B314AC2E7C62CC00A3F9E4 /* ConfigManagerTest.swift in Sources */,
+				55B314B12E7C669200A3F9E4 /* ConverterTest.swift in Sources */,
+				55B314992E7ACF8B00A3F9E4 /* StringBuilderTest.swift in Sources */,
+				552BCFA62E7D90A7008A9116 /* PushSubscribeTest.swift in Sources */,
+				552BCF912E7D7AE9008A9116 /* RequestFactoryTest.swift in Sources */,
+				552BCF8A2E7D753F008A9116 /* DeviceInfoTest.swift in Sources */,
+				552BCF932E7D7C19008A9116 /* JsonFactoryTest.swift in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		559B61AC2C903EF90081192F /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				5516B3482D93F3D1001FAF66 /* Converter.swift in Sources */,
+				559B61FD2C90461F0081192F /* ClearingDb.swift in Sources */,
+				5516B3382D7B139E001FAF66 /* AuthManager.swift in Sources */,
+				559B61FC2C90461F0081192F /* TokenUpdate.swift in Sources */,
+				553B085D2E5DD49C004526D6 /* SubscribeQueue.swift in Sources */,
+				5509560C2E79916B000BFBA8 /* ConfigManager.swift in Sources */,
+				5516B3522D96AF65001FAF66 /* Repository.swift in Sources */,
+				559B61F92C90461F0081192F /* PushSubscribe.swift in Sources */,
+				559F2D602E2532FE00C5B7EE /* JWTInterface.swift in Sources */,
+				55EA85F02E6F3ADC001CC5A5 /* PushEvent.swift in Sources */,
+				559B62032C90461F0081192F /* Events.swift in Sources */,
+				556FC7392E30D2D2000584AA /* Init.swift in Sources */,
+				552BCFAC2E7D9E41008A9116 /* ImageFormat.swift in Sources */,
+				5516B34A2D942811001FAF66 /* Extension.swift in Sources */,
+				559F2D622E2533C800C5B7EE /* PublicPushTokenFunctions.swift in Sources */,
+				559B62052C90461F0081192F /* AltcraftSDK.swift in Sources */,
+				557556D32CE2566900F6B50C /* NetworkMonitor.swift in Sources */,
+				55D3CCB62DB78BE700A4F2D7 /* PublicPushSubscriptionFunctions.swift in Sources */,
+				559B61B52C903EF90081192F /* Altcraft.docc in Sources */,
+				559B61F32C90461F0081192F /* BackgroundTasks.swift in Sources */,
+				559F2D4D2E251CB000C5B7EE /* TokenManager.swift in Sources */,
+				559F2D5B2E252C0D00C5B7EE /* FCMInterface.swift in Sources */,
+				55D3CCCB2DD201DA00A4F2D7 /* PairBuilder.swift in Sources */,
+				559B620C2C90461F0081192F /* PushAction.swift in Sources */,
+				5516B3582D9C1B3F001FAF66 /* JsonFactory.swift in Sources */,
+				559B61FB2C90461F0081192F /* StoredVariablesManager.swift in Sources */,
+				55D3CCB82DB7B0E600A4F2D7 /* ActionFieldBuilder.swift in Sources */,
+				5579FD5F2D9D6F110000131C /* RequestManager.swift in Sources */,
+				559B61FA2C90461F0081192F /* Retry.swift in Sources */,
+				5516B3362D7AFB96001FAF66 /* DeviceInfo.swift in Sources */,
+				559F2D592E252BF000C5B7EE /* APNSInterface.swift in Sources */,
+				5516B3542D9C0517001FAF66 /* PushEventDbQueries.swift in Sources */,
+				559B62092C90461F0081192F /* Structures.swift in Sources */,
+				556FC73B2E30EE99000584AA /* Core.swift in Sources */,
+				550956082E7951ED000BFBA8 /* RetryManager.swift in Sources */,
+				559B61F62C90461F0081192F /* RequestFactory.swift in Sources */,
+				559B61F12C90461F0081192F /* AltcraftConfiguration.swift in Sources */,
+				559B620B2C90461F0081192F /* NotificationManager.swift in Sources */,
+				55EA85ED2E6F3AB4001CC5A5 /* PublicPushEventFunctions.swift in Sources */,
+				559F2D5D2E252C2600C5B7EE /* HMSInterface.swift in Sources */,
+				559B620A2C90461F0081192F /* AltcraftPushReceiver.swift in Sources */,
+				55EA85CF2E66E6C3001CC5A5 /* ForegroundCheck.swift in Sources */,
+				559B62062C90461F0081192F /* DataBase.xcdatamodeld in Sources */,
+				559B61F42C90461F0081192F /* CoreDataManager.swift in Sources */,
+				559B61FE2C90461F0081192F /* ConfigDbQueries.swift in Sources */,
+				5509FAA42D6CC8DC00B1DE03 /* EventList.swift in Sources */,
+				5509FA9C2D5114F700B1DE03 /* SubscribeDbQueries.swift in Sources */,
+				5516B34C2D958762001FAF66 /* MapBuilder.swift in Sources */,
+				55527FB12D314BCE00919755 /* StringBuilder.swift in Sources */,
+				5516B3332D7AF881001FAF66 /* JWTManager.swift in Sources */,
+				559B61F72C90461F0081192F /* ClearCache.swift in Sources */,
+				559B61F22C90461F0081192F /* AccessToBackground.swift in Sources */,
+				559B62072C90461F0081192F /* Constants.swift in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXSourcesBuildPhase section */
+
+/* Begin PBXTargetDependency section */
+		550956252E7AB38B000BFBA8 /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = 559B61AF2C903EF90081192F /* Altcraft */;
+			targetProxy = 550956242E7AB38B000BFBA8 /* PBXContainerItemProxy */;
+		};
+/* End PBXTargetDependency section */
+
+/* Begin XCBuildConfiguration section */
+		550956272E7AB38B000BFBA8 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				CLANG_ENABLE_MODULES = YES;
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = 6G7526ELLP;
+				GENERATE_INFOPLIST_FILE = YES;
+				IPHONEOS_DEPLOYMENT_TARGET = 13.0;
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = altcraft.AltcraftTests;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SDKROOT = iphoneos;
+				SUPPORTED_PLATFORMS = "iphoneos iphonesimulator";
+				SUPPORTS_MACCATALYST = NO;
+				SUPPORTS_MAC_DESIGNED_FOR_IPHONE_IPAD = NO;
+				SUPPORTS_XR_DESIGNED_FOR_IPHONE_IPAD = NO;
+				SWIFT_EMIT_LOC_STRINGS = NO;
+				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+			};
+			name = Debug;
+		};
+		550956282E7AB38B000BFBA8 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				CLANG_ENABLE_MODULES = YES;
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = 6G7526ELLP;
+				GENERATE_INFOPLIST_FILE = YES;
+				IPHONEOS_DEPLOYMENT_TARGET = 13.0;
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = altcraft.AltcraftTests;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SDKROOT = iphoneos;
+				SUPPORTED_PLATFORMS = "iphoneos iphonesimulator";
+				SUPPORTS_MACCATALYST = NO;
+				SUPPORTS_MAC_DESIGNED_FOR_IPHONE_IPAD = NO;
+				SUPPORTS_XR_DESIGNED_FOR_IPHONE_IPAD = NO;
+				SWIFT_EMIT_LOC_STRINGS = NO;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+				VALIDATE_PRODUCT = YES;
+			};
+			name = Release;
+		};
+		559B61C22C903EF90081192F /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				ASSETCATALOG_COMPILER_GENERATE_SWIFT_ASSET_SYMBOL_EXTENSIONS = YES;
+				CLANG_ANALYZER_NONNULL = YES;
+				CLANG_ANALYZER_NUMBER_OBJECT_CONVERSION = YES_AGGRESSIVE;
+				CLANG_CXX_LANGUAGE_STANDARD = "gnu++20";
+				CLANG_ENABLE_MODULES = YES;
+				CLANG_ENABLE_OBJC_ARC = YES;
+				CLANG_ENABLE_OBJC_WEAK = YES;
+				CLANG_WARN_BLOCK_CAPTURE_AUTORELEASING = YES;
+				CLANG_WARN_BOOL_CONVERSION = YES;
+				CLANG_WARN_COMMA = YES;
+				CLANG_WARN_CONSTANT_CONVERSION = YES;
+				CLANG_WARN_DEPRECATED_OBJC_IMPLEMENTATIONS = YES;
+				CLANG_WARN_DIRECT_OBJC_ISA_USAGE = YES_ERROR;
+				CLANG_WARN_DOCUMENTATION_COMMENTS = YES;
+				CLANG_WARN_EMPTY_BODY = YES;
+				CLANG_WARN_ENUM_CONVERSION = YES;
+				CLANG_WARN_INFINITE_RECURSION = YES;
+				CLANG_WARN_INT_CONVERSION = YES;
+				CLANG_WARN_NON_LITERAL_NULL_CONVERSION = YES;
+				CLANG_WARN_OBJC_IMPLICIT_RETAIN_SELF = YES;
+				CLANG_WARN_OBJC_LITERAL_CONVERSION = YES;
+				CLANG_WARN_OBJC_ROOT_CLASS = YES_ERROR;
+				CLANG_WARN_QUOTED_INCLUDE_IN_FRAMEWORK_HEADER = YES;
+				CLANG_WARN_RANGE_LOOP_ANALYSIS = YES;
+				CLANG_WARN_STRICT_PROTOTYPES = YES;
+				CLANG_WARN_SUSPICIOUS_MOVE = YES;
+				CLANG_WARN_UNGUARDED_AVAILABILITY = YES_AGGRESSIVE;
+				CLANG_WARN_UNREACHABLE_CODE = YES;
+				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
+				COPY_PHASE_STRIP = NO;
+				CURRENT_PROJECT_VERSION = 1;
+				DEBUG_INFORMATION_FORMAT = dwarf;
+				ENABLE_STRICT_OBJC_MSGSEND = YES;
+				ENABLE_TESTABILITY = YES;
+				ENABLE_USER_SCRIPT_SANDBOXING = YES;
+				GCC_C_LANGUAGE_STANDARD = gnu17;
+				GCC_DYNAMIC_NO_PIC = NO;
+				GCC_NO_COMMON_BLOCKS = YES;
+				GCC_OPTIMIZATION_LEVEL = 0;
+				GCC_PREPROCESSOR_DEFINITIONS = (
+					"DEBUG=1",
+					"$(inherited)",
+				);
+				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
+				GCC_WARN_ABOUT_RETURN_TYPE = YES_ERROR;
+				GCC_WARN_UNDECLARED_SELECTOR = YES;
+				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
+				GCC_WARN_UNUSED_FUNCTION = YES;
+				GCC_WARN_UNUSED_VARIABLE = YES;
+				LOCALIZATION_PREFERS_STRING_CATALOGS = YES;
+				MTL_ENABLE_DEBUG_INFO = INCLUDE_SOURCE;
+				MTL_FAST_MATH = YES;
+				ONLY_ACTIVE_ARCH = YES;
+				SWIFT_ACTIVE_COMPILATION_CONDITIONS = "DEBUG $(inherited)";
+				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
+				VERSIONING_SYSTEM = "apple-generic";
+				VERSION_INFO_PREFIX = "";
+			};
+			name = Debug;
+		};
+		559B61C32C903EF90081192F /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				ASSETCATALOG_COMPILER_GENERATE_SWIFT_ASSET_SYMBOL_EXTENSIONS = YES;
+				CLANG_ANALYZER_NONNULL = YES;
+				CLANG_ANALYZER_NUMBER_OBJECT_CONVERSION = YES_AGGRESSIVE;
+				CLANG_CXX_LANGUAGE_STANDARD = "gnu++20";
+				CLANG_ENABLE_MODULES = YES;
+				CLANG_ENABLE_OBJC_ARC = YES;
+				CLANG_ENABLE_OBJC_WEAK = YES;
+				CLANG_WARN_BLOCK_CAPTURE_AUTORELEASING = YES;
+				CLANG_WARN_BOOL_CONVERSION = YES;
+				CLANG_WARN_COMMA = YES;
+				CLANG_WARN_CONSTANT_CONVERSION = YES;
+				CLANG_WARN_DEPRECATED_OBJC_IMPLEMENTATIONS = YES;
+				CLANG_WARN_DIRECT_OBJC_ISA_USAGE = YES_ERROR;
+				CLANG_WARN_DOCUMENTATION_COMMENTS = YES;
+				CLANG_WARN_EMPTY_BODY = YES;
+				CLANG_WARN_ENUM_CONVERSION = YES;
+				CLANG_WARN_INFINITE_RECURSION = YES;
+				CLANG_WARN_INT_CONVERSION = YES;
+				CLANG_WARN_NON_LITERAL_NULL_CONVERSION = YES;
+				CLANG_WARN_OBJC_IMPLICIT_RETAIN_SELF = YES;
+				CLANG_WARN_OBJC_LITERAL_CONVERSION = YES;
+				CLANG_WARN_OBJC_ROOT_CLASS = YES_ERROR;
+				CLANG_WARN_QUOTED_INCLUDE_IN_FRAMEWORK_HEADER = YES;
+				CLANG_WARN_RANGE_LOOP_ANALYSIS = YES;
+				CLANG_WARN_STRICT_PROTOTYPES = YES;
+				CLANG_WARN_SUSPICIOUS_MOVE = YES;
+				CLANG_WARN_UNGUARDED_AVAILABILITY = YES_AGGRESSIVE;
+				CLANG_WARN_UNREACHABLE_CODE = YES;
+				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
+				COPY_PHASE_STRIP = NO;
+				CURRENT_PROJECT_VERSION = 1;
+				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
+				ENABLE_NS_ASSERTIONS = NO;
+				ENABLE_STRICT_OBJC_MSGSEND = YES;
+				ENABLE_USER_SCRIPT_SANDBOXING = YES;
+				GCC_C_LANGUAGE_STANDARD = gnu17;
+				GCC_NO_COMMON_BLOCKS = YES;
+				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
+				GCC_WARN_ABOUT_RETURN_TYPE = YES_ERROR;
+				GCC_WARN_UNDECLARED_SELECTOR = YES;
+				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
+				GCC_WARN_UNUSED_FUNCTION = YES;
+				GCC_WARN_UNUSED_VARIABLE = YES;
+				LOCALIZATION_PREFERS_STRING_CATALOGS = YES;
+				MTL_ENABLE_DEBUG_INFO = NO;
+				MTL_FAST_MATH = YES;
+				SWIFT_COMPILATION_MODE = wholemodule;
+				VERSIONING_SYSTEM = "apple-generic";
+				VERSION_INFO_PREFIX = "";
+			};
+			name = Release;
+		};
+		559B61C52C903EF90081192F /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALLOW_TARGET_PLATFORM_SPECIALIZATION = YES;
+				BUILD_LIBRARY_FOR_DISTRIBUTION = YES;
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				DEFINES_MODULE = YES;
+				DEVELOPMENT_TEAM = 6G7526ELLP;
+				DYLIB_COMPATIBILITY_VERSION = 1;
+				DYLIB_CURRENT_VERSION = 1;
+				DYLIB_INSTALL_NAME_BASE = "@rpath";
+				ENABLE_MODULE_VERIFIER = YES;
+				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_KEY_NSHumanReadableCopyright = "";
+				INSTALL_PATH = "$(LOCAL_LIBRARY_DIR)/Frameworks";
+				IPHONEOS_DEPLOYMENT_TARGET = 13.0;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"@executable_path/Frameworks",
+					"@loader_path/Frameworks",
+				);
+				"LD_RUNPATH_SEARCH_PATHS[sdk=macosx*]" = (
+					"@executable_path/../Frameworks",
+					"@loader_path/Frameworks",
+				);
+				MACOSX_DEPLOYMENT_TARGET = 14.1;
+				MARKETING_VERSION = 1.0;
+				MODULE_VERIFIER_SUPPORTED_LANGUAGES = "objective-c objective-c++";
+				MODULE_VERIFIER_SUPPORTED_LANGUAGE_STANDARDS = "gnu17 gnu++20";
+				PRODUCT_BUNDLE_IDENTIFIER = altcraft.Altcraft;
+				PRODUCT_NAME = "$(TARGET_NAME:c99extidentifier)";
+				SDKROOT = auto;
+				SKIP_INSTALL = YES;
+				SUPPORTED_PLATFORMS = "iphoneos iphonesimulator";
+				SUPPORTS_MACCATALYST = NO;
+				SWIFT_EMIT_LOC_STRINGS = YES;
+				SWIFT_INSTALL_OBJC_HEADER = NO;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+			};
+			name = Debug;
+		};
+		559B61C62C903EF90081192F /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALLOW_TARGET_PLATFORM_SPECIALIZATION = YES;
+				BUILD_LIBRARY_FOR_DISTRIBUTION = YES;
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				DEFINES_MODULE = YES;
+				DEVELOPMENT_TEAM = 6G7526ELLP;
+				DYLIB_COMPATIBILITY_VERSION = 1;
+				DYLIB_CURRENT_VERSION = 1;
+				DYLIB_INSTALL_NAME_BASE = "@rpath";
+				ENABLE_MODULE_VERIFIER = YES;
+				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_KEY_NSHumanReadableCopyright = "";
+				INSTALL_PATH = "$(LOCAL_LIBRARY_DIR)/Frameworks";
+				IPHONEOS_DEPLOYMENT_TARGET = 13.0;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"@executable_path/Frameworks",
+					"@loader_path/Frameworks",
+				);
+				"LD_RUNPATH_SEARCH_PATHS[sdk=macosx*]" = (
+					"@executable_path/../Frameworks",
+					"@loader_path/Frameworks",
+				);
+				MACOSX_DEPLOYMENT_TARGET = 14.1;
+				MARKETING_VERSION = 1.0;
+				MODULE_VERIFIER_SUPPORTED_LANGUAGES = "objective-c objective-c++";
+				MODULE_VERIFIER_SUPPORTED_LANGUAGE_STANDARDS = "gnu17 gnu++20";
+				PRODUCT_BUNDLE_IDENTIFIER = altcraft.Altcraft;
+				PRODUCT_NAME = "$(TARGET_NAME:c99extidentifier)";
+				SDKROOT = auto;
+				SKIP_INSTALL = YES;
+				SUPPORTED_PLATFORMS = "iphoneos iphonesimulator";
+				SUPPORTS_MACCATALYST = NO;
+				SWIFT_EMIT_LOC_STRINGS = YES;
+				SWIFT_INSTALL_OBJC_HEADER = NO;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+			};
+			name = Release;
+		};
+/* End XCBuildConfiguration section */
+
+/* Begin XCConfigurationList section */
+		550956262E7AB38B000BFBA8 /* Build configuration list for PBXNativeTarget "AltcraftTests" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				550956272E7AB38B000BFBA8 /* Debug */,
+				550956282E7AB38B000BFBA8 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		559B61AA2C903EF90081192F /* Build configuration list for PBXProject "Altcraft" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				559B61C22C903EF90081192F /* Debug */,
+				559B61C32C903EF90081192F /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		559B61C42C903EF90081192F /* Build configuration list for PBXNativeTarget "Altcraft" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				559B61C52C903EF90081192F /* Debug */,
+				559B61C62C903EF90081192F /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+/* End XCConfigurationList section */
+
+/* Begin XCVersionGroup section */
+		559B61E62C90461F0081192F /* DataBase.xcdatamodeld */ = {
+			isa = XCVersionGroup;
+			children = (
+				559B61E72C90461F0081192F /* DataBase.xcdatamodel */,
+			);
+			currentVersion = 559B61E72C90461F0081192F /* DataBase.xcdatamodel */;
+			path = DataBase.xcdatamodeld;
+			sourceTree = "<group>";
+			versionGroupType = wrapper.xcdatamodel;
+		};
+/* End XCVersionGroup section */
+	};
+	rootObject = 559B61A72C903EF90081192F /* Project object */;
+}
