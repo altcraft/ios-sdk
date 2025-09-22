@@ -1,0 +1,12 @@
+{
+  "colors" : [
+    {
+      "filename" : "ic_fcm_logo.png",
+      "idiom" : "universal"
+    }
+  ],
+  "info" : {
+    "author" : "xcode",
+    "version" : 1
+  }
+}

@@ -1,0 +1,3 @@
+${PODS_ROOT}/Target Support Files/Pods-IOSAPNsExample/Pods-IOSAPNsExample-resources.sh
+${PODS_ROOT}/AGConnectCredential/AGCResources.bundle
+${PODS_ROOT}/HmsPushSDK/HmsPushSdk.framework/PushGrsSettings.bundle
