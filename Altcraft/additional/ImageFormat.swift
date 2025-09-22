@@ -7,6 +7,8 @@
 //  Copyright © 2025 Altcraft. All rights reserved.
 
 import MobileCoreServices
+import Foundation
+import SwiftUI
 
 /// Lightweight detector for common image formats.
 /// Returns a guessed file extension and (when available) a UTI hint for UNNotificationAttachment.

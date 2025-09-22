@@ -16,7 +16,10 @@ let package = Package(
     targets: [
         .target(
             name: "Altcraft",
-            path: "Altcraft"
+            path: "Altcraft",
+            resources: [
+                .process("dataBase/DataBase.xcdatamodeld")
+            ]
         ),
         .testTarget(
             name: "AltcraftTests",

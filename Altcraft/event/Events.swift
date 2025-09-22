@@ -6,6 +6,9 @@
 //
 //  Copyright © 2025 Altcraft. All rights reserved.
 
+import ObjectiveC
+import Foundation
+
 /// A singleton class responsible for managing event subscriptions and emissions.
 ///
 /// `SDKEvents` allows a single subscriber to listen for events and process them.

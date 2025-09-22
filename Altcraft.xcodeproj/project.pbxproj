@@ -405,7 +405,6 @@
 				559B61CB2C90461F0081192F /* configuration */,
 				559B61EB2C90461F0081192F /* data */,
 				559B61E02C90461F0081192F /* dataBase */,
-				559B61E62C90461F0081192F /* DataBase.xcdatamodeld */,
 				5516B3342D7AFB70001FAF66 /* device */,
 				559B61E22C90461F0081192F /* event */,
 				559B61D22C90461F0081192F /* factory */,
@@ -457,6 +456,7 @@
 		559B61E02C90461F0081192F /* dataBase */ = {
 			isa = PBXGroup;
 			children = (
+				559B61E62C90461F0081192F /* DataBase.xcdatamodeld */,
 				559B61CF2C90461F0081192F /* CoreDataManager.swift */,
 				559B61DA2C90461F0081192F /* ClearingDb.swift */,
 				559B61DB2C90461F0081192F /* ConfigDbQueries.swift */,

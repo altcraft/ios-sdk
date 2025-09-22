@@ -9,9 +9,6 @@
 /* Begin PBXBuildFile section */
 		5509FAA02D6C677700B1DE03 /* SubscribeStatusManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5509FA9F2D6C677700B1DE03 /* SubscribeStatusManager.swift */; };
 		5516B35A2D9C3AA7001FAF66 /* JWTProvider.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5516B3592D9C3AA7001FAF66 /* JWTProvider.swift */; };
-		552BCFCB2E815CE6008A9116 /* GoogleService-Info.plist in Resources */ = {isa = PBXBuildFile; fileRef = 552BCFC92E815CE6008A9116 /* GoogleService-Info.plist */; };
-		552BCFCC2E815CE6008A9116 /* agconnect-services.plist in Resources */ = {isa = PBXBuildFile; fileRef = 552BCFCA2E815CE6008A9116 /* agconnect-services.plist */; };
-		553B08662E60846B004526D6 /* PushServiceTest.swift in Sources */ = {isa = PBXBuildFile; fileRef = 553B08652E60846B004526D6 /* PushServiceTest.swift */; };
 		5557A9232DF026B700BEF354 /* SDKFunctions.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5557A9222DF026B700BEF354 /* SDKFunctions.swift */; };
 		556FC6FF2E27BE55000584AA /* BoxModeManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 556FC6FE2E27BE55000584AA /* BoxModeManager.swift */; };
 		556FC7012E27C15A000584AA /* AppConstants.swift in Sources */ = {isa = PBXBuildFile; fileRef = 556FC7002E27C15A000584AA /* AppConstants.swift */; };
@@ -122,11 +119,8 @@
 		4AA2DDD1707D6A449043469A /* Pods_PushService.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; includeInIndex = 0; path = Pods_PushService.framework; sourceTree = BUILT_PRODUCTS_DIR; };
 		5509FA9F2D6C677700B1DE03 /* SubscribeStatusManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SubscribeStatusManager.swift; sourceTree = "<group>"; };
 		5516B3592D9C3AA7001FAF66 /* JWTProvider.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = JWTProvider.swift; sourceTree = "<group>"; };
-		552BCFC92E815CE6008A9116 /* GoogleService-Info.plist */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.plist.xml; name = "GoogleService-Info.plist"; path = "../../../mainJson/IOS v2/GoogleService-Info.plist"; sourceTree = "<group>"; };
-		552BCFCA2E815CE6008A9116 /* agconnect-services.plist */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.plist.xml; name = "agconnect-services.plist"; path = "../../../mainJson/IOS v2/agconnect-services.plist"; sourceTree = "<group>"; };
 		553B08532E5C84FB004526D6 /* PushEvent.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PushEvent.swift; sourceTree = "<group>"; };
 		553B08542E5C84FB004526D6 /* PublicPushEventFunctions .swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "PublicPushEventFunctions .swift"; sourceTree = "<group>"; };
-		553B08652E60846B004526D6 /* PushServiceTest.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PushServiceTest.swift; sourceTree = "<group>"; };
 		5557A9222DF026B700BEF354 /* SDKFunctions.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SDKFunctions.swift; sourceTree = "<group>"; };
 		556FC6FE2E27BE55000584AA /* BoxModeManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BoxModeManager.swift; sourceTree = "<group>"; };
 		556FC7002E27C15A000584AA /* AppConstants.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppConstants.swift; sourceTree = "<group>"; };
@@ -242,7 +236,6 @@
 				556FC7202E2AB1FC000584AA /* NotificationService.swift */,
 				556FC7222E2AB1FC000584AA /* Info.plist */,
 				556FC72A2E2AB2AD000584AA /* JWTProvider.swift */,
-				553B08652E60846B004526D6 /* PushServiceTest.swift */,
 			);
 			path = PushService;
 			sourceTree = "<group>";
@@ -295,8 +288,6 @@
 		558C701E2C9C29D10062F600 /* IOSAPNsExample */ = {
 			isa = PBXGroup;
 			children = (
-				552BCFCA2E815CE6008A9116 /* agconnect-services.plist */,
-				552BCFC92E815CE6008A9116 /* GoogleService-Info.plist */,
 				559F2D4E2E2522C400C5B7EE /* providers */,
 				55FD2F262CEE2BDF008FC841 /* functions */,
 				55FD2F252CEE2BB9008FC841 /* data */,
@@ -561,9 +552,7 @@
 			buildActionMask = 2147483647;
 			files = (
 				558C70282C9C29D30062F600 /* Preview Assets.xcassets in Resources */,
-				552BCFCC2E815CE6008A9116 /* agconnect-services.plist in Resources */,
 				558C70242C9C29D30062F600 /* Assets.xcassets in Resources */,
-				552BCFCB2E815CE6008A9116 /* GoogleService-Info.plist in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -633,7 +622,6 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				553B08662E60846B004526D6 /* PushServiceTest.swift in Sources */,
 				556FC72B2E2AB2AD000584AA /* JWTProvider.swift in Sources */,
 				556FC7212E2AB1FC000584AA /* NotificationService.swift in Sources */,
 			);
