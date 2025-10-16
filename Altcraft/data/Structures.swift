@@ -73,8 +73,8 @@ struct Subscribe {
         self.retryCount = entity.retryCount
         self.maxRetryCount = entity.maxRetryCount
 
-        self.profileFields = entity.profileFields.flatMap(decodeJSONData)
-        self.customFields = entity.customFields.flatMap(decodeJSONData)
+        self.profileFields = entity.profileFields.flatMap(decodeAnyMap)
+        self.customFields = entity.customFields.flatMap(decodeAnyMap)
         self.cats = entity.cats.flatMap {
             try? JSONDecoder().decode([CategoryData].self, from: $0)
         }
@@ -202,7 +202,23 @@ struct ProfileRequestData {
     let matchingMode: String
     var provider: String?
     var token: String?
-    
+}
+
+/// Represents the necessary data for sending a mobile event request.
+///
+/// This struct encapsulates all required parameters for a mobile event API call,
+/// ensuring that only valid data is included in the request.
+///
+/// - Parameters:
+///   - url: The full API endpoint for the mobile event.
+///   - sid: The string ID of the pixel (Altcraft client ID).
+///   - name: The event name.
+///   - authHeader: The authorization header (e.g. `"Bearer <token>"`).
+struct MobileEventRequestData {
+    let url: String
+    let sid: String
+    let name: String
+    let authHeader: String
 }
 
 // MARK: - Public Structs
@@ -419,5 +435,254 @@ public enum JSONValue: Codable, CustomStringConvertible {
     public var arrayValue: [JSONValue]? {
         if case let .array(value) = self { return value }
         return nil
+    }
+}
+
+/// Email channel subscription.
+public struct EmailSubscription: Subscription, Codable {
+    /// Resource identifier.
+    public let resourceId: Int
+    /// Email address.
+    public let email: String
+    /// Subscription status (optional).
+    public let status: String?
+    /// Subscription priority (optional).
+    public let priority: Int?
+    /// Custom subscription fields (optional).
+    public let customFields: [String: JSONValue]?
+    /// Subscription categories (optional).
+    public let cats: [String]?
+    /// Channel type, always `"email"`.
+    public let channel: String = "email"
+
+    enum CodingKeys: String, CodingKey {
+        case resourceId = "resource_id", email, status, priority, customFields, cats, channel
+    }
+
+    public init(
+        resourceId: Int,
+        email: String,
+        status: String? = nil,
+        priority: Int? = nil,
+        customFields: [String: JSONValue]? = nil,
+        cats: [String]? = nil
+    ) {
+        self.resourceId = resourceId
+        self.email = email
+        self.status = status
+        self.priority = priority
+        self.customFields = customFields
+        self.cats = cats
+    }
+}
+
+/// SMS channel subscription.
+public struct SmsSubscription: Subscription, Codable {
+    /// Resource identifier.
+    public let resourceId: Int
+    /// Phone number.
+    public let phone: String
+    /// Subscription status (optional).
+    public let status: String?
+    /// Subscription priority (optional).
+    public let priority: Int?
+    /// Custom subscription fields (optional).
+    public let customFields: [String: JSONValue]?
+    /// Subscription categories (optional).
+    public let cats: [String]?
+    /// Channel type, always `"sms"`.
+    public let channel: String = "sms"
+
+    enum CodingKeys: String, CodingKey {
+        case resourceId = "resource_id", phone, status, priority, customFields, cats, channel
+    }
+
+    public init(
+        resourceId: Int,
+        phone: String,
+        status: String? = nil,
+        priority: Int? = nil,
+        customFields: [String: JSONValue]? = nil,
+        cats: [String]? = nil
+    ) {
+        self.resourceId = resourceId
+        self.phone = phone
+        self.status = status
+        self.priority = priority
+        self.customFields = customFields
+        self.cats = cats
+    }
+}
+
+/// Push channel subscription.
+public struct PushSubscription: Subscription, Codable {
+    /// Resource identifier.
+    public let resourceId: Int
+    /// Provider name (e.g., `"ios-apns"`).
+    public let provider: String
+    /// Unique subscription ID.
+    public let subscriptionId: String
+    /// Subscription status (optional).
+    public let status: String?
+    /// Subscription priority (optional).
+    public let priority: Int?
+    /// Custom subscription fields (optional).
+    public let customFields: [String: JSONValue]?
+    /// Subscription categories (optional).
+    public let cats: [String]?
+    /// Channel type, always `"push"`.
+    public let channel: String = "push"
+
+    enum CodingKeys: String, CodingKey {
+        case resourceId = "resource_id", provider
+        case subscriptionId = "subscription_id"
+        case status, priority, customFields, cats, channel
+    }
+
+    public init(
+        resourceId: Int,
+        provider: String,
+        subscriptionId: String,
+        status: String? = nil,
+        priority: Int? = nil,
+        customFields: [String: JSONValue]? = nil,
+        cats: [String]? = nil
+    ) {
+        self.resourceId = resourceId
+        self.provider = provider
+        self.subscriptionId = subscriptionId
+        self.status = status
+        self.priority = priority
+        self.customFields = customFields
+        self.cats = cats
+    }
+}
+
+/// Subscription with `cc_data`, used for Telegram, WhatsApp, Viber, and Notify.
+public struct CcDataSubscription: Subscription, Codable {
+    /// Resource identifier.
+    public let resourceId: Int
+    /// Channel type (e.g., `"telegram_bot"`, `"whatsapp"`).
+    public let channel: String
+    /// Channel-specific data (e.g., chat ID).
+    public let ccData: [String: JSONValue]
+    /// Subscription status (optional).
+    public let status: String?
+    /// Subscription priority (optional).
+    public let priority: Int?
+    /// Custom subscription fields (optional).
+    public let customFields: [String: JSONValue]?
+    /// Subscription categories (optional).
+    public let cats: [String]?
+
+    enum CodingKeys: String, CodingKey {
+        case resourceId = "resource_id", channel
+        case ccData = "cc_data"
+        case status, priority, customFields, cats
+    }
+
+    public init(
+        resourceId: Int,
+        channel: String,
+        ccData: [String: JSONValue],
+        status: String? = nil,
+        priority: Int? = nil,
+        customFields: [String: JSONValue]? = nil,
+        cats: [String]? = nil
+    ) {
+        self.resourceId = resourceId
+        self.channel = channel
+        self.ccData = ccData
+        self.status = status
+        self.priority = priority
+        self.customFields = customFields
+        self.cats = cats
+    }
+}
+
+/// Encoded mobile event data model used for persistence and sending.
+///
+/// Represents a complete mobile event including identifiers,
+/// payloads, matching data, subscription info, and UTM tags.
+struct MobileEventData: Codable {
+    /// Altcraft client identifier.
+    let altcraftClientID: String?
+    /// Event name.
+    let eventName: String?
+    /// Matching pair encoded as JSON.
+    let matching: Data?
+    /// Matching type (e.g., `"email"`, `"smid"`).
+    let matchingType: String?
+    /// Maximum retry attempts for event delivery.
+    let maxRetryCount: Int16
+    /// Event payload encoded as JSON.
+    let payload: Data?
+    /// Profile fields encoded as JSON.
+    let profileFields: Data?
+    /// Current retry count.
+    let retryCount: Int16
+    /// Send Message ID (SMID).
+    let sendMessageId: String?
+    /// Pixel SID.
+    let sid: String?
+    /// Subscription data encoded as JSON (`Email`, `SMS`, `Push`, `CcData`).
+    let subscription: Data?
+    /// Event timestamp (UTC, milliseconds).
+    let time: Int64
+    /// Time zone offset.
+    let timeZone: Int16
+    /// Optional user tag associated with the event.
+    let userTag: String?
+    /// UTM tags encoded as JSON.
+    let utmTags: Data?
+    
+    /// Creates a `MobileEventData` instance from a Core Data entity.
+    /// - Parameter entity: The `MobileEventEntity` stored in Core Data.
+    /// - Returns: A decoded `MobileEventData` ready for serialization or sending.
+    static func from(entity: MobileEventEntity) -> MobileEventData {
+        return MobileEventData(
+            altcraftClientID: entity.altcraftClientID,
+            eventName: entity.eventName,
+            matching: entity.matching,
+            matchingType: entity.matchingType,
+            maxRetryCount: entity.maxRetryCount,
+            payload: entity.payload,
+            profileFields: entity.profileFields,
+            retryCount: entity.retryCount,
+            sendMessageId: entity.sendMessageId,
+            sid: entity.sid,
+            subscription: entity.subscription,
+            time: entity.time,
+            timeZone: entity.timeZone,
+            userTag: entity.userTag,
+            utmTags: entity.utmTags
+        )
+    }
+}
+
+/// UTM params for mobile events (all optional).
+public struct UTM: Codable {
+    public let campaign: String?
+    public let content: String?
+    public let keyword: String?
+    public let medium: String?
+    public let source: String?
+    public let temp: String?
+
+    /// Public initializer (all params optional).
+    public init(
+        campaign: String? = nil,
+        content: String? = nil,
+        keyword: String? = nil,
+        medium: String? = nil,
+        source: String? = nil,
+        temp: String? = nil
+    ) {
+        self.campaign = campaign
+        self.content = content
+        self.keyword = keyword
+        self.medium = medium
+        self.source = source
+        self.temp = temp
     }
 }

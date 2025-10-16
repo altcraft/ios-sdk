@@ -3,37 +3,33 @@
 //  Altcraft
 //
 //  Created by Andrey Pogodin.
-//
 //  Copyright © 2025 Altcraft. All rights reserved.
+//
 
 import Foundation
 import UIKit
 import BackgroundTasks
 
-/// A class responsible for managing periodic background tasks.
+/// Manages periodic background refresh scheduling and execution.
 ///
-/// `PeriodicBackgroundTasks` registers and handles background tasks that need to perform
-/// periodic operations in background. It utilizes `BGTaskScheduler` to schedule and manage
-/// background tasks, ensuring that specific operations are performed even when the app is in the background.
-///
-/// - Note: This class assumes that the necessary background modes are enabled in the app's capabilities.
+/// Notes:
+/// - Requires iOS 13+ and Background Modes capability.
+/// - Add your refresh identifier into Info.plist under `Permitted background task scheduler identifiers`.
+@objcMembers
 public class BackgroundTask: NSObject {
 
-    /// The identifier used for the background task.
+    /// Background refresh identifier (must match Info.plist).
     let taskID = Constants.BGTaskID
-    
-    /// Provides access to the stored VariablesManager.
+
+    /// Stored variables facade.
     private let userDefault = StoredVariablesManager.shared
 
-    /// The shared singleton instance of `PeriodicBackgroundTasks`.
+    /// Swift singleton (internal storage).
     internal static let shared = BackgroundTask()
 
-    /// Registers a background task with the system.
+    /// Registers the app refresh task with the system and schedules the first run.
     ///
-    /// This method registers a task with `BGTaskScheduler` using a specified identifier. The task will be handled
-    /// by `backgroundHandler` method when it is executed. It also schedules the next retry of the task.
-    ///
-    /// - Note: This method should be called during app initialization or when setting up background tasks.
+    /// Safe to call multiple times (system keeps the latest registration).
     public func registerBackgroundTask() {
         BGTaskScheduler.shared.register(
             forTaskWithIdentifier: taskID, using: nil
@@ -47,10 +43,24 @@ public class BackgroundTask: NSObject {
         scheduleRetry()
     }
 
-    /// Handles the background task by performing necessary operations.
+    /// Schedules the next app refresh approximately in 3 hours.
     ///
-    /// - Parameter task: The background task to handle. It must be of type `BGAppRefreshTask`.
+    /// If submission fails (e.g., identifier not in Info.plist), the error is logged.
+    public func scheduleRetry() {
+        let request = BGAppRefreshTaskRequest(identifier: taskID)
+        request.earliestBeginDate = Date(timeIntervalSinceNow: 180 * 60)
+        do {
+            try BGTaskScheduler.shared.submit(request)
+        } catch {
+            errorEvent(#function, error: error)
+        }
+    }
+
+    /// Handles the actual background execution.
+    ///
+    /// Do not expose this to ObjC, because it contains Swift-only types (`BGAppRefreshTask`).
     func backgroundHandler(task: BGAppRefreshTask) {
+        // Always schedule the next one at start, so we have another chance if we time out.
         scheduleRetry()
 
         task.expirationHandler = {
@@ -60,39 +70,23 @@ public class BackgroundTask: NSObject {
         }
 
         getContext { context in
+            // Reset retry counters for one-pass run (no chained retries in background).
             self.userDefault.setSubRetryCount(value: 0)
             self.userDefault.setUpdateRetryCount(value: 0)
             self.userDefault.setPushEventRetryCount(value: 0)
-            PushSubscribe.shared.startSubscribe(context: context) {
-                TokenUpdate.shared.tokenUpdate() {
-                    PushEvent.shared.sendAllPushEvents(context: context) {
-                        event(#function, event: backgroundTaskСompleted)
-                        task.setTaskCompleted(success: true)
+            self.userDefault.setMobileEventRetryCount(value: 0)
+
+            // One sweep: token → subscribe → mobile events → push events.
+            TokenUpdate.shared.tokenUpdate() {
+                PushSubscribe.shared.startSubscribe(context: context, enableRetry: false) {
+                    MobileEvent.shared.startEventsSend(context: context, enableRetry: false) {
+                        PushEvent.shared.sendAllPushEvents(context: context) {
+                            event(#function, event: backgroundTaskСompleted)
+                            task.setTaskCompleted(success: true)
+                        }
                     }
                 }
             }
         }
     }
-
-    /// Schedules the next retry for the background task.
-    ///
-    /// This method creates a new `BGAppRefreshTaskRequest` with the specified identifier and sets the earliest
-    /// begin date for the task to be 3 hours from now. It submits the request to `BGTaskScheduler`.
-    ///
-    /// - Note: The task will be retried approximately every 3 hours.
-    ///
-    /// - Throws: An error if the request could not be submitted.
-    func scheduleRetry() {
-        let request = BGAppRefreshTaskRequest(identifier: taskID)
-        request.earliestBeginDate = Date(timeIntervalSinceNow: 180 * 60)
-        do {
-            try BGTaskScheduler.shared.submit(request)
-        } catch {
-            errorEvent(#function, error: error)
-        }
-    }
 }
-
-
-
-

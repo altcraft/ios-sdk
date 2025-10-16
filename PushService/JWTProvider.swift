@@ -10,10 +10,10 @@ import Altcraft
 
 class JWTProvider: JWTInterface {
     func getToken() -> String? {
-          let authKey = "JWT_KEY"
-          let suiteName = "your_app_group_identifier"
+        let jwtKey = "JWT_KEY"
         
-          return UserDefaults(suiteName: suiteName)?.string(forKey: authKey)
-      }
+        return UserDefaults(suiteName: NotificationService().appGroupID)?.string(forKey: jwtKey)
+    }
 }
+
 

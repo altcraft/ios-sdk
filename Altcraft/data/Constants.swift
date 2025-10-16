@@ -38,6 +38,9 @@ public enum Constants {
     /// Centralized string constants for queue labels used in the SDK.
     /// Helps to avoid duplication and typos when creating DispatchQueue instances.
     enum Queues {
+        
+        // === Subscribe queues ===
+        
         /// Queue label for sequential creation of subscription entities.
         static let subscribeEntityQueue = "com.altcraft.subscribe.entityQueue"
         
@@ -47,11 +50,26 @@ public enum Constants {
         /// Queue label for synchronizing internal state and flags.
         static let subscribeSyncQueue   = "com.altcraft.subscribe.syncQueue"
         
+        // === Update queues ===
+        
         /// Queue label for token update operations.
         static let tokenUpdateQueue = "com.altcraft.tokenUpdateQueue"
         
+        // === Push Event queues ===
+        
         /// Queue label for push event processing.
-        static let pushEventQueue   = "com.altcraft.pushEventQueue"
+        static let pushEventQueue = "com.altcraft.pushEventQueue"
+        
+        // === Mobile Event queues ===
+        
+        /// Queue label for sequential creation of mobile event entities.
+        static let mobileEventEntityQueue = "com.altcraft.mobileEvent.entityQueue"
+        
+        /// Queue label for starting subscription processing with epoch reset support.
+        static let mobileEventStartQueue  = "com.altcraft.mobileEvent.startQueue"
+        
+        /// Queue label for synchronizing internal state and flags.
+        static let mobileEventSyncQueue   = "com.altcraft.mobileEvent.syncQueue"
         
         // === Retry queues ===
         
@@ -64,12 +82,11 @@ public enum Constants {
         /// Queue label for push event retries.
         static let retryPushEventQueue = "com.altcraft.retry.pushEvent"
         
+        /// Queue label for mobile event retries.
+        static let retryMobileEventQueue = "com.altcraft.retry.mobileEvent"
+        
+        
         static let retryManagerSync = "com.altcraft.retry.manager.sync"
-        
-        // === Config queue ===
-        
-        /// Queue label for config read/write synchronization.
-        static let configStoreQueue = "com.altcraft.config.storeQueue"
     }
     
     /// A namespace for commonly used Core Data context names.
@@ -217,8 +234,14 @@ public enum Constants {
         /// Profile ID used for matching.
         static let profileId = "profile_id"
         
+        /// Custom field name used for matching.
+        static let fieldName = "field_name"
+        
         /// Custom field value used for matching.
         static let fieldValue = "field_value"
+        
+        /// Provider code (if matching requires it).
+        static let provider = "provider"
         
         /// Subscription ID used for matching.
         static let subscriptionId = "subscription_id"
@@ -249,6 +272,9 @@ public enum Constants {
 
         /// Push event type key.
         static let type = "type"
+        
+        /// Mobile event name  key.
+        static let name = "name"
         
         ///Push Provider key.
         static let provider = "provider"
@@ -293,10 +319,13 @@ public enum Constants {
         static let SU = "startUpdate()"
         
         /// The function code for the hubLink  process.
-        static let SE = "sendPushEvent()"
+        static let PE = "sendPushEvent()"
+        
+        /// The function code for the hubLink  process.
+        static let ME = "sendMobileEvent()"
     }
     
-    /// Defines event names for the hubLink request.
+    /// Defines event types for the push_event request.
     enum PushEvents {
         
         /// Name of the notification delivery event.
@@ -304,6 +333,25 @@ public enum Constants {
         
         /// Name of the notification opening event.
         static let open = "open"
+    }
+    
+    enum MobileEvents {
+        static let TIME_ZONE          = "tz"
+        static let TIME_MOB           = "t"
+        static let ALTCRAFT_CLIENT_ID = "aci"
+        static let MOB_EVENT_NAME     = "wn"
+        static let PAYLOAD            = "wd"
+        static let SMID_MOB           = "mi"
+        static let MATCHING_MOB       = "ma"
+        static let MATCHING_TYPE      = "mm"   // NEW
+        static let PROFILE_FIELDS_MOB = "pf"
+        static let SUBSCRIPTION_MOB   = "sn"
+        static let UTM_CAMPAIGN       = "cn"
+        static let UTM_CONTENT        = "cc"
+        static let UTM_KEYWORD        = "ck"
+        static let UTM_MEDIUM         = "cm"
+        static let UTM_SOURCE         = "cs"
+        static let UTM_TEMP           = "ct"
     }
 
     /// Contains the names of the entities used in Core Data.
@@ -317,6 +365,9 @@ public enum Constants {
         
         /// The name of the push event entity.
         static let pushEventEntityName = "PushEventEntity"
+        
+        /// The name of the mobile event entity.
+        static let mobileEventEntityName = "MobileEventEntity"
     }
 
     /// Contains the string identifiers for UI buttons and system notification actions.
@@ -385,6 +436,9 @@ public enum Constants {
         
         /// Request path for push event.
         static let pushEvent = "event/push"
+        
+        /// Request path for mobile event.
+        static let mobileEvent = "event/post"
     }
 
     /// A namespace for predefined SDK success messages.
@@ -399,10 +453,13 @@ public enum Constants {
         static let pushUnSuspendSuccess = "successful request: \(RequestName.unsuspend)"
         
         /// Message for successful completion of the token update request.
-        static let profileSuccess = "successful request: \(RequestName.status)"
+        static let statusSuccess = "successful request: \(RequestName.status)"
 
         /// Message for successful delivery of the push event.
         static let pushEventDelivered = "successful request: \(RequestName.pushEvent). Type: "
+        
+        /// Message for successful delivery of the mobile event.
+        static let mobileEventDelivered = "successful request: \(RequestName.mobileEvent). Name: "
     }
    
     /// Status request modes.

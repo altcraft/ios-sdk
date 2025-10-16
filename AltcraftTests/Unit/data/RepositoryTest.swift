@@ -308,7 +308,7 @@ final class RepositoryTests: XCTestCase {
     func test_4_decodeJSONData_validDictionary() {
         let dict = ["a": "1", "n": 10] as [String : Any]
         let data = jsonData(dict)
-        let decoded = decodeJSONData(data)
+        let decoded = decodeAnyMap(data)
         XCTAssertEqual(decoded?["a"] as? String, "1")
         XCTAssertEqual(decoded?["n"] as? Int, 10)
     }
@@ -316,7 +316,7 @@ final class RepositoryTests: XCTestCase {
     /// test_7_decodeJSONData_rootArray_returnsNil
     func test_7_decodeJSONData_rootArray_returnsNil() {
         let data = try! JSONSerialization.data(withJSONObject: [1,2,3], options: [])
-        let decoded = decodeJSONData(data)
+        let decoded = decodeAnyMap(data)
         XCTAssertNil(decoded, "Expected nil when root JSON object is an array")
     }
 }

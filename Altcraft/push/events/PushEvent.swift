@@ -20,7 +20,7 @@ import CoreData
     static let shared = PushEvent()
     
     /// The function code used for analytics or logging purposes.
-    let funcName = Constants.FunctionsCode.SE
+    let funcName = Constants.FunctionsCode.PE
 
     /// Manager for accessing stored user-related variables.
     let userDefault = StoredVariablesManager.shared
@@ -148,7 +148,7 @@ import CoreData
          pushEventQueue.async {
              let group = DispatchGroup()
 
-             clearOldPushEvents(context: context) {
+             clearOldPushEvents(context: context) { 
                  getAllPushEvents(context: context) { events in
                      guard !events.isEmpty else {
                          DispatchQueue.main.async { completion() }

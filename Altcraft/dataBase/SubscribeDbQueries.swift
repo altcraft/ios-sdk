@@ -12,53 +12,54 @@ import CoreData
 /// Adds a new entry to the `SubscribeEntity` table.
 ///
 /// Stores subscription event data in Core Data.
-/// Entries are ordered chronologically by `time`, ensuring that the oldest entries appear first.
+/// Entries are ordered by `time` so the oldest appear first.
 ///
 /// - Parameters:
 ///   - context: The `NSManagedObjectContext` used to perform the operation.
-///   - time: The timestamp of the subscription event.
-///   - requestId: The unique request identifier.
-///   - userTag: A string representing the user tag.
-///   - status: A boolean indicating whether the subscription is active.
-///   - sync: An optional integer defining sync mode.
-///   - customFields: A dictionary of custom fields associated with the subscription.
-///   - cats: A dictionary mapping category names to their boolean status.
-///   - replace: A boolean indicating whether this entry should replace an existing one.
-///   - skipTriggers: A boolean indicating whether triggers should be skipped.
-///   - completion: A closure that is called after the operation is completed.
+///   - userTag: User tag string.
+///   - status: Subscription status string.
+///   - sync: Sync mode (integer).
+///   - profileFields: Optional profile fields to serialize and store.
+///   - customFields: Optional custom fields to serialize and store.
+///   - cats: Optional list of categories to store.
+///   - replace: Whether this entry should replace existing one.
+///   - skipTriggers: Whether triggers should be skipped.
+///   - uid: Request identifier.
+///   - completion: Completion handler returning `Result<Void, Error>`.
+///                 Use `.success(())` when the entity is saved successfully,
+///                 or `.failure(error)` if save fails.
 func addSubscribeEntity(
     context: NSManagedObjectContext,
     userTag: String,
     status: String,
     sync: Int,
-    profileFields:[String: Any?]?,
+    profileFields: [String: Any?]?,
     customFields: [String: Any?]?,
     cats: [CategoryData]?,
     replace: Bool?,
     skipTriggers: Bool?,
     uid: String?,
-    completion: @escaping () -> Void
+    completion: @escaping (Result<Void, Error>) -> Void
 ) {
     do {
         let newEntity = SubscribeEntity(context: context)
-        newEntity.time = Int64(Date().timeIntervalSince1970)
+        newEntity.time = Int64(Date().timeIntervalSince1970 * 1000)
         newEntity.uid = uid
         newEntity.userTag = userTag
         newEntity.status = status
-        newEntity .sync = Int16(sync)
+        newEntity.sync = Int16(sync)
         newEntity.replace = replace ?? false
         newEntity.skipTriggers = skipTriggers ?? false
         newEntity.retryCount = 0
         newEntity.maxRetryCount = 15
         newEntity.cats = encodeCats(cats)
-        newEntity.profileFields = encodeCustomFields(profileFields)
-        newEntity.customFields = encodeCustomFields(customFields)
-        
+        newEntity.profileFields = encodeAnyMap(profileFields)
+        newEntity.customFields = encodeAnyMap(customFields)
+
         try context.save()
-        completion()
+        completion(.success(()))
     } catch {
-        errorEvent(#function, error: error)
-        completion()
+        completion(.failure(error))
     }
 }
 

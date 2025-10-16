@@ -125,7 +125,7 @@ final class StringBuilderTest: XCTestCase {
         let ctx = coreData.viewContext
         let obj = NSEntityDescription.insertNewObject(forEntityName: "PushEventEntity", into: ctx)
         obj.setValue("delivery", forKey: "type")
-        let url = pushEventURL(baseURL, event: obj as! PushEventEntity)
+        let url = eventPushURL(baseURL, event: obj as! PushEventEntity)
         XCTAssertEqual(url, "\(baseURL)/event/push/delivery", msgExactMatch)
     }
 

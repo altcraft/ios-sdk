@@ -45,7 +45,9 @@ func switchToAPNS() {
         setConfigInUserDefaults(config: config) {_ in
             AltcraftSDK.shared.pushTokenFunction.changePushProviderPriorityList(providers)
         }
-    } else { return }
+    } else {
+        AltcraftSDK.shared.pushTokenFunction.changePushProviderPriorityList(providers)
+    }
 }
 
 func switchToFCM() {
@@ -64,7 +66,9 @@ func switchToFCM() {
         setConfigInUserDefaults(config: config){_ in
             AltcraftSDK.shared.pushTokenFunction.changePushProviderPriorityList(providers)
         }
-    } else { return }
+    } else {
+        AltcraftSDK.shared.pushTokenFunction.changePushProviderPriorityList(providers)
+    }
 }
 
 func switchToHMS() {
@@ -83,12 +87,13 @@ func switchToHMS() {
         setConfigInUserDefaults(config: config){_ in
             AltcraftSDK.shared.pushTokenFunction.changePushProviderPriorityList(providers)
         }
-    } else { return }
+    } else {
+        AltcraftSDK.shared.pushTokenFunction.changePushProviderPriorityList(providers)
+    }
 }
 
-
 func logIn() {
-    JWTManager.shared.setJWT(JWTManager.shared.getRegJWT())
+    JWTManager.shared.setAuthStatus(true)
     AltcraftSDK.shared.pushSubscriptionFunctions.unSuspendPushSubscription { result in
         if result?.httpCode == 200, result?.response?.profile?.subscription == nil {
             let subscriptionSetting = getSubscriptionSettingFromUserDefaults()
@@ -106,8 +111,7 @@ func logIn() {
 }
 
 func logOut() {
-    
-    JWTManager.shared.setJWT(JWTManager.shared.getAnonJWT())
+    JWTManager.shared.setAuthStatus(false)
     AltcraftSDK.shared.pushSubscriptionFunctions.unSuspendPushSubscription { result in
         if result?.httpCode == 200, result?.response?.profile?.subscription == nil {
             let subscriptionSetting = getSubscriptionSettingFromUserDefaults()

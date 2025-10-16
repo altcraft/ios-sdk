@@ -96,7 +96,7 @@ func checkRTokenChange(
 ///
 /// - Parameters:
 ///   - completion: A closure that is called with a `Configuration?`.
-func getConfigFromCoreData(completion: @escaping (Configuration?) -> Void) {
+func getConfig(completion: @escaping (Configuration?) -> Void) {
     CoreDataManager.shared.persistentContainer.performBackgroundTask { context in
         let fetchRequest: NSFetchRequest<ConfigurationEntity> = ConfigurationEntity.fetchRequest()
         do {

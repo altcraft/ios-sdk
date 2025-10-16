@@ -36,7 +36,7 @@ func updateUrl(_ apiUrl: String) -> String {
 ///   - baseUrl: The base API URL.
 ///   - event: The `PushEventEntity` for which the event type is appended.
 /// - Returns: A complete URL string for the push event endpoint.
-func pushEventURL(_ apiUrl: String, event: PushEventEntity) -> String {
+func eventPushURL(_ apiUrl: String, event: PushEventEntity) -> String {
     return "\(apiUrl)/event/push/\(event.type ?? "")"
 }
 
@@ -54,6 +54,16 @@ func unSuspendUrl(_ apiUrl: String) -> String {
 /// - Returns: A complete URL string for the push subscription status endpoint.
 func profileUrl(_ apiUrl: String) -> String {
     return "\(apiUrl)/subscription/push/status/"
+}
+
+/// Constructs the full URL string for sending a mobile event.
+///
+/// - Parameters:
+///   - baseUrl: The base API URL.
+///   - event: The `PushEventEntity` for which the event type is appended.
+/// - Returns: A complete URL string for the push event endpoint.
+func eventMobileURL(_ apiUrl: String) -> String {
+    return "\(apiUrl)/event/post"
 }
 
 /// Builds a JSON string from `JWTMatching` fields.

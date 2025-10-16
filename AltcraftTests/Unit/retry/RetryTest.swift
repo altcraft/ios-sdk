@@ -76,7 +76,7 @@ final class RetryTests: XCTestCase {
         // We cancel after short delay to avoid execution in background.
         requestRetry(request: Constants.FunctionsCode.SS)
         requestRetry(request: Constants.FunctionsCode.SU)
-        requestRetry(request: Constants.FunctionsCode.SE, context: nil, event: nil) // early return branch
+        requestRetry(request: Constants.FunctionsCode.PE, context: nil, event: nil) // early return branch
 
         // Cancel any scheduled work items to keep the test deterministic.
         RetryManager.shared.cancelAll()
@@ -126,12 +126,12 @@ final class RetryTests: XCTestCase {
     /// test_5_localPushEventRetry_returnsEarly_whenParamsMissing
     func test_5_localPushEventRetry_returnsEarly_whenParamsMissing() {
         // push event retry count is nil -> guard fails -> early return, no crash
-        requestRetry(request: Constants.FunctionsCode.SE, context: nil, event: nil)
+        requestRetry(request: Constants.FunctionsCode.PE, context: nil, event: nil)
 
         // Also try with context but missing event
         let stack = TestCoreDataStack(bundleToken: CoreDataManager.self,
                                       bundleIdentifier: Constants.CoreData.identifier)
-        requestRetry(request: Constants.FunctionsCode.SE, context: stack.newBGContext(), event: nil)
+        requestRetry(request: Constants.FunctionsCode.PE, context: stack.newBGContext(), event: nil)
 
         // If we got here, both calls returned early without scheduling work or crashing.
         XCTAssertTrue(true)

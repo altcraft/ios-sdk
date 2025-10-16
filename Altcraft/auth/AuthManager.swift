@@ -39,58 +39,81 @@ private func extractJWTDataHash(dbId: Int, matching: String, value: String) -> S
     return digest.map { String(format: "%02x", $0) }.joined()
 }
 
-/// Extracts and validates the JWT "matching" claim.
+/// Extracts and validates the JWT "matching" claim and normalizes it
+/// using the same field order  (email / phone / profile_id / field_name / field_value / provider / subscription_id).
 ///
 /// - Parameter jwt: A JWT string (`header.payload.signature`) containing the claim.
-/// - Returns: A `JWTMatching` instance if all required fields are present,
-///            otherwise `nil` and triggers `errorEvent` if fields are missing.
-///
-/// The function:
-/// 1. Decodes the JWT payload.
-/// 2. Extracts `db_id`, `matching`, and available identifiers (`email`, `phone`, `profile_id`, `field_value`, `subscription_id`).
-/// 3. Ensures `db_id` and `matching` are present, and at least one identifier exists.
-/// 4. Builds `JWTMatching` with a concatenated `matchingValue` string.
-/// Extracts the JWT "matching" claim fields from a token.
-///
-/// - Parameter jwt: A JWT token string (`header.payload.signature`).
-/// - Returns: A tuple of extracted fields, or `nil` if parsing fails.
-private func getMatchingFields(jwt: String?) -> JWTData?{
+/// - Returns: `JWTData` if parsing and validation succeed; otherwise `nil` and emits an error.
+private func getMatchingFields(jwt: String?) -> JWTData? {
     guard let jwt = jwt else {
         errorEvent(#function, error: jwtIsNil)
         return nil
     }
+
+    // Decode JWT payload (Base64URL)
     guard
         let part = jwt.split(separator: ".").dropFirst().first,
         let payload = Data(base64UrlEncoded: String(part)),
         let json = try? JSONSerialization.jsonObject(with: payload) as? [String: Any],
+        // The `matching` claim inside payload is itself a JSON string → parse again
         let raw = (json[Constants.AuthKeys.matching] as? String)?.data(using: .utf8),
         let dict = try? JSONSerialization.jsonObject(with: raw) as? [String: Any]
     else {
         errorEvent(#function, error: JWTParsingError)
         return nil
     }
+    
+    /// Safely converts a value to `Int` .
+    func intValue(_ any: Any?) -> Int? {
+        switch any {
+        case let n as NSNumber: return n.intValue
+        case let i as Int:      return i
+        case let s as String:   return Int(s)
+        default:                return nil
+        }
+    }
 
-    let dbId           = dict[Constants.AuthKeys.dbId] as? Int
-    let matching       = dict[Constants.AuthKeys.matching] as? String
-    let email          = dict[Constants.AuthKeys.email] as? String
-    let phone          = dict[Constants.AuthKeys.phone] as? String
-    let profileId      = dict[Constants.AuthKeys.profileId] as? String
-    let fieldValue     = dict[Constants.AuthKeys.fieldValue] as? String
-    let subscriptionId = dict[Constants.AuthKeys.subscriptionId] as? String
-    
-    let ids = [email, phone, profileId, fieldValue, subscriptionId]
-        .compactMap { $0?.trimmingCharacters(in: .whitespacesAndNewlines) }
+    /// Safely converts a value to a trimmed non-empty `String`.
+    func stringValue(_ any: Any?) -> String? {
+        switch any {
+        case let s as String:
+            let t = s.trimmingCharacters(in: .whitespacesAndNewlines)
+            return t.isEmpty ? nil : t
+        case let n as NSNumber:
+            return n.stringValue
+        default:
+            return nil
+        }
+    }
+
+    // Required fields
+    let dbId     = intValue(dict[Constants.AuthKeys.dbId])
+    let matching = stringValue(dict[Constants.AuthKeys.matching])
+
+    // Optional identifiers
+    let email          = stringValue(dict[Constants.AuthKeys.email])
+    let phone          = stringValue(dict[Constants.AuthKeys.phone])
+    let profileId      = stringValue(dict[Constants.AuthKeys.profileId])
+    let fieldName      = stringValue(dict[Constants.AuthKeys.fieldName])
+    let fieldValue     = stringValue(dict[Constants.AuthKeys.fieldValue])
+    let provider       = stringValue(dict[Constants.AuthKeys.provider])
+    let subscriptionId = stringValue(dict[Constants.AuthKeys.subscriptionId])
+
+    let parts = [email, phone, profileId, fieldName, fieldValue, provider, subscriptionId]
+        .compactMap { $0 }
         .filter { !$0.isEmpty }
-    
-    validateMatchingFields(dbId: dbId, matching: matching, ids: ids)
-    
-    guard let dbId = dbId, let matching = matching, !matching.isEmpty, !ids.isEmpty else {
+
+    // Validation: db_id and matching are required, at least one identifier must exist
+    validateMatchingFields(dbId: dbId, matching: matching, ids: parts)
+    guard let dbId = dbId, let matching = matching, !parts.isEmpty else {
         return nil
     }
-    
-    let hash = extractJWTDataHash(
-        dbId: dbId, matching: matching, value: ids.joined(separator: "/")
-    )
+
+    // Build the same concatenated matchingValue as Android
+    let matchingValue = parts.joined(separator: "/")
+
+
+    let hash = extractJWTDataHash(dbId: dbId, matching: matching, value: matchingValue)
     return JWTData(jwt: jwt, hash: hash, matching: matching)
 }
 

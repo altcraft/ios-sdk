@@ -11,8 +11,6 @@ import Altcraft
 
 class JWTProvider: JWTInterface {
     func getToken() -> String? {
-          let authKey = "JWT_KEY"
-          let suiteName = appGroup
-          return UserDefaults(suiteName: suiteName)?.string(forKey: authKey)
-      }
+        JWTManager.shared.getJWT()
+    }
 }

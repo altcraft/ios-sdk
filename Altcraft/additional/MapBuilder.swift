@@ -13,24 +13,26 @@ import Foundation
 /// - Parameters:
 ///   - uid: The event ID (optional).
 ///   - type: The push event type (optional).
+///   - name: The mobile event name (optional).
 ///   - code: The HTTP status code (optional).
-///   - error: The error code or message (optional).
-///   - text: Additional event-related text (optional).
-///   - profile: The profile data (optional).
-/// - Returns: A map with keys "uid", "type", "code", "error", "text", and "profile" as needed.
+///   - response: The response object containing API result (optional).
+/// - Returns: A map with keys such as "uid", "type", "name", and "responseWithHttp" as needed.
 func mapValue(
     code: Int? = nil,
     response: Response? = nil,
     uid: String? = nil,
-    type: String? = nil
+    type: String? = nil,
+    name: String? = nil
 ) -> [String: Any] {
     var eventMap: [String: Any] = [:]
     
     if let uid = uid { eventMap[Constants.MapKeys.uid] = uid }
     if let type = type { eventMap[Constants.MapKeys.type] = type }
+    if let name = name { eventMap[Constants.MapKeys.name] = name }
     
     eventMap[Constants.MapKeys.responseWithHttp] = ResponseWithHttp(
-        httpCode: code, response: response
+        httpCode: code,
+        response: response
     )
 
     return eventMap

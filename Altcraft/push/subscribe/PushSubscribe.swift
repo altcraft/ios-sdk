@@ -65,13 +65,20 @@ internal class PushSubscribe: NSObject {
                 done()
                 return
             }
-            
+
             getUserTag { userTag in
                 guard let userTag = userTag else {
                     errorEvent(#function, error: userTagIsNilE)
                     done()
                     return
                 }
+
+                if customFields.containsNonPrimitiveValues() {
+                    errorEvent(#function, error: fieldsIsObjects)
+                    done()
+                    return
+                }
+
                 self.context.perform {
                     addSubscribeEntity(
                         context: self.context,
@@ -84,9 +91,15 @@ internal class PushSubscribe: NSObject {
                         replace: replace,
                         skipTriggers: skipTriggers,
                         uid: UUID().uuidString
-                    ) {
-                        self.enqueueStartSubscribe(context: self.context)
-                        done()
+                    ) { result in
+                        switch result {
+                        case .success:
+                            self.enqueueStart(context: self.context)
+                            done()
+                        case .failure(let err):
+                            errorEvent(#function, error: err)
+                            done()
+                        }
                     }
                 }
             }
@@ -97,7 +110,7 @@ internal class PushSubscribe: NSObject {
     /// Guarantees that only one `startSubscribe` run executes at a time,
     /// and the queue is released only after the whole flow completes.
     /// - Parameter context: Optional Core Data context to use for processing.
-    private func enqueueStartSubscribe(context: NSManagedObjectContext?) {
+    func enqueueStart(context: NSManagedObjectContext?) {
           SubscribeQueues.startQueue.submit { done in
               self.startSubscribe(context: context) {
                   done()
@@ -119,20 +132,21 @@ internal class PushSubscribe: NSObject {
     ///   - completion: Closure called after the operation completes.
     func startSubscribe(
         context: NSManagedObjectContext? = nil,
+        enableRetry: Bool = true,
         completion: @escaping () -> Void = {}
     ) {
         NetworkMonitor.shared.performActionWhenConnected {
             UNUserNotificationCenter.current().getNotificationSettings { settings in
                 if settings.authorizationStatus != .authorized {
                     retryEvent(#function, error: permissionDenied)
-                    self.retry()
+                    if enableRetry { self.retry() }
                     return SubscribeQueues.syncQueue.async {
                         completion()
                     }
                 }
                 
                 self.processSubscriptions(context: context ?? self.context) { success in
-                    if !success {
+                    if !success && enableRetry {
                         self.retry()
                     }
                     SubscribeQueues.syncQueue.async {
@@ -243,5 +257,3 @@ internal class PushSubscribe: NSObject {
         }
     }
 }
-
-

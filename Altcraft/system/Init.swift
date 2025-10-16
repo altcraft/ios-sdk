@@ -29,37 +29,26 @@ class AltcraftInit: NSObject {
     ///   - configuration: Optional configuration object. If `nil`, initialization fails.
     ///   - completion: Optional callback invoked on the **main** queue with `true` on success,
     ///                 `false` on failure (including `nil` configuration).
-    func initSDK(
-        configuration: AltcraftConfiguration?,
-        completion: ((Bool) -> Void)? = nil
-    ) {
-        ConfigCoordinator.shared.saveConfig(
-            configuration: configuration
-        ) { [weak self] result in
-            guard let self = self else {
-                DispatchQueue.main.async {
-                    completion?(false)
-                }
-                return
-            }
+    func initSDK(configuration: AltcraftConfiguration?, completion: ((Bool) -> Void)? = nil) {
+        
+        guard let config = configuration else {
+            errorEvent(#function, error: configIsNotSet)
+            completion?(false)
+            return
+        }
+
+        let apiUrl = config.getApiUrl()
+        let rToken = config.getRToken()
+        let appInfo = config.getAppInfo()
+        let priorityList = config.getProviderPriorityList()
+
+        setConfig(url: apiUrl, rToken: rToken, appInfo: appInfo, providerPriorityList: priorityList) { set in
+            if !set {completion?(false); return}
             
-            if result {
-                event(#function, event: configSet)
-                if pushModuleIsActive(
-                    userDefault: self.userDefault, tokenManager: self.tokenManager
-                ) {
-                    performPushModuleCheck(
-                        userDefault: self.userDefault, tokenManager: self.tokenManager
-                    )
-                }
-                DispatchQueue.main.async { 
-                    completion?(true)
-                }
-            } else {
-                DispatchQueue.main.async {
-                    completion?(false)
-                }
-            }
+            event(#function, event: configSet)
+            performRetryOperations(userDefault: self.userDefault, tokenManager: self.tokenManager)
+            
+            completion?(true)
         }
     }
 }

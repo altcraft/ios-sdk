@@ -7,7 +7,8 @@
 //  Copyright © 2025 Altcraft. All rights reserved.
 
 /// Protocol for providing a JWT token
-public protocol JWTInterface {
+@objc
+public protocol JWTInterface: AnyObject { 
     /// Returns a JWT token (synchronously)
     func getToken() -> String?
 }

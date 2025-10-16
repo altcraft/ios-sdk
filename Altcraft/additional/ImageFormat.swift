@@ -31,7 +31,7 @@ enum ImageFormat: String {
         }
     }
 
-    /// Initializes the format by inspecting the data’s magic bytes.
+    /// Initializes the format by inspecting the data’s bytes.
     ///
     /// Supported signatures: PNG, JPEG, GIF, WEBP (RIFF/WEBP), BMP, TIFF (II*/MM*), HEIC/HEIF (ISO BMFF "ftyp").
     /// Returns `nil` if the data is too short or no known signature matches.
