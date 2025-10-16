@@ -8,7 +8,6 @@
 
 /* Begin PBXBuildFile section */
 		550956082E7951ED000BFBA8 /* RetryManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 550956072E7951ED000BFBA8 /* RetryManager.swift */; };
-		5509560C2E79916B000BFBA8 /* ConfigManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5509560B2E79916B000BFBA8 /* ConfigManager.swift */; };
 		550956232E7AB38B000BFBA8 /* Altcraft.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 559B61B02C903EF90081192F /* Altcraft.framework */; };
 		5509FA9C2D5114F700B1DE03 /* SubscribeDbQueries.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5509FA9B2D5114F700B1DE03 /* SubscribeDbQueries.swift */; };
 		5509FAA42D6CC8DC00B1DE03 /* EventList.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5509FAA32D6CC8DC00B1DE03 /* EventList.swift */; };
@@ -48,6 +47,14 @@
 		552BCFBF2E7DAE43008A9116 /* InitTest.swift in Sources */ = {isa = PBXBuildFile; fileRef = 552BCFBE2E7DAE43008A9116 /* InitTest.swift */; };
 		552BCFC12E7DAF49008A9116 /* AccessToBackgroundTest.swift in Sources */ = {isa = PBXBuildFile; fileRef = 552BCFC02E7DAF49008A9116 /* AccessToBackgroundTest.swift */; };
 		552BCFC32E7DB253008A9116 /* BackgroundTaskTest.swift in Sources */ = {isa = PBXBuildFile; fileRef = 552BCFC22E7DB253008A9116 /* BackgroundTaskTest.swift */; };
+		55302B982E93AF4B003A1A4C /* MobileEvent.swift in Sources */ = {isa = PBXBuildFile; fileRef = 55302B972E93AF4B003A1A4C /* MobileEvent.swift */; };
+		55302B9A2E93B800003A1A4C /* MobileEventQueue.swift in Sources */ = {isa = PBXBuildFile; fileRef = 55302B992E93B800003A1A4C /* MobileEventQueue.swift */; };
+		55302B9C2E93CD6F003A1A4C /* MobileEventDbQueries.swift in Sources */ = {isa = PBXBuildFile; fileRef = 55302B9B2E93CD6F003A1A4C /* MobileEventDbQueries.swift */; };
+		55302B9E2E93EFCA003A1A4C /* PartsFactory.swift in Sources */ = {isa = PBXBuildFile; fileRef = 55302B9D2E93EFCA003A1A4C /* PartsFactory.swift */; };
+		55302BB52E9554CF003A1A4C /* MultipartBody.swift in Sources */ = {isa = PBXBuildFile; fileRef = 55302BB42E9554CF003A1A4C /* MultipartBody.swift */; };
+		55302BB72E968C42003A1A4C /* PublicMobileEventFunctions.swift in Sources */ = {isa = PBXBuildFile; fileRef = 55302BB62E968C42003A1A4C /* PublicMobileEventFunctions.swift */; };
+		55302BC22E9E3CCC003A1A4C /* Subscription.swift in Sources */ = {isa = PBXBuildFile; fileRef = 55302BC12E9E3CCC003A1A4C /* Subscription.swift */; };
+		55302C922EA11A1A003A1A4C /* AltcraftObjCTypes.swift in Sources */ = {isa = PBXBuildFile; fileRef = 55302C912EA11A1A003A1A4C /* AltcraftObjCTypes.swift */; };
 		553B085D2E5DD49C004526D6 /* SubscribeQueue.swift in Sources */ = {isa = PBXBuildFile; fileRef = 553B085C2E5DD49C004526D6 /* SubscribeQueue.swift */; };
 		55527FB12D314BCE00919755 /* StringBuilder.swift in Sources */ = {isa = PBXBuildFile; fileRef = 55527FB02D314BCE00919755 /* StringBuilder.swift */; };
 		556FC7392E30D2D2000584AA /* Init.swift in Sources */ = {isa = PBXBuildFile; fileRef = 556FC7382E30D2D2000584AA /* Init.swift */; };
@@ -118,7 +125,6 @@
 
 /* Begin PBXFileReference section */
 		550956072E7951ED000BFBA8 /* RetryManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RetryManager.swift; sourceTree = "<group>"; };
-		5509560B2E79916B000BFBA8 /* ConfigManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ConfigManager.swift; sourceTree = "<group>"; };
 		5509561F2E7AB38B000BFBA8 /* AltcraftTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = AltcraftTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 		5509FA9B2D5114F700B1DE03 /* SubscribeDbQueries.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SubscribeDbQueries.swift; sourceTree = "<group>"; };
 		5509FAA32D6CC8DC00B1DE03 /* EventList.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = EventList.swift; sourceTree = "<group>"; };
@@ -158,6 +164,14 @@
 		552BCFBE2E7DAE43008A9116 /* InitTest.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = InitTest.swift; sourceTree = "<group>"; };
 		552BCFC02E7DAF49008A9116 /* AccessToBackgroundTest.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AccessToBackgroundTest.swift; sourceTree = "<group>"; };
 		552BCFC22E7DB253008A9116 /* BackgroundTaskTest.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BackgroundTaskTest.swift; sourceTree = "<group>"; };
+		55302B972E93AF4B003A1A4C /* MobileEvent.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MobileEvent.swift; sourceTree = "<group>"; };
+		55302B992E93B800003A1A4C /* MobileEventQueue.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MobileEventQueue.swift; sourceTree = "<group>"; };
+		55302B9B2E93CD6F003A1A4C /* MobileEventDbQueries.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MobileEventDbQueries.swift; sourceTree = "<group>"; };
+		55302B9D2E93EFCA003A1A4C /* PartsFactory.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PartsFactory.swift; sourceTree = "<group>"; };
+		55302BB42E9554CF003A1A4C /* MultipartBody.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MultipartBody.swift; sourceTree = "<group>"; };
+		55302BB62E968C42003A1A4C /* PublicMobileEventFunctions.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PublicMobileEventFunctions.swift; sourceTree = "<group>"; };
+		55302BC12E9E3CCC003A1A4C /* Subscription.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Subscription.swift; sourceTree = "<group>"; };
+		55302C912EA11A1A003A1A4C /* AltcraftObjCTypes.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AltcraftObjCTypes.swift; sourceTree = "<group>"; };
 		553B085C2E5DD49C004526D6 /* SubscribeQueue.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SubscribeQueue.swift; sourceTree = "<group>"; };
 		55527FB02D314BCE00919755 /* StringBuilder.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StringBuilder.swift; sourceTree = "<group>"; };
 		556FC7382E30D2D2000584AA /* Init.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Init.swift; sourceTree = "<group>"; };
@@ -366,6 +380,18 @@
 			path = background;
 			sourceTree = "<group>";
 		};
+		55302B962E930BF2003A1A4C /* mob_events */ = {
+			isa = PBXGroup;
+			children = (
+				55302B972E93AF4B003A1A4C /* MobileEvent.swift */,
+				55302B992E93B800003A1A4C /* MobileEventQueue.swift */,
+				55302B9D2E93EFCA003A1A4C /* PartsFactory.swift */,
+				55302BB42E9554CF003A1A4C /* MultipartBody.swift */,
+				55302BB62E968C42003A1A4C /* PublicMobileEventFunctions.swift */,
+			);
+			path = mob_events;
+			sourceTree = "<group>";
+		};
 		556FC7372E30D2B5000584AA /* retry */ = {
 			isa = PBXGroup;
 			children = (
@@ -399,6 +425,7 @@
 				559B61B42C903EF90081192F /* Altcraft.docc */,
 				559B61B32C903EF90081192F /* Altcraft.h */,
 				559B61E52C90461F0081192F /* AltcraftSDK.swift */,
+				55302B962E930BF2003A1A4C /* mob_events */,
 				559B61E42C90461F0081192F /* additional */,
 				5516B3312D7AF81E001FAF66 /* auth */,
 				559B61CE2C90461F0081192F /* background */,
@@ -406,7 +433,7 @@
 				559B61EB2C90461F0081192F /* data */,
 				559B61E02C90461F0081192F /* dataBase */,
 				5516B3342D7AFB70001FAF66 /* device */,
-				559B61E22C90461F0081192F /* event */,
+				559B61E22C90461F0081192F /* sdk_event */,
 				559B61D22C90461F0081192F /* factory */,
 				559F2D5E2E2532C400C5B7EE /* interfaces */,
 				55E406602D9EE5B800F375EC /* network */,
@@ -421,7 +448,6 @@
 			isa = PBXGroup;
 			children = (
 				559B61CA2C90461F0081192F /* AltcraftConfiguration.swift */,
-				5509560B2E79916B000BFBA8 /* ConfigManager.swift */,
 			);
 			path = configuration;
 			sourceTree = "<group>";
@@ -462,17 +488,18 @@
 				559B61DB2C90461F0081192F /* ConfigDbQueries.swift */,
 				5509FA9B2D5114F700B1DE03 /* SubscribeDbQueries.swift */,
 				5516B3532D9C0517001FAF66 /* PushEventDbQueries.swift */,
+				55302B9B2E93CD6F003A1A4C /* MobileEventDbQueries.swift */,
 			);
 			path = dataBase;
 			sourceTree = "<group>";
 		};
-		559B61E22C90461F0081192F /* event */ = {
+		559B61E22C90461F0081192F /* sdk_event */ = {
 			isa = PBXGroup;
 			children = (
 				559B61E12C90461F0081192F /* Events.swift */,
 				5509FAA32D6CC8DC00B1DE03 /* EventList.swift */,
 			);
-			path = event;
+			path = sdk_event;
 			sourceTree = "<group>";
 		};
 		559B61E42C90461F0081192F /* additional */ = {
@@ -497,6 +524,7 @@
 				559B61EA2C90461F0081192F /* Structures.swift */,
 				5516B3472D93F3D1001FAF66 /* Converter.swift */,
 				5516B3512D96AF65001FAF66 /* Repository.swift */,
+				55302C912EA11A1A003A1A4C /* AltcraftObjCTypes.swift */,
 			);
 			path = data;
 			sourceTree = "<group>";
@@ -522,6 +550,7 @@
 				559F2D5A2E252C0D00C5B7EE /* FCMInterface.swift */,
 				559F2D5C2E252C2600C5B7EE /* HMSInterface.swift */,
 				559F2D5F2E2532FE00C5B7EE /* JWTInterface.swift */,
+				55302BC12E9E3CCC003A1A4C /* Subscription.swift */,
 			);
 			path = interfaces;
 			sourceTree = "<group>";
@@ -814,18 +843,22 @@
 				5516B3482D93F3D1001FAF66 /* Converter.swift in Sources */,
 				559B61FD2C90461F0081192F /* ClearingDb.swift in Sources */,
 				5516B3382D7B139E001FAF66 /* AuthManager.swift in Sources */,
+				55302B9E2E93EFCA003A1A4C /* PartsFactory.swift in Sources */,
+				55302B9C2E93CD6F003A1A4C /* MobileEventDbQueries.swift in Sources */,
 				559B61FC2C90461F0081192F /* TokenUpdate.swift in Sources */,
 				553B085D2E5DD49C004526D6 /* SubscribeQueue.swift in Sources */,
-				5509560C2E79916B000BFBA8 /* ConfigManager.swift in Sources */,
 				5516B3522D96AF65001FAF66 /* Repository.swift in Sources */,
 				559B61F92C90461F0081192F /* PushSubscribe.swift in Sources */,
 				559F2D602E2532FE00C5B7EE /* JWTInterface.swift in Sources */,
+				55302B9A2E93B800003A1A4C /* MobileEventQueue.swift in Sources */,
 				55EA85F02E6F3ADC001CC5A5 /* PushEvent.swift in Sources */,
 				559B62032C90461F0081192F /* Events.swift in Sources */,
 				556FC7392E30D2D2000584AA /* Init.swift in Sources */,
 				552BCFAC2E7D9E41008A9116 /* ImageFormat.swift in Sources */,
+				55302C922EA11A1A003A1A4C /* AltcraftObjCTypes.swift in Sources */,
 				5516B34A2D942811001FAF66 /* Extension.swift in Sources */,
 				559F2D622E2533C800C5B7EE /* PublicPushTokenFunctions.swift in Sources */,
+				55302BB52E9554CF003A1A4C /* MultipartBody.swift in Sources */,
 				559B62052C90461F0081192F /* AltcraftSDK.swift in Sources */,
 				557556D32CE2566900F6B50C /* NetworkMonitor.swift in Sources */,
 				55D3CCB62DB78BE700A4F2D7 /* PublicPushSubscriptionFunctions.swift in Sources */,
@@ -833,6 +866,7 @@
 				559B61F32C90461F0081192F /* BackgroundTasks.swift in Sources */,
 				559F2D4D2E251CB000C5B7EE /* TokenManager.swift in Sources */,
 				559F2D5B2E252C0D00C5B7EE /* FCMInterface.swift in Sources */,
+				55302B982E93AF4B003A1A4C /* MobileEvent.swift in Sources */,
 				55D3CCCB2DD201DA00A4F2D7 /* PairBuilder.swift in Sources */,
 				559B620C2C90461F0081192F /* PushAction.swift in Sources */,
 				5516B3582D9C1B3F001FAF66 /* JsonFactory.swift in Sources */,
@@ -841,6 +875,7 @@
 				5579FD5F2D9D6F110000131C /* RequestManager.swift in Sources */,
 				559B61FA2C90461F0081192F /* Retry.swift in Sources */,
 				5516B3362D7AFB96001FAF66 /* DeviceInfo.swift in Sources */,
+				55302BB72E968C42003A1A4C /* PublicMobileEventFunctions.swift in Sources */,
 				559F2D592E252BF000C5B7EE /* APNSInterface.swift in Sources */,
 				5516B3542D9C0517001FAF66 /* PushEventDbQueries.swift in Sources */,
 				559B62092C90461F0081192F /* Structures.swift in Sources */,
@@ -859,6 +894,7 @@
 				5509FAA42D6CC8DC00B1DE03 /* EventList.swift in Sources */,
 				5509FA9C2D5114F700B1DE03 /* SubscribeDbQueries.swift in Sources */,
 				5516B34C2D958762001FAF66 /* MapBuilder.swift in Sources */,
+				55302BC22E9E3CCC003A1A4C /* Subscription.swift in Sources */,
 				55527FB12D314BCE00919755 /* StringBuilder.swift in Sources */,
 				5516B3332D7AF881001FAF66 /* JWTManager.swift in Sources */,
 				559B61F72C90461F0081192F /* ClearCache.swift in Sources */,
@@ -1082,7 +1118,7 @@
 				SUPPORTED_PLATFORMS = "iphoneos iphonesimulator";
 				SUPPORTS_MACCATALYST = NO;
 				SWIFT_EMIT_LOC_STRINGS = YES;
-				SWIFT_INSTALL_OBJC_HEADER = NO;
+				SWIFT_INSTALL_OBJC_HEADER = YES;
 				SWIFT_VERSION = 5.0;
 				TARGETED_DEVICE_FAMILY = "1,2";
 			};
@@ -1124,7 +1160,7 @@
 				SUPPORTED_PLATFORMS = "iphoneos iphonesimulator";
 				SUPPORTS_MACCATALYST = NO;
 				SWIFT_EMIT_LOC_STRINGS = YES;
-				SWIFT_INSTALL_OBJC_HEADER = NO;
+				SWIFT_INSTALL_OBJC_HEADER = YES;
 				SWIFT_VERSION = 5.0;
 				TARGETED_DEVICE_FAMILY = "1,2";
 			};

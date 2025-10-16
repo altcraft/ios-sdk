@@ -92,7 +92,7 @@ struct MainView: View {
                         .background(Color.clear)
                         .offset(y: -12)
                     }
-// qa test ui
+// qa test ui ------------------------------------------------------------------------
 //                    HStack {
 //                        Spacer()
 //                        Toggle(isOn: $isSwitchOn) {
@@ -112,7 +112,7 @@ struct MainView: View {
 //                    } else {
 //                        stopResTokenTest()
 //                    }
-
+// qa test ui--------------------------------------------------------------------------
                 }
                 .frame(maxWidth: .infinity)
                 .frame(height: 300)
@@ -121,6 +121,7 @@ struct MainView: View {
                 .shadow(radius: 10)
                 .offset(y: 0)
                 .alignmentGuide(.top) { _ in 0 }
+
                 
                 Spacer()
                 
@@ -256,7 +257,6 @@ struct MainView: View {
         return dateFormatter.string(from: creationDate)
     }
 }
-
 
 struct MainView_Previews: PreviewProvider {
     static var previews: some View {

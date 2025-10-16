@@ -44,6 +44,29 @@ func buildGetRequest(url: URL, authHeader: String, requestId: String) -> URLRequ
     return request
 }
 
+//?????????
+@inline(__always)
+private func buildMultipartRequest(
+    url: URL,
+    parts: [Part],
+    authHeader: String
+) -> URLRequest {
+    var request = URLRequest(url: url)
+    request.httpMethod = Constants.HTTPMethod.post
+
+    let boundary = makeBoundary()
+    let body = buildMultipartBody(parts: parts, boundary: boundary)
+    request.httpBody = body
+
+    // Headers
+    request.setValue("multipart/form-data; boundary=\(boundary)", forHTTPHeaderField: Constants.HTTPHeader.contentType)
+    request.setValue(authHeader, forHTTPHeaderField: Constants.HTTPHeader.authorization)
+    // По желанию можно указать длину:
+    request.setValue(String(body.count), forHTTPHeaderField: "Content-Length")
+
+    return request
+}
+
 /// Constructs `URLComponents` with optional query parameters for API requests.
 ///
 /// - Parameters:
@@ -95,6 +118,33 @@ func buildURLComponents(
     }
     
     return comps
+}
+
+func buildMobileEventURL(
+    baseURLString: String,
+    sid: String,
+    tracker: String,
+    type: String,
+    version: String
+) -> URL? {
+    guard var comps = URLComponents(string: baseURLString),
+          let scheme = comps.scheme,
+          scheme == Constants.URLScheme.http ||
+          scheme == Constants.URLScheme.https,
+          let host = comps.host, !host.isEmpty
+    else {
+        return nil
+    }
+
+    var items = comps.queryItems ?? []
+    items.append(contentsOf: [
+        URLQueryItem(name: "i",  value: sid),
+        URLQueryItem(name: "tr", value: tracker),
+        URLQueryItem(name: "t",  value: type),
+        URLQueryItem(name: "v",  value: version),
+    ])
+    comps.queryItems = items
+    return comps.url
 }
 
 /// Creates a URL request for a push notification subscription.
@@ -306,4 +356,24 @@ func statusRequest(
 
         completion(request)
     }
+}
+
+
+func createMobileEventMultipartRequest(
+    baseURLString: String,
+    sid: String,
+    parts: [Part],
+    authHeader: String
+) -> URLRequest? {
+    guard let url = buildMobileEventURL(
+        baseURLString: baseURLString,
+        sid: sid,
+        tracker: "px",
+        type: "open",
+        version: "2"
+    ) else {
+        errorEvent(#function, error: invalidRequestUrl, value: [Constants.MapKeys.url: baseURLString])
+        return nil
+    }
+    return buildMultipartRequest(url: url, parts: parts, authHeader: authHeader)
 }

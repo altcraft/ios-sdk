@@ -33,7 +33,7 @@ class SubscribeStatusManager: ObservableObject {
         let eventValue = event.value?["response_with_http_code"] as? ResponseWithHttp
         
         
-        if eventCode == 230 || eventCode == 234 {
+        if eventCode == 230 || eventCode == 233 {
             self.status =  eventValue?.response?.profile?.subscription?.status ??
             AppConstants.SubscriptionStatus.unsubscribed
             UserDefaults.standard.set(status, forKey: "subscribeStatus")

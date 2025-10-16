@@ -126,7 +126,7 @@ final class CoreTests: XCTestCase {
     func test_5_performPushModuleCheck_smoke_noCrashes() {
         let user = freshUserDefaults()
         withTokenManagerProviders(fcm: nil, hms: nil, apns: nil) { tm in
-            performPushModuleCheck(userDefault: user, tokenManager: tm)
+            performRetryOperations(userDefault: user, tokenManager: tm)
         }
         let exp = expectation(description: "spin main queue")
         DispatchQueue.main.async { exp.fulfill() }

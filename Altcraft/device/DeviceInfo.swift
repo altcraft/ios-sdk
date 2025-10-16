@@ -98,4 +98,17 @@ class DeviceInfo {
         
         return String(format: "%@%02d%02d", sign, hours, minutes)
     }
+    
+    /// Returns mobile-event timezone offset in minutes as a signed integer.
+    /// Mirrors Android: -(hours * 60 + minutes).
+    /// On any failure returns 0.
+    @inline(__always)
+    func getTimeZoneForMobEvent() -> Int16 {
+        let seconds = TimeZone.current.secondsFromGMT()
+        let minutes = seconds / 60
+        let value = -minutes
+        if value > Int(Int16.max) { return Int16.max }
+        if value < Int(Int16.min) { return Int16.min }
+        return Int16(value)
+    }
 }

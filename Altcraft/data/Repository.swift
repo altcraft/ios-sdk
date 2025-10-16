@@ -21,7 +21,6 @@ import Foundation
 func getCommonData(completion: @escaping (CommonData?) -> Void) {
     let userDefault = StoredVariablesManager.shared
     let tokenManager = TokenManager.shared
-
     getConfig { config in
         
         tokenManager.getCurrentToken{ currentToken in
@@ -75,12 +74,12 @@ func getSubscribeRequestData(
         }
         
 
-        let profileFields = decodeJSONData(entity.profileFields)
+        let profileFields = decodeAnyMap(entity.profileFields)
         let customFields = getFields(config: data.config, entity: entity)
 
         let requestData = SubscribeRequestData(
             url: subscribeURL(data.config.url),
-            time: entity.time,
+            time: entity.time / 1000,
             rToken: data.config.rToken,
             requestId: entity.uid ?? "",
             authHeader: data.authHeader,
@@ -139,7 +138,6 @@ func getUpdateRequestData(completion: @escaping (UpdateRequestData?) -> Void) {
     }
 }
 
-
 /// Constructs a `PushEventRequestData` object from a `PushEventEntity`.
 ///
 /// Retrieves configuration and builds the push event request data.
@@ -167,8 +165,8 @@ func getPushEventRequestData(
         }
         
         let requestData = PushEventRequestData(
-            url: pushEventURL(data.config.url, event: entity),
-            time: entity.time,
+            url: eventPushURL(data.config.url, event: entity),
+            time: entity.time / 1000,
             type: type,
             uid: uid + type,
             authHeader: data.authHeader,
@@ -181,6 +179,42 @@ func getPushEventRequestData(
             errorEvent(#function, error: invalidPushEventRequestData)
             completion(nil)
         }
+    }
+}
+
+/// Constructs a `MobileEventRequestData` object from a `MobileEventEntity`.
+///
+/// Retrieves configuration and builds the mobile event request data.
+/// Returns `nil` if required fields are missing or invalid.
+///
+/// - Parameters:
+///   - event: The `MobileEventEntity` representing a local push event.
+///   - completion: A closure that receives a valid `MobileEventRequestData` or `nil`.
+func getMobileEventRequestData(
+    eventData: MobileEventData,
+    completion: @escaping (MobileEventRequestData?) -> Void
+) {
+    getCommonData { data in
+        guard let data = data else {
+            errorEvent(#function, error: commonDataIsNil)
+            completion(nil)
+            return
+        }
+        
+        guard let sid = eventData.sid, let name = eventData.eventName else {
+            errorEvent(#function, error: mobileRequestDataIsNil)
+            completion(nil)
+            return
+        }
+        
+        completion(
+            MobileEventRequestData(
+                url: eventMobileURL(data.config.url),
+                sid: sid,
+                name: name,
+                authHeader: data.authHeader
+            )
+        )
     }
 }
 

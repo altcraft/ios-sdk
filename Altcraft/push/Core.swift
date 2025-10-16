@@ -29,19 +29,28 @@ func pushModuleIsActive(userDefault: StoredVariablesManager, tokenManager: Token
 /// - Parameters:
 ///   - userDefault: The instance responsible for managing stored retry counters.
 ///   - tokenManager: The token manager used to update the push token and disable logs.
-func performPushModuleCheck(userDefault: StoredVariablesManager, tokenManager: TokenManager) {
+func performRetryOperations(userDefault: StoredVariablesManager, tokenManager: TokenManager) {
     NetworkMonitor.shared.performActionWhenConnected {
         ForegroundCheck.shared.isForeground {
             getContext { context in
                 userDefault.setSubRetryCount(value: 0)
                 userDefault.setUpdateRetryCount(value: 0)
                 userDefault.setPushEventRetryCount(value: 0)
-
-                PushEvent.shared.sendAllPushEvents(context: context)
-                TokenUpdate.shared.tokenUpdate()
-                SubscribeQueues.startQueue.submit { done in
-                    PushSubscribe.shared.startSubscribe(context: context) {
+                userDefault.setMobileEventRetryCount(value: 0)
+                
+                MobileEventQueues.startQueue.submit { done in
+                    MobileEvent.shared.startEventsSend(context: context, enableRetry: false) {
                         done()
+                    }
+                }
+                
+                if pushModuleIsActive(userDefault: userDefault, tokenManager: tokenManager) {
+                    PushEvent.shared.sendAllPushEvents(context: context)
+                    TokenUpdate.shared.tokenUpdate()
+                    SubscribeQueues.startQueue.submit { done in
+                        PushSubscribe.shared.startSubscribe(context: context, enableRetry: false) {
+                            done()
+                        }
                     }
                 }
             }

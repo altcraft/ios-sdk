@@ -134,7 +134,7 @@ final class PairBuilderTest: XCTestCase {
 
         let s4 = createSuccessPair(requestName: reqStatus, type: nil)
         XCTAssertEqual(s4.0, 234)
-        XCTAssertEqual(s4.1, Constants.SDKSuccessMessage.profileSuccess)
+        XCTAssertEqual(s4.1, Constants.SDKSuccessMessage.statusSuccess)
     }
 
     /// pushEvent success appends type to message (e.g., "/event/push/<type>")

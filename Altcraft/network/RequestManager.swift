@@ -28,13 +28,17 @@ final class RequestManager: NSObject {
     ///
     /// - Parameters:
     ///   - request: The `URLRequest` to send.
-    ///   - function: The name of the calling function (used for logging and event tagging).
+    ///   - requestName: The logical name of the request (used for error mapping and logging).
+    ///   - uid: The unique event identifier, if available (used for event correlation).
+    ///   - type: The push event type (optional, used only for push events).
+    ///   - name: The mobile event name (optional, used only for mobile events).
     ///   - completion: A closure called with the resulting `Event` after the request completes.
     func sendRequest(
         request: URLRequest,
         requestName: String,
         uid: String? = nil,
         type: String? = nil,
+        name: String? = nil,
         completion: @escaping (Event) -> Void
     ) {
         let functionName = "\(#function): \(requestName)"
@@ -50,7 +54,7 @@ final class RequestManager: NSObject {
             }
             completion(
                 self.responseProcessing(
-                    response: httpResponse, data: data, requestName: requestName, uid: uid, type: type
+                    response: httpResponse, data: data, requestName: requestName, uid: uid, type: type, name: name
                 )
             )
         }.resume()
@@ -66,17 +70,18 @@ final class RequestManager: NSObject {
         data: Data?,
         requestName: String,
         uid: String? = nil,
-        type: String? = nil
+        type: String? = nil,
+        name: String? = nil
     ) -> Event {
         let data = parseResponse(data: data)
      
-        let successPair = createSuccessPair(requestName: requestName, type: type)
+        let successPair = createSuccessPair(requestName: requestName, type: type, name: name)
         
         let errorPair = createErrorPair(
-            requestName: requestName, code: response.statusCode, response: data, type: type
+            requestName: requestName, code: response.statusCode, response: data, type: type, name: name
         )
         
-        let value = mapValue(code: response.statusCode, response: data, uid: uid, type: type)
+        let value = mapValue(code: response.statusCode, response: data, uid: uid, type: type, name: name)
 
         switch response.statusCode {
         case 200...299:

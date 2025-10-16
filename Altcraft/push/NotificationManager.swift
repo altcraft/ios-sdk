@@ -10,47 +10,58 @@ import Foundation
 import UserNotifications
 import UIKit
 
-/// The `NotificationServiceFunction` class contains the iOS system functions necessary to receive remote push notifications.
+/// The `NotificationManager` contains iOS system hooks for receiving and handling remote push notifications.
+///
+/// ObjC support:
+/// - Use `[NotificationManager shared]` (or `[NotificationManager sharedInstance]`) to access the singleton.
+/// - Methods are exposed to Objective-C via `@objcMembers`.
+@objcMembers
 public class NotificationManager: NSObject, UNUserNotificationCenterDelegate {
     
-    /// Shared instance of `NotificationServiceFunction`.
-    internal static let shared = NotificationManager()
+    /// Shared singleton instance.
+    /// Swift: `NotificationManager.shared`
+    /// ObjC:  `[NotificationManager shared]` or `[NotificationManager sharedInstance]`
+    public static let shared = NotificationManager()
+    
+    /// Optional Objective-C friendly accessor (identical to `shared`).
+    public class func sharedInstance() -> NotificationManager { NotificationManager.shared }
+    
     private let pushEvent = PushEvent.shared
 
-    /// Registers the application to receive push notifications.
+    /// Registers the app for push notifications.
     ///
-    /// Sets the `UNUserNotificationCenter` delegate, registers for remote notifications,
-    /// and requests user authorization for alerts, sounds, and badges.
-    ///
-    /// - Parameter application: The `UIApplication` instance used to register for notifications.
-    public func registerForPushNotifications(
-         for application: UIApplication,
-         completion: ((_ granted: Bool, _ error: Error?) -> Void)? = nil
-     ) {
-         UNUserNotificationCenter.current().delegate = self
-         DispatchQueue.main.async {
-             UNUserNotificationCenter.current().requestAuthorization(options: [.alert, .sound, .badge]) { granted, error in
-                 if Thread.isMainThread {
-                     application.registerForRemoteNotifications()
-                 } else {
-                     DispatchQueue.main.async {
-                         application.registerForRemoteNotifications()
-                     }
-                 }
-                 completion?(granted, error)
-             }
-         }
-     }
-    
-    /// Handles the presentation of push notifications while the app is in the foreground.
-    ///
-    /// Called when a notification is about to be shown while the app is active.
-    /// Use the `completionHandler` to specify how the notification should be presented—e.g., with banner, badge, or sound.
+    /// Sets the `UNUserNotificationCenter` delegate, requests authorization for alerts/sounds/badges,
+    /// and registers with APNs. Completion is invoked with the user's authorization decision.
     ///
     /// - Parameters:
-    ///   - center: The `UNUserNotificationCenter` that received the notification.
-    ///   - notification: The `UNNotification` to be presented.
-    ///   - completionHandler: A closure that takes `UNNotificationPresentationOptions` to define how to display the notification.
+    ///   - application: The `UIApplication` instance used to register for remote notifications.
+    ///   - completion: Optional closure/block called with `(granted, error)`.
+    ///                 ObjC signature: `void (^)(BOOL granted, NSError * _Nullable error)`
+    public func registerForPushNotifications(
+        for application: UIApplication,
+        completion: ((_ granted: Bool, _ error: Error?) -> Void)? = nil
+    ) {
+        UNUserNotificationCenter.current().delegate = self
+        DispatchQueue.main.async {
+            UNUserNotificationCenter.current().requestAuthorization(
+                options: [.alert, .sound, .badge]
+            ) { granted, error in
+                if Thread.isMainThread {
+                    application.registerForRemoteNotifications()
+                } else {
+                    DispatchQueue.main.async {
+                        application.registerForRemoteNotifications()
+                    }
+                }
+                completion?(granted, error)
+            }
+        }
+    }
+    
+    /// Foreground presentation handler.
+    ///
+    /// Called when a notification arrives while the app is in the foreground.
+    /// Customize the presentation options as needed.
     public func userNotificationCenter(
         _ center: UNUserNotificationCenter,
         willPresent notification: UNNotification,
@@ -63,15 +74,9 @@ public class NotificationManager: NSObject, UNUserNotificationCenterDelegate {
         }
     }
 
-    /// Handles the user's response to a delivered notification.
+    /// User response handler (tap/action on a delivered notification).
     ///
-    /// This function is triggered after the user taps on the notification.
-    /// It is responsible for triggering  push event  `"open"` and invoking `pushClickAction()` to process any custom actions.
-    ///
-    /// - Parameters:
-    ///   - center: The `UNUserNotificationCenter` that received the response.
-    ///   - response: The user’s response to the notification.
-    ///   - completionHandler: The block to execute when the response has been processed.
+    /// Triggers a `"open"` push event and runs `pushClickAction` to process custom actions.
     public func userNotificationCenter(
         _ center: UNUserNotificationCenter,
         didReceive response: UNNotificationResponse,
@@ -84,3 +89,4 @@ public class NotificationManager: NSObject, UNUserNotificationCenterDelegate {
         completionHandler()
     }
 }
+

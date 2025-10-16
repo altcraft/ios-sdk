@@ -136,7 +136,7 @@ final class ConverterTests: XCTestCase {
     func test_8_decodeJSONData_validDictionary() {
         let dict = ["key": "value", "num": 42] as [String : Any]
         let data = jsonData(dict)
-        let decoded = decodeJSONData(data)
+        let decoded = decodeAnyMap(data)
         XCTAssertEqual(decoded?["key"] as? String, "value")
         XCTAssertEqual(decoded?["num"] as? Int, 42)
     }
@@ -146,9 +146,9 @@ final class ConverterTests: XCTestCase {
     /// test_9: encodeCustomFields filters nil values and encodes correctly
     func test_9_encodeCustomFields_filtersNilValues() {
         let fields: [String: Any?] = ["a": "1", "b": nil, "n": 10]
-        let data = encodeCustomFields(fields)
+        let data = encodeAnyMap(fields)
         XCTAssertNotNil(data)
-        let decoded = decodeJSONData(data)
+        let decoded = decodeAnyMap(data)
         XCTAssertNil(decoded?["b"])
         XCTAssertEqual(decoded?["a"] as? String, "1")
         XCTAssertEqual(decoded?["n"] as? Int, 10)
@@ -182,13 +182,13 @@ final class ConverterTests: XCTestCase {
 
     /// test_13: decodeJSONData returns nil for invalid JSON
     func test_13_decodeJSONData_invalidData() {
-        XCTAssertNil(decodeJSONData(invalidJSONData()))
+        XCTAssertNil(decodeAnyMap(invalidJSONData()))
     }
 
     /// test_14: encodeCustomFields returns nil for non-serializable values
     func test_14_encodeCustomFields_nonSerializable() {
         let fields: [String: Any?] = ["obj": NSObject()]
-        let data = encodeCustomFields(fields)
+        let data = encodeAnyMap(fields)
         XCTAssertNil(data)
     }
 }

@@ -28,7 +28,6 @@ class JWTSettingManager: ObservableObject {
         if !regJWT.isEmpty {
             JWTManager.shared.setRegJWT(regJWT)
         }
-        JWTManager.shared.setJWT(anonJWT)
     }
     
     func clearJWTs() {

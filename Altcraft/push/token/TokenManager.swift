@@ -103,6 +103,10 @@ final class TokenManager {
     /// - Parameter completion: Callback with the selected `TokenData`, or `nil` if no valid token was found.
     func getCurrentToken(completion: @escaping (TokenData?) -> Void) {
         if let manualToken = userDefault.getManualToken() {
+            if (self.tokens.ts_last() ?? nil) != manualToken.token {
+                 self.tokenEvent(token: manualToken)
+                 self.tokens.ts_append(manualToken.token)
+             }
             completion(manualToken)
             return
         }
@@ -158,9 +162,8 @@ final class TokenManager {
             let indexB = priorityList.firstIndex(of: b.type) ?? Int.max
             return indexA < indexB
         }
-        return Array(sorted.prefix(3))
+        return Array(sorted.prefix(priorityList.count))
     }
-    
     
     /// Sends an event when a push provider is set with its current token.
     ///
@@ -169,10 +172,7 @@ final class TokenManager {
         event(
             #function,
             event: (pushProviderSet.0, "\(pushProviderSet.1)\(token.provider). token: \(token.token)"),
-            value: [
-                Constants.MapKeys.provider: token.provider,
-                Constants.MapKeys.token: token.token
-            ]
+            value: [Constants.MapKeys.provider: token.provider,Constants.MapKeys.token: token.token]
         )
     }
 
@@ -182,7 +182,6 @@ final class TokenManager {
     ///   - providers: A list of providers to query for a token.
     ///   - currentIndex: Index of the current provider being queried (defaults to 0).
     ///   - completion: Called with the first non-nil `TokenData`, or `nil` if all providers failed.
-
     private func fetchTokensSequentially(
         providers: [(type: String, fetch: (@escaping (TokenData?) -> Void) -> Void)],
         currentIndex: Int = 0,

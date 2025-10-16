@@ -17,7 +17,7 @@ class ProfileDataManager: ObservableObject {
 
     func fetchProfileData(with event: Event) {
         switch event.eventCode {
-        case 234:
+        case 233:
             if let responseWithHttp = event.value?["response_with_http_code"] as? ResponseWithHttp,
                let profile = responseWithHttp.response?.profile {
                 profileData = profile
@@ -25,7 +25,7 @@ class ProfileDataManager: ObservableObject {
                 error = "Invalid response or profile data"
             }
 
-        case 424, 434:
+        case 423, 433:
             error = event.message
 
         default:

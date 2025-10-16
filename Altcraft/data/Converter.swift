@@ -99,7 +99,7 @@ func decodeCats(_ data: Data?) -> [CategoryData]? {
 /// Decodes a `Data?` object into a JSON dictionary (`[String: Any]?`).
 /// - Parameter data: The `Data?` object to decode into a dictionary.
 /// - Returns: The decoded dictionary, or `nil` if decoding fails.
-func decodeJSONData(_ data: Data?) -> [String: Any]? {
+func decodeAnyMap(_ data: Data?) -> [String: Any]? {
     guard let data = data else { return nil }
     do {
         return try JSONSerialization.jsonObject(with: data, options: []) as? [String: Any]
@@ -112,17 +112,17 @@ func decodeJSONData(_ data: Data?) -> [String: Any]? {
 /// Serializes the `customFields` dictionary into `Data?`.
 /// - Parameter customFields: The dictionary to serialize.
 /// - Returns: A `Data?` object representing the serialized dictionary, or `nil` if serialization fails.
-func encodeCustomFields(_ customFields: [String: Any?]?) -> Data? {
-    guard let customFields = customFields else { return nil }
+func encodeAnyMap(_ map: [String: Any?]?) -> Data? {
+    guard let map = map else { return nil }
     
-    let filteredCustomFields = customFields.compactMapValues { $0 }
+    let filteredFields = map.compactMapValues { $0 }
     
-    guard JSONSerialization.isValidJSONObject(filteredCustomFields) else {
+    guard JSONSerialization.isValidJSONObject(filteredFields) else {
         errorEvent(#function, error: nonJsonObject)
         return nil
     }
     do {
-        return try JSONSerialization.data(withJSONObject: filteredCustomFields, options: [])
+        return try JSONSerialization.data(withJSONObject: filteredFields, options: [])
     } catch {
         errorEvent(#function, error: error)
         return nil
@@ -150,4 +150,78 @@ func configFromEntity(configuration: ConfigurationEntity) -> Configuration? {
         appInfo: appInfo,
         providerPriorityList: providerPriorityList
     )
+}
+
+/// Encodes a polymorphic `Subscription` into JSON `Data`.
+///
+/// Supports: `EmailSubscription`, `SmsSubscription`, `PushSubscription`, `CcDataSubscription`.
+/// - Parameter sub: Subscription value to encode.
+/// - Returns: JSON `Data` on success, otherwise `nil` (logs the error).
+func encodeSubscription(_ sub: (any Subscription)?) -> Data? {
+    guard let sub else { return nil }
+    let encoder = JSONEncoder()
+    do {
+        switch sub {
+        case let s as EmailSubscription:
+            return try encoder.encode(s)
+        case let s as SmsSubscription:
+            return try encoder.encode(s)
+        case let s as PushSubscription:
+            return try encoder.encode(s)
+        case let s as CcDataSubscription:
+            return try encoder.encode(s)
+        default:
+            // Неизвестная реализация протокола Subscription
+            errorEvent(#function, error: unsupportedSubscriptionType)
+            return nil
+        }
+    } catch {
+        errorEvent(#function, error: error)
+        return nil
+    }
+}
+
+/// Decodes a polymorphic `Subscription` from JSON `Data`.
+/// Tries known concrete types in order; returns `nil` if no type matches.
+func decodeSubscription(from data: Data?) -> (any Subscription)? {
+    guard let data else { return nil }
+    let decoder = JSONDecoder()
+    // Keep default strategies; each concrete type has its own CodingKeys if needed.
+    if let v = try? decoder.decode(EmailSubscription.self, from: data) { return v }
+    if let v = try? decoder.decode(SmsSubscription.self, from: data) { return v }
+    if let v = try? decoder.decode(PushSubscription.self, from: data) { return v }
+    if let v = try? decoder.decode(CcDataSubscription.self, from: data) { return v }
+    errorEvent(#function, error: unsupportedSubscriptionType)
+    return nil
+}
+
+/// Encodes a `UTM` value into JSON data.
+///
+/// Use this to serialize UTM parameters before storing them or sending in a request.
+/// - Parameter utm: The `UTM` value to encode. If `nil`, returns `nil`.
+/// - Returns: JSON `Data` on success; `nil` if `utm` is `nil` or encoding fails (the error is logged).
+func encodeUTM(_ utm: UTM?) -> Data? {
+    guard let utm else { return nil }
+    do {
+        return try JSONEncoder().encode(utm)
+    } catch {
+        errorEvent(#function, error: error)
+        return nil
+    }
+}
+
+/// Decodes a `UTM` value from JSON data.
+///
+/// Use this to reconstruct UTM parameters previously produced by `encodeUTM(_:)`
+/// or received from an external source.
+/// - Parameter data: JSON `Data` representing a `UTM` object.
+/// - Returns: A `UTM` instance on success; `nil` if `data` is `nil` or decoding fails (the error is logged).
+func decodeUTM(_ data: Data?) -> UTM? {
+    guard let data else { return nil }
+    do {
+        return try JSONDecoder().decode(UTM.self, from: data)
+    } catch {
+        errorEvent(#function, error: error)
+        return nil
+    }
 }

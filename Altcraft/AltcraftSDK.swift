@@ -21,6 +21,7 @@ import Network
 /// - `notificationManager`: Handling foreground/background notification behavior.
 ///
 /// It also provides configuration and cleanup APIs for initializing and resetting the SDK.
+@objcMembers
 public class AltcraftSDK: NSObject {
 
     /// The singleton instance of the `Altcraft` class.
@@ -37,6 +38,9 @@ public class AltcraftSDK: NSObject {
     
     /// Provides access to the push event registration function
     public let pushEventFunctions = PublicPushEventFunctions.shared
+    
+    /// Provides access to the mobile event registration function
+    public let mobileEventFunctions = PublicMobileEventFunctions.shared
 
     /// Provides access to background task registration.
     public let backgroundTasks = BackgroundTask.shared
@@ -87,4 +91,3 @@ public class AltcraftSDK: NSObject {
         }
     }
 }
-

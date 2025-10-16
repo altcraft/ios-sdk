@@ -8,6 +8,8 @@
 
 import Foundation
 
+// MARK: - Data + Base64URL decoding
+
 extension Data {
     
     /// Initializes a `Data` instance by decoding a Base64URL-encoded string.
@@ -35,6 +37,8 @@ extension Data {
 }
 
 
+// MARK: - Thread-safe optional String array storage
+
 // One shared queue for all such lists.
 private let _tsListQueue = DispatchQueue(label: "com.altcraft.tslist", attributes: .concurrent)
 
@@ -60,5 +64,40 @@ extension Array where Element == String? {
     /// - Returns: The last element or `nil` if the list is empty.
     public func ts_last() -> Element? {
         _tsListQueue.sync { self.last }
+    }
+}
+
+
+// MARK: - JSON scalar check
+
+/// Checks whether a value is a JSON scalar (string, boolean, or number).
+/// - Parameter v: The value to check.
+/// - Returns: `true` if `v` is `String`, `Bool`, `Int`, `Int64`, `Float`, `Double`, or `NSNumber`; otherwise `false`.
+@inline(__always)
+private func isPrimitiveJSONScalar(_ v: Any) -> Bool {
+    switch v {
+    case is String, is Bool, is Int, is Int64, is Float, is Double, is NSNumber:
+        return true
+    case is NSNull:
+        return false
+    default:
+        return false
+    }
+}
+
+// MARK: - [String: Any?]? convenience
+
+extension Optional where Wrapped == [String: Any?] {
+    /// Returns `true` if the dictionary contains any **non-primitive** values.
+    ///
+    /// Primitive values are: `String`, `Bool`, `Int`, `Int64`, `Float`, `Double`, `NSNumber`.
+    /// `nil` or an empty dictionary returns `false`.
+    ///
+    /// - Returns: `true` if at least one non-`nil` value is not a JSON scalar; otherwise `false`.
+    func containsNonPrimitiveValues() -> Bool {
+        guard let dict = self, !dict.isEmpty else { return false }
+        let nonNil = dict.values.compactMap { $0 }
+        guard !nonNil.isEmpty else { return false }
+        return nonNil.contains { !isPrimitiveJSONScalar($0) }
     }
 }

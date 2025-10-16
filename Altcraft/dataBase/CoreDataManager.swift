@@ -119,6 +119,3 @@ public func getContext(completion: @escaping (NSManagedObjectContext) -> Void) {
         completion(context)
     }
 }
-
-
-    

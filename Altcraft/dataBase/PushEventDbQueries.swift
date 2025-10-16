@@ -27,7 +27,7 @@ func addPushEventEntity(
 ) {
     do {
         let newEntity = PushEventEntity(context: context)
-        newEntity.time = Int64(Date().timeIntervalSince1970)
+        newEntity.time = Int64(Date().timeIntervalSince1970 * 1000)
         newEntity.uid = uid
         newEntity.type = type
         newEntity.retryCount = 0
@@ -122,41 +122,44 @@ func pushEventLimit(
     }
 }
 
-/// Checks if the number of `PushEventEntity` records exceeds 500.
-/// If so, deletes the 100 oldest entries based on the `time` field.
+import CoreData
+
+/// Clears oldest `PushEventEntity` records when the total exceeds a threshold (mobile-like behavior).
 ///
 /// - Parameters:
-///   - context: The `NSManagedObjectContext` used to fetch and delete records.
-///   - completion: A closure called when the operation finishes, regardless of outcome.
+///   - context: Managed object context used for the operation.
+///   - threshold: Maximum allowed number of records before cleanup starts (default: 500).
+///   - purgeCount: Number of oldest records to delete when threshold is exceeded (default: 100).
+///   - completion: Called when the operation finishes, regardless of outcome.
 func clearOldPushEvents(
     context: NSManagedObjectContext,
+    threshold: Int = 500,
+    purgeCount: Int = 100,
     completion: @escaping () -> Void
 ) {
-    let fetchRequest: NSFetchRequest<NSFetchRequestResult> = PushEventEntity.fetchRequest()
+    context.perform {
+        defer { completion() }
 
-    do {
-        let totalCount = try context.count(for: fetchRequest)
+        do {
+            // Count total records
+            let countReq: NSFetchRequest<PushEventEntity> = PushEventEntity.fetchRequest()
+            let total = try context.count(for: countReq)
+            guard total > threshold else { return }
 
-        guard totalCount > 500 else {
-            completion()
-            return
+            // Fetch oldest N by time
+            let fetchReq: NSFetchRequest<PushEventEntity> = PushEventEntity.fetchRequest()
+            fetchReq.sortDescriptors = [NSSortDescriptor(key: "time", ascending: true)]
+            fetchReq.fetchLimit = max(0, purgeCount)
+
+            let oldest = try context.fetch(fetchReq)
+            guard !oldest.isEmpty else { return }
+
+            // Delete and persist
+            oldest.forEach { context.delete($0) }
+            try context.save()
+
+        } catch {
+            errorEvent(#function, error: error)
         }
-
-        let oldestFetch: NSFetchRequest<PushEventEntity> = PushEventEntity.fetchRequest()
-        oldestFetch.sortDescriptors = [NSSortDescriptor(key: "time", ascending: true)]
-        oldestFetch.fetchLimit = 100
-
-        let oldestRecords = try context.fetch(oldestFetch)
-
-        for object in oldestRecords {
-            context.delete(object)
-        }
-
-        try context.save()
-        
-    } catch {
-        errorEvent(#function, error: error)
     }
-
-    completion()
 }

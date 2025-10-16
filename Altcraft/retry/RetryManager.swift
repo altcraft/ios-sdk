@@ -23,6 +23,9 @@ final class RetryManager {
 
     /// Serial queue for push event retries.
     let pushEventQueue = DispatchQueue(label: Constants.Queues.retryPushEventQueue, qos: .utility)
+    
+    /// Serial queue for push event retries.
+    let mobileEventQueue = DispatchQueue(label: Constants.Queues.retryMobileEventQueue, qos: .utility)
 
     /// Active retry tasks, stored by key.
     private var tasks: [String: DispatchWorkItem] = [:]

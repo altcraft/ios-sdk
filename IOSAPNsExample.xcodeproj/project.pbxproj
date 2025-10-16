@@ -9,6 +9,11 @@
 /* Begin PBXBuildFile section */
 		5509FAA02D6C677700B1DE03 /* SubscribeStatusManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5509FA9F2D6C677700B1DE03 /* SubscribeStatusManager.swift */; };
 		5516B35A2D9C3AA7001FAF66 /* JWTProvider.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5516B3592D9C3AA7001FAF66 /* JWTProvider.swift */; };
+		55302BBE2E9D4356003A1A4C /* PushServiceTest.swift in Sources */ = {isa = PBXBuildFile; fileRef = 551440DA2E8E88F300BD0451 /* PushServiceTest.swift */; };
+		55302CB02EA1349B003A1A4C /* Altcraft.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 55302CAD2EA13466003A1A4C /* Altcraft.framework */; };
+		55302CB12EA1349B003A1A4C /* Altcraft.framework in Embed Frameworks */ = {isa = PBXBuildFile; fileRef = 55302CAD2EA13466003A1A4C /* Altcraft.framework */; settings = {ATTRIBUTES = (CodeSignOnCopy, RemoveHeadersOnCopy, ); }; };
+		55302CB22EA134A4003A1A4C /* Altcraft.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 55302CAD2EA13466003A1A4C /* Altcraft.framework */; };
+		55302CB32EA134A4003A1A4C /* Altcraft.framework in Embed Frameworks */ = {isa = PBXBuildFile; fileRef = 55302CAD2EA13466003A1A4C /* Altcraft.framework */; settings = {ATTRIBUTES = (CodeSignOnCopy, RemoveHeadersOnCopy, ); }; };
 		5557A9232DF026B700BEF354 /* SDKFunctions.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5557A9222DF026B700BEF354 /* SDKFunctions.swift */; };
 		556FC6FF2E27BE55000584AA /* BoxModeManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 556FC6FE2E27BE55000584AA /* BoxModeManager.swift */; };
 		556FC7012E27C15A000584AA /* AppConstants.swift in Sources */ = {isa = PBXBuildFile; fileRef = 556FC7002E27C15A000584AA /* AppConstants.swift */; };
@@ -26,7 +31,6 @@
 		556FC7212E2AB1FC000584AA /* NotificationService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 556FC7202E2AB1FC000584AA /* NotificationService.swift */; };
 		556FC7252E2AB1FC000584AA /* PushService.appex in Embed Foundation Extensions */ = {isa = PBXBuildFile; fileRef = 556FC71E2E2AB1FC000584AA /* PushService.appex */; settings = {ATTRIBUTES = (RemoveHeadersOnCopy, ); }; };
 		556FC72B2E2AB2AD000584AA /* JWTProvider.swift in Sources */ = {isa = PBXBuildFile; fileRef = 556FC72A2E2AB2AD000584AA /* JWTProvider.swift */; };
-		556FC72C2E2AB2D6000584AA /* Altcraft.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 558C70602C9C2AF80062F600 /* Altcraft.framework */; };
 		556FC7332E2E8109000584AA /* NotificationDataManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 556FC7322E2E8109000584AA /* NotificationDataManager.swift */; };
 		558C47EF2C9DA6120006750E /* NavigatorView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 558C47EE2C9DA6120006750E /* NavigatorView.swift */; };
 		558C47F12C9DA6ED0006750E /* ExampleView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 558C47F02C9DA6ED0006750E /* ExampleView.swift */; };
@@ -58,12 +62,24 @@
 		559F2D562E25284B00C5B7EE /* APNSProvider.swift in Sources */ = {isa = PBXBuildFile; fileRef = 559F2D552E25284B00C5B7EE /* APNSProvider.swift */; };
 		55E566552D108A5100FA2B07 /* libz.tbd in Frameworks */ = {isa = PBXBuildFile; fileRef = 55E566542D108A4800FA2B07 /* libz.tbd */; };
 		55E566562D108A6500FA2B07 /* libc++.tbd in Frameworks */ = {isa = PBXBuildFile; fileRef = 55E566422D107BD100FA2B07 /* libc++.tbd */; };
-		55EA85E72E68503D001CC5A5 /* Altcraft.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 558C70602C9C2AF80062F600 /* Altcraft.framework */; };
-		55EA85E82E68503D001CC5A5 /* Altcraft.framework in Embed Frameworks */ = {isa = PBXBuildFile; fileRef = 558C70602C9C2AF80062F600 /* Altcraft.framework */; settings = {ATTRIBUTES = (CodeSignOnCopy, RemoveHeadersOnCopy, ); }; };
 		7B0051A8AB7AC55CA360DAEF /* Pods_IOSAPNsExample.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 0287FADB74248695A501B1F1 /* Pods_IOSAPNsExample.framework */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
+		55302CAC2EA13466003A1A4C /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 55302CA72EA13466003A1A4C /* Altcraft.xcodeproj */;
+			proxyType = 2;
+			remoteGlobalIDString = 559B61B02C903EF90081192F;
+			remoteInfo = Altcraft;
+		};
+		55302CAE2EA13466003A1A4C /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 55302CA72EA13466003A1A4C /* Altcraft.xcodeproj */;
+			proxyType = 2;
+			remoteGlobalIDString = 5509561F2E7AB38B000BFBA8;
+			remoteInfo = AltcraftTests;
+		};
 		556FC7232E2AB1FC000584AA /* PBXContainerItemProxy */ = {
 			isa = PBXContainerItemProxy;
 			containerPortal = 558C70142C9C29D10062F600 /* Project object */;
@@ -71,23 +87,20 @@
 			remoteGlobalIDString = 556FC71D2E2AB1FC000584AA;
 			remoteInfo = PushService;
 		};
-		558C705F2C9C2AF80062F600 /* PBXContainerItemProxy */ = {
-			isa = PBXContainerItemProxy;
-			containerPortal = 558C705A2C9C2AF80062F600 /* Altcraft.xcodeproj */;
-			proxyType = 2;
-			remoteGlobalIDString = 559B61B02C903EF90081192F;
-			remoteInfo = Altcraft;
-		};
-		558C70612C9C2AF80062F600 /* PBXContainerItemProxy */ = {
-			isa = PBXContainerItemProxy;
-			containerPortal = 558C705A2C9C2AF80062F600 /* Altcraft.xcodeproj */;
-			proxyType = 2;
-			remoteGlobalIDString = 559B61BA2C903EF90081192F;
-			remoteInfo = AltcraftTests;
-		};
 /* End PBXContainerItemProxy section */
 
 /* Begin PBXCopyFilesBuildPhase section */
+		55302C6C2E9FE366003A1A4C /* Embed Frameworks */ = {
+			isa = PBXCopyFilesBuildPhase;
+			buildActionMask = 2147483647;
+			dstPath = "";
+			dstSubfolderSpec = 10;
+			files = (
+				55302CB32EA134A4003A1A4C /* Altcraft.framework in Embed Frameworks */,
+			);
+			name = "Embed Frameworks";
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 		558C476F2C9C3CE10006750E /* Embed Foundation Extensions */ = {
 			isa = PBXCopyFilesBuildPhase;
 			buildActionMask = 2147483647;
@@ -105,7 +118,7 @@
 			dstPath = "";
 			dstSubfolderSpec = 10;
 			files = (
-				55EA85E82E68503D001CC5A5 /* Altcraft.framework in Embed Frameworks */,
+				55302CB12EA1349B003A1A4C /* Altcraft.framework in Embed Frameworks */,
 			);
 			name = "Embed Frameworks";
 			runOnlyForDeploymentPostprocessing = 0;
@@ -118,9 +131,9 @@
 		251B6B3BE0F6EB09636507CA /* Pods-IOSAPNsExample.release.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-IOSAPNsExample.release.xcconfig"; path = "Target Support Files/Pods-IOSAPNsExample/Pods-IOSAPNsExample.release.xcconfig"; sourceTree = "<group>"; };
 		4AA2DDD1707D6A449043469A /* Pods_PushService.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; includeInIndex = 0; path = Pods_PushService.framework; sourceTree = BUILT_PRODUCTS_DIR; };
 		5509FA9F2D6C677700B1DE03 /* SubscribeStatusManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SubscribeStatusManager.swift; sourceTree = "<group>"; };
+		551440DA2E8E88F300BD0451 /* PushServiceTest.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PushServiceTest.swift; sourceTree = "<group>"; };
 		5516B3592D9C3AA7001FAF66 /* JWTProvider.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = JWTProvider.swift; sourceTree = "<group>"; };
-		553B08532E5C84FB004526D6 /* PushEvent.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PushEvent.swift; sourceTree = "<group>"; };
-		553B08542E5C84FB004526D6 /* PublicPushEventFunctions .swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "PublicPushEventFunctions .swift"; sourceTree = "<group>"; };
+		55302CA72EA13466003A1A4C /* Altcraft.xcodeproj */ = {isa = PBXFileReference; lastKnownFileType = "wrapper.pb-project"; path = Altcraft.xcodeproj; sourceTree = "<group>"; };
 		5557A9222DF026B700BEF354 /* SDKFunctions.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SDKFunctions.swift; sourceTree = "<group>"; };
 		556FC6FE2E27BE55000584AA /* BoxModeManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BoxModeManager.swift; sourceTree = "<group>"; };
 		556FC7002E27C15A000584AA /* AppConstants.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppConstants.swift; sourceTree = "<group>"; };
@@ -155,7 +168,6 @@
 		558C704D2C9C2A6C0062F600 /* SubFunctions.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = SubFunctions.swift; sourceTree = "<group>"; };
 		558C704E2C9C2A6C0062F600 /* ConfigurationView.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = ConfigurationView.swift; sourceTree = "<group>"; };
 		558C704F2C9C2A6C0062F600 /* AppUserDefaults.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = AppUserDefaults.swift; sourceTree = "<group>"; };
-		558C705A2C9C2AF80062F600 /* Altcraft.xcodeproj */ = {isa = PBXFileReference; lastKnownFileType = "wrapper.pb-project"; path = Altcraft.xcodeproj; sourceTree = "<group>"; };
 		558C70672C9C2B8E0062F600 /* DeeplinkManager.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = DeeplinkManager.swift; sourceTree = "<group>"; };
 		558C70692C9C341E0062F600 /* MainView.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = MainView.swift; sourceTree = "<group>"; };
 		558C706E2C9C3A130062F600 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist; path = Info.plist; sourceTree = "<group>"; };
@@ -186,7 +198,7 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				556FC72C2E2AB2D6000584AA /* Altcraft.framework in Frameworks */,
+				55302CB22EA134A4003A1A4C /* Altcraft.framework in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -196,7 +208,7 @@
 			files = (
 				559F2D352E250EF800C5B7EE /* HiAnalytics.xcframework in Frameworks */,
 				55E566562D108A6500FA2B07 /* libc++.tbd in Frameworks */,
-				55EA85E72E68503D001CC5A5 /* Altcraft.framework in Frameworks */,
+				55302CB02EA1349B003A1A4C /* Altcraft.framework in Frameworks */,
 				55E566552D108A5100FA2B07 /* libz.tbd in Frameworks */,
 				559F2D372E250EF800C5B7EE /* HMFoundation.xcframework in Frameworks */,
 				559F2D312E250EF800C5B7EE /* AGConnectCore.xcframework in Frameworks */,
@@ -220,13 +232,13 @@
 			path = Pods;
 			sourceTree = "<group>";
 		};
-		553B08552E5C84FB004526D6 /* events */ = {
+		55302CA82EA13466003A1A4C /* Products */ = {
 			isa = PBXGroup;
 			children = (
-				553B08532E5C84FB004526D6 /* PushEvent.swift */,
-				553B08542E5C84FB004526D6 /* PublicPushEventFunctions .swift */,
+				55302CAD2EA13466003A1A4C /* Altcraft.framework */,
+				55302CAF2EA13466003A1A4C /* AltcraftTests.xctest */,
 			);
-			path = events;
+			name = Products;
 			sourceTree = "<group>";
 		};
 		556FC71F2E2AB1FC000584AA /* PushService */ = {
@@ -267,7 +279,7 @@
 		558C70132C9C29D10062F600 = {
 			isa = PBXGroup;
 			children = (
-				558C705A2C9C2AF80062F600 /* Altcraft.xcodeproj */,
+				55302CA72EA13466003A1A4C /* Altcraft.xcodeproj */,
 				558C701E2C9C29D10062F600 /* IOSAPNsExample */,
 				556FC71F2E2AB1FC000584AA /* PushService */,
 				558C701D2C9C29D10062F600 /* Products */,
@@ -288,11 +300,11 @@
 		558C701E2C9C29D10062F600 /* IOSAPNsExample */ = {
 			isa = PBXGroup;
 			children = (
+				55FD2F222CEE2AEE008FC841 /* views */,
 				559F2D4E2E2522C400C5B7EE /* providers */,
 				55FD2F262CEE2BDF008FC841 /* functions */,
 				55FD2F252CEE2BB9008FC841 /* data */,
 				55FD2F242CEE2B99008FC841 /* managers */,
-				55FD2F222CEE2AEE008FC841 /* views */,
 				558C706E2C9C3A130062F600 /* Info.plist */,
 				558C701F2C9C29D10062F600 /* IOSAPNsExampleApp.swift */,
 				558C70232C9C29D30062F600 /* Assets.xcassets */,
@@ -305,19 +317,10 @@
 		558C70262C9C29D30062F600 /* Preview Content */ = {
 			isa = PBXGroup;
 			children = (
-				553B08552E5C84FB004526D6 /* events */,
+				551440DA2E8E88F300BD0451 /* PushServiceTest.swift */,
 				558C70272C9C29D30062F600 /* Preview Assets.xcassets */,
 			);
 			path = "Preview Content";
-			sourceTree = "<group>";
-		};
-		558C705B2C9C2AF80062F600 /* Products */ = {
-			isa = PBXGroup;
-			children = (
-				558C70602C9C2AF80062F600 /* Altcraft.framework */,
-				558C70622C9C2AF80062F600 /* AltcraftTests.xctest */,
-			);
-			name = Products;
 			sourceTree = "<group>";
 		};
 		558C70632C9C2B180062F600 /* Frameworks */ = {
@@ -401,6 +404,8 @@
 		55FD2F242CEE2B99008FC841 /* managers */ = {
 			isa = PBXGroup;
 			children = (
+				556FC7322E2E8109000584AA /* NotificationDataManager.swift */,
+				556FC7182E2AA433000584AA /* JWTManager.swift */,
 				558C70672C9C2B8E0062F600 /* DeeplinkManager.swift */,
 				558C704B2C9C2A6C0062F600 /* EventManager.swift */,
 				558C704A2C9C2A6C0062F600 /* TokenManager.swift */,
@@ -410,8 +415,6 @@
 				556FC7062E29515F000584AA /* SubscribeSettingManager.swift */,
 				556FC7082E2A5ECB000584AA /* ConfigSettingManager.swift */,
 				556FC7142E2A710E000584AA /* JWTSettingManager.swift */,
-				556FC7182E2AA433000584AA /* JWTManager.swift */,
-				556FC7322E2E8109000584AA /* NotificationDataManager.swift */,
 			);
 			path = managers;
 			sourceTree = "<group>";
@@ -444,6 +447,7 @@
 				556FC71A2E2AB1FC000584AA /* Sources */,
 				556FC71B2E2AB1FC000584AA /* Frameworks */,
 				556FC71C2E2AB1FC000584AA /* Resources */,
+				55302C6C2E9FE366003A1A4C /* Embed Frameworks */,
 			);
 			buildRules = (
 			);
@@ -510,8 +514,8 @@
 			projectDirPath = "";
 			projectReferences = (
 				{
-					ProductGroup = 558C705B2C9C2AF80062F600 /* Products */;
-					ProjectRef = 558C705A2C9C2AF80062F600 /* Altcraft.xcodeproj */;
+					ProductGroup = 55302CA82EA13466003A1A4C /* Products */;
+					ProjectRef = 55302CA72EA13466003A1A4C /* Altcraft.xcodeproj */;
 				},
 			);
 			projectRoot = "";
@@ -523,18 +527,18 @@
 /* End PBXProject section */
 
 /* Begin PBXReferenceProxy section */
-		558C70602C9C2AF80062F600 /* Altcraft.framework */ = {
+		55302CAD2EA13466003A1A4C /* Altcraft.framework */ = {
 			isa = PBXReferenceProxy;
 			fileType = wrapper.framework;
 			path = Altcraft.framework;
-			remoteRef = 558C705F2C9C2AF80062F600 /* PBXContainerItemProxy */;
+			remoteRef = 55302CAC2EA13466003A1A4C /* PBXContainerItemProxy */;
 			sourceTree = BUILT_PRODUCTS_DIR;
 		};
-		558C70622C9C2AF80062F600 /* AltcraftTests.xctest */ = {
+		55302CAF2EA13466003A1A4C /* AltcraftTests.xctest */ = {
 			isa = PBXReferenceProxy;
 			fileType = wrapper.cfbundle;
 			path = AltcraftTests.xctest;
-			remoteRef = 558C70612C9C2AF80062F600 /* PBXContainerItemProxy */;
+			remoteRef = 55302CAE2EA13466003A1A4C /* PBXContainerItemProxy */;
 			sourceTree = BUILT_PRODUCTS_DIR;
 		};
 /* End PBXReferenceProxy section */
@@ -663,6 +667,7 @@
 				559F2CF42E213AE900C5B7EE /* ActionComponents.swift in Sources */,
 				559F2CF62E21436300C5B7EE /* SubscribeStatusIndicator.swift in Sources */,
 				556FC7052E280402000584AA /* ProfileComponents.swift in Sources */,
+				55302BBE2E9D4356003A1A4C /* PushServiceTest.swift in Sources */,
 				556FC7132E2A6F15000584AA /* ConfigSettingComponents.swift in Sources */,
 				559F2CFB2E21443400C5B7EE /* EventComponents.swift in Sources */,
 				556FC7012E27C15A000584AA /* AppConstants.swift in Sources */,
@@ -708,6 +713,10 @@
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SDKROOT = iphoneos;
 				SKIP_INSTALL = YES;
+				SUPPORTED_PLATFORMS = "iphoneos iphonesimulator";
+				SUPPORTS_MACCATALYST = NO;
+				SUPPORTS_MAC_DESIGNED_FOR_IPHONE_IPAD = NO;
+				SUPPORTS_XR_DESIGNED_FOR_IPHONE_IPAD = NO;
 				SWIFT_EMIT_LOC_STRINGS = YES;
 				SWIFT_VERSION = 5.0;
 				TARGETED_DEVICE_FAMILY = "1,2";
@@ -739,6 +748,10 @@
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SDKROOT = iphoneos;
 				SKIP_INSTALL = YES;
+				SUPPORTED_PLATFORMS = "iphoneos iphonesimulator";
+				SUPPORTS_MACCATALYST = NO;
+				SUPPORTS_MAC_DESIGNED_FOR_IPHONE_IPAD = NO;
+				SUPPORTS_XR_DESIGNED_FOR_IPHONE_IPAD = NO;
 				SWIFT_EMIT_LOC_STRINGS = YES;
 				SWIFT_VERSION = 5.0;
 				TARGETED_DEVICE_FAMILY = "1,2";

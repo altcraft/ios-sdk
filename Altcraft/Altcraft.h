@@ -1,11 +1,10 @@
 //
 //  Altcraft.h
-//
 //  Altcraft
 //
-//  Created by Andrey Pogodin on 03.07.2024.
+//  Created by Andrey Pogodin.
 //
-//  Copyright © 2024 Altcraft. All rights reserved.
+//  Copyright © 2025 Altcraft. All rights reserved.
 //
 
 #import <Foundation/Foundation.h>
@@ -16,6 +15,16 @@ FOUNDATION_EXPORT double AltcraftVersionNumber;
 //! Project version string for Altcraft.
 FOUNDATION_EXPORT const unsigned char AltcraftVersionString[];
 
-// In this header, you should import all the public headers of your framework using statements like #import <Altcraft/PublicHeader.h>
-
-
+//
+//  How to import the framework:
+//
+//  • In Objective-C source files (.m / .mm):
+//      @import Altcraft;
+//      // or:
+//      #import <Altcraft/Altcraft.h>
+//
+//  • To access Swift APIs exported with @objc/@objcMembers:
+//      #import <Altcraft/Altcraft-Swift.h>
+//
+//  • In Swift source files (.swift):
+//      import Altcraft
