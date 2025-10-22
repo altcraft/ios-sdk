@@ -143,10 +143,8 @@ public class PublicPushTokenFunctions: NSObject {
             }
 
             self.deleteDeviceToken(provider: provider) {
-                getContext { _ in
-                    TokenUpdate.shared.tokenUpdate() {
-                        completion?()
-                    }
+                TokenUpdate.shared.tokenUpdate() {
+                    completion?()
                 }
             }
         }

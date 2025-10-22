@@ -213,11 +213,13 @@ struct ProfileRequestData {
 ///   - url: The full API endpoint for the mobile event.
 ///   - sid: The string ID of the pixel (Altcraft client ID).
 ///   - name: The event name.
+///   - parts: The event parts.
 ///   - authHeader: The authorization header (e.g. `"Bearer <token>"`).
 struct MobileEventRequestData {
     let url: String
     let sid: String
-    let name: String
+    let eventName: String
+    let parst: [Part]
     let authHeader: String
 }
 

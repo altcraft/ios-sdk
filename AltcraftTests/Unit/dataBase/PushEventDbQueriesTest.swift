@@ -60,7 +60,7 @@ final class PushEventDbQueriesTests: XCTestCase {
         let container = CoreDataManager.shared.persistentContainer
         let bg = container.newBackgroundContext()
         bg.performAndWait {
-            let fr = NSFetchRequest<NSFetchRequestResult>(entityName: Constants.EntityNames.pushEventEntityName)
+            let fr = NSFetchRequest<NSFetchRequestResult>(entityName: Constants.EntityNames.pushEvent)
             let req = NSBatchDeleteRequest(fetchRequest: fr)
             req.resultType = .resultTypeObjectIDs
             do {
@@ -81,7 +81,7 @@ final class PushEventDbQueriesTests: XCTestCase {
     private func countPushEvents(in ctx: NSManagedObjectContext) -> Int? {
         var result: Int?
         ctx.performAndWait {
-            let fr = NSFetchRequest<NSFetchRequestResult>(entityName: Constants.EntityNames.pushEventEntityName)
+            let fr = NSFetchRequest<NSFetchRequestResult>(entityName: Constants.EntityNames.pushEvent)
             do { result = try ctx.count(for: fr) } catch { result = nil }
         }
         return result

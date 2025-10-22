@@ -44,7 +44,7 @@ public class TokenUpdate: NSObject {
 
                 if savedToken?.token != currentToken.token {
                     self.backgroundTask.accessToBackground()
-                    self.userDefault.setUpdateRetryCount(value: 1)
+                    updateRetryCount = 0
                     self.startUpdate {
                         self.tokenUpdateQueue.async {
                             completion?()

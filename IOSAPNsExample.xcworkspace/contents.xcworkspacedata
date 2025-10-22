@@ -5,7 +5,7 @@
       location = "group:Package.swift">
    </FileRef>
    <FileRef
-      location = "group:IOSAPNsExample.xcodeproj">
+      location = "group:/Users/andrey/Desktop/XCODE projects/IOSAPNsExample/Example.xcodeproj">
    </FileRef>
    <FileRef
       location = "group:Pods/Pods.xcodeproj">

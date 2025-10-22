@@ -67,8 +67,6 @@ Profile lookup is limited to the push token identifier.
 
 Detailed information on SDK setup, functionality, and usage is available on the Altcraft documentation portal. You can navigate to the required section using the links below:
 
-Detailed information on SDK setup, functionality, and usage is available on the Altcraft documentation portal. You can navigate to the required section using the links below:
-
 - [**Quick Start**](https://guides.altcraft.com/en/developer-guide/sdk/v2/ios/quick-start)
 - [**SDK Functionality**](https://guides.altcraft.com/en/developer-guide/sdk/v2/ios/functionality)
 - [**SDK Configuration**](https://guides.altcraft.com/en/developer-guide/sdk/v2/ios/setup)

@@ -343,7 +343,7 @@ public enum Constants {
         static let PAYLOAD            = "wd"
         static let SMID_MOB           = "mi"
         static let MATCHING_MOB       = "ma"
-        static let MATCHING_TYPE      = "mm"   // NEW
+        static let MATCHING_TYPE      = "mm"
         static let PROFILE_FIELDS_MOB = "pf"
         static let SUBSCRIPTION_MOB   = "sn"
         static let UTM_CAMPAIGN       = "cn"
@@ -358,16 +358,16 @@ public enum Constants {
     enum EntityNames {
         
         /// The name of the configuration entity.
-        static let configEntityName = "ConfigurationEntity"
+        static let config = "ConfigurationEntity"
         
         /// The name of the push subscription entity.
-        static let subscribeEntityName = "SubscribeEntity"
+        static let subscribe = "SubscribeEntity"
         
         /// The name of the push event entity.
-        static let pushEventEntityName = "PushEventEntity"
+        static let pushEvent = "PushEventEntity"
         
         /// The name of the mobile event entity.
-        static let mobileEventEntityName = "MobileEventEntity"
+        static let mobileEvent = "MobileEventEntity"
     }
 
     /// Contains the string identifiers for UI buttons and system notification actions.
@@ -409,6 +409,8 @@ public enum Constants {
     enum CoreData {
         /// The bundle identifier for the Core Data framework.
          static let identifier = "altcraft.Altcraft"
+        
+        static let subdirName = "Altcraft"
         
         /// The name of the Core Data model.
          static let modelName = "DataBase"

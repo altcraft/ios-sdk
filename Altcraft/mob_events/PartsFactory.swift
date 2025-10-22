@@ -86,7 +86,7 @@ enum PartsFactory {
     ///
     /// - Parameter event: Source DTO.
     /// - Returns: Immutable array of multipart parts.
-    static func createMobileEventParts(from event: MobileEventData) -> [Part] {
+    static func createMobileEventParts(from event: MobileEventEntity) -> [Part] {
         var parts: [Part] = []
         
         // Base fields (text)

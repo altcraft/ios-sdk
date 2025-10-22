@@ -63,7 +63,7 @@ func setConfig(
 ///   - context: The Core Data context to perform the operation in.
 ///   - rToken: The new token.
 ///   - existingRToken: The token already stored in the configuration.
-func checkRTokenChange(
+private func checkRTokenChange(
     context: NSManagedObjectContext,
     rToken: String?,
     existingRToken: String?
@@ -167,6 +167,3 @@ func updateProviderPriorityList(
         }
     }
 }
-
-
-

@@ -103,7 +103,7 @@ class DeviceInfo {
     /// Mirrors Android: -(hours * 60 + minutes).
     /// On any failure returns 0.
     @inline(__always)
-    func getTimeZoneForMobEvent() -> Int16 {
+    func getTimeZone() -> Int16 {
         let seconds = TimeZone.current.secondsFromGMT()
         let minutes = seconds / 60
         let value = -minutes

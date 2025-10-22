@@ -260,21 +260,21 @@
 			path = AltcraftTests;
 			sourceTree = "<group>";
 		};
-		5516B3312D7AF81E001FAF66 /* auth */ = {
+		5516B3312D7AF81E001FAF66 /* Auth */ = {
 			isa = PBXGroup;
 			children = (
 				5516B3322D7AF881001FAF66 /* JWTManager.swift */,
 				5516B3372D7B139E001FAF66 /* AuthManager.swift */,
 			);
-			path = auth;
+			path = Auth;
 			sourceTree = "<group>";
 		};
-		5516B3342D7AFB70001FAF66 /* device */ = {
+		5516B3342D7AFB70001FAF66 /* Device */ = {
 			isa = PBXGroup;
 			children = (
 				5516B3352D7AFB96001FAF66 /* DeviceInfo.swift */,
 			);
-			path = device;
+			path = Device;
 			sourceTree = "<group>";
 		};
 		552BCF882E7D752A008A9116 /* device */ = {
@@ -380,7 +380,7 @@
 			path = background;
 			sourceTree = "<group>";
 		};
-		55302B962E930BF2003A1A4C /* mob_events */ = {
+		55302B962E930BF2003A1A4C /* MOB_events */ = {
 			isa = PBXGroup;
 			children = (
 				55302B972E93AF4B003A1A4C /* MobileEvent.swift */,
@@ -389,16 +389,16 @@
 				55302BB42E9554CF003A1A4C /* MultipartBody.swift */,
 				55302BB62E968C42003A1A4C /* PublicMobileEventFunctions.swift */,
 			);
-			path = mob_events;
+			path = MOB_events;
 			sourceTree = "<group>";
 		};
-		556FC7372E30D2B5000584AA /* retry */ = {
+		556FC7372E30D2B5000584AA /* Retry */ = {
 			isa = PBXGroup;
 			children = (
 				559B61D62C90461F0081192F /* Retry.swift */,
 				550956072E7951ED000BFBA8 /* RetryManager.swift */,
 			);
-			path = retry;
+			path = Retry;
 			sourceTree = "<group>";
 		};
 		559B61A62C903EF90081192F = {
@@ -425,61 +425,61 @@
 				559B61B42C903EF90081192F /* Altcraft.docc */,
 				559B61B32C903EF90081192F /* Altcraft.h */,
 				559B61E52C90461F0081192F /* AltcraftSDK.swift */,
-				55302B962E930BF2003A1A4C /* mob_events */,
-				559B61E42C90461F0081192F /* additional */,
-				5516B3312D7AF81E001FAF66 /* auth */,
-				559B61CE2C90461F0081192F /* background */,
-				559B61CB2C90461F0081192F /* configuration */,
-				559B61EB2C90461F0081192F /* data */,
-				559B61E02C90461F0081192F /* dataBase */,
-				5516B3342D7AFB70001FAF66 /* device */,
-				559B61E22C90461F0081192F /* sdk_event */,
-				559B61D22C90461F0081192F /* factory */,
-				559F2D5E2E2532C400C5B7EE /* interfaces */,
-				55E406602D9EE5B800F375EC /* network */,
-				559B61F02C90461F0081192F /* push */,
-				556FC7372E30D2B5000584AA /* retry */,
-				559B61D92C90461F0081192F /* system */,
+				55302B962E930BF2003A1A4C /* MOB_events */,
+				559B61E42C90461F0081192F /* Additional */,
+				5516B3312D7AF81E001FAF66 /* Auth */,
+				559B61CE2C90461F0081192F /* Background */,
+				559B61CB2C90461F0081192F /* Configuration */,
+				559B61EB2C90461F0081192F /* Data */,
+				559B61E02C90461F0081192F /* DataBase */,
+				5516B3342D7AFB70001FAF66 /* Device */,
+				559B61E22C90461F0081192F /* SDK_events */,
+				559B61D22C90461F0081192F /* Factory */,
+				559F2D5E2E2532C400C5B7EE /* Interfaces */,
+				55E406602D9EE5B800F375EC /* Network */,
+				559B61F02C90461F0081192F /* Push */,
+				556FC7372E30D2B5000584AA /* Retry */,
+				559B61D92C90461F0081192F /* System */,
 			);
 			path = Altcraft;
 			sourceTree = "<group>";
 		};
-		559B61CB2C90461F0081192F /* configuration */ = {
+		559B61CB2C90461F0081192F /* Configuration */ = {
 			isa = PBXGroup;
 			children = (
 				559B61CA2C90461F0081192F /* AltcraftConfiguration.swift */,
 			);
-			path = configuration;
+			path = Configuration;
 			sourceTree = "<group>";
 		};
-		559B61CE2C90461F0081192F /* background */ = {
+		559B61CE2C90461F0081192F /* Background */ = {
 			isa = PBXGroup;
 			children = (
 				559B61CC2C90461F0081192F /* AccessToBackground.swift */,
 				559B61CD2C90461F0081192F /* BackgroundTasks.swift */,
 			);
-			path = background;
+			path = Background;
 			sourceTree = "<group>";
 		};
-		559B61D22C90461F0081192F /* factory */ = {
+		559B61D22C90461F0081192F /* Factory */ = {
 			isa = PBXGroup;
 			children = (
 				559B61D12C90461F0081192F /* RequestFactory.swift */,
 				5516B3572D9C1B3F001FAF66 /* JsonFactory.swift */,
 			);
-			path = factory;
+			path = Factory;
 			sourceTree = "<group>";
 		};
-		559B61D92C90461F0081192F /* system */ = {
+		559B61D92C90461F0081192F /* System */ = {
 			isa = PBXGroup;
 			children = (
 				559B61D32C90461F0081192F /* ClearCache.swift */,
 				556FC7382E30D2D2000584AA /* Init.swift */,
 			);
-			path = system;
+			path = System;
 			sourceTree = "<group>";
 		};
-		559B61E02C90461F0081192F /* dataBase */ = {
+		559B61E02C90461F0081192F /* DataBase */ = {
 			isa = PBXGroup;
 			children = (
 				559B61E62C90461F0081192F /* DataBase.xcdatamodeld */,
@@ -490,19 +490,19 @@
 				5516B3532D9C0517001FAF66 /* PushEventDbQueries.swift */,
 				55302B9B2E93CD6F003A1A4C /* MobileEventDbQueries.swift */,
 			);
-			path = dataBase;
+			path = DataBase;
 			sourceTree = "<group>";
 		};
-		559B61E22C90461F0081192F /* sdk_event */ = {
+		559B61E22C90461F0081192F /* SDK_events */ = {
 			isa = PBXGroup;
 			children = (
 				559B61E12C90461F0081192F /* Events.swift */,
 				5509FAA32D6CC8DC00B1DE03 /* EventList.swift */,
 			);
-			path = sdk_event;
+			path = SDK_events;
 			sourceTree = "<group>";
 		};
-		559B61E42C90461F0081192F /* additional */ = {
+		559B61E42C90461F0081192F /* Additional */ = {
 			isa = PBXGroup;
 			children = (
 				55527FB02D314BCE00919755 /* StringBuilder.swift */,
@@ -513,10 +513,10 @@
 				55EA85CE2E66E6C3001CC5A5 /* ForegroundCheck.swift */,
 				552BCFAB2E7D9E41008A9116 /* ImageFormat.swift */,
 			);
-			path = additional;
+			path = Additional;
 			sourceTree = "<group>";
 		};
-		559B61EB2C90461F0081192F /* data */ = {
+		559B61EB2C90461F0081192F /* Data */ = {
 			isa = PBXGroup;
 			children = (
 				559B61D72C90461F0081192F /* StoredVariablesManager.swift */,
@@ -526,24 +526,24 @@
 				5516B3512D96AF65001FAF66 /* Repository.swift */,
 				55302C912EA11A1A003A1A4C /* AltcraftObjCTypes.swift */,
 			);
-			path = data;
+			path = Data;
 			sourceTree = "<group>";
 		};
-		559B61F02C90461F0081192F /* push */ = {
+		559B61F02C90461F0081192F /* Push */ = {
 			isa = PBXGroup;
 			children = (
-				55EA85EB2E6F3A9F001CC5A5 /* events */,
-				55D3CCC72DD1ECCE00A4F2D7 /* token */,
-				55D3CCB12DB78B9300A4F2D7 /* subscribe */,
+				55EA85EB2E6F3A9F001CC5A5 /* Events */,
+				55D3CCC72DD1ECCE00A4F2D7 /* Token */,
+				55D3CCB12DB78B9300A4F2D7 /* Subscribe */,
 				559B61EC2C90461F0081192F /* AltcraftPushReceiver.swift */,
 				559B61ED2C90461F0081192F /* NotificationManager.swift */,
 				559B61EE2C90461F0081192F /* PushAction.swift */,
 				556FC73A2E30EE99000584AA /* Core.swift */,
 			);
-			path = push;
+			path = Push;
 			sourceTree = "<group>";
 		};
-		559F2D5E2E2532C400C5B7EE /* interfaces */ = {
+		559F2D5E2E2532C400C5B7EE /* Interfaces */ = {
 			isa = PBXGroup;
 			children = (
 				559F2D582E252BF000C5B7EE /* APNSInterface.swift */,
@@ -552,7 +552,7 @@
 				559F2D5F2E2532FE00C5B7EE /* JWTInterface.swift */,
 				55302BC12E9E3CCC003A1A4C /* Subscription.swift */,
 			);
-			path = interfaces;
+			path = Interfaces;
 			sourceTree = "<group>";
 		};
 		55B314882E7AC4BD00A3F9E4 /* Unit */ = {
@@ -643,42 +643,42 @@
 			path = dataBase;
 			sourceTree = "<group>";
 		};
-		55D3CCB12DB78B9300A4F2D7 /* subscribe */ = {
+		55D3CCB12DB78B9300A4F2D7 /* Subscribe */ = {
 			isa = PBXGroup;
 			children = (
 				559B61D52C90461F0081192F /* PushSubscribe.swift */,
 				55D3CCB52DB78BE700A4F2D7 /* PublicPushSubscriptionFunctions.swift */,
 				553B085C2E5DD49C004526D6 /* SubscribeQueue.swift */,
 			);
-			path = subscribe;
+			path = Subscribe;
 			sourceTree = "<group>";
 		};
-		55D3CCC72DD1ECCE00A4F2D7 /* token */ = {
+		55D3CCC72DD1ECCE00A4F2D7 /* Token */ = {
 			isa = PBXGroup;
 			children = (
 				559B61D82C90461F0081192F /* TokenUpdate.swift */,
 				559F2D4C2E251CB000C5B7EE /* TokenManager.swift */,
 				559F2D612E2533C800C5B7EE /* PublicPushTokenFunctions.swift */,
 			);
-			path = token;
+			path = Token;
 			sourceTree = "<group>";
 		};
-		55E406602D9EE5B800F375EC /* network */ = {
+		55E406602D9EE5B800F375EC /* Network */ = {
 			isa = PBXGroup;
 			children = (
 				557556D22CE2566900F6B50C /* NetworkMonitor.swift */,
 				5579FD5E2D9D6F110000131C /* RequestManager.swift */,
 			);
-			path = network;
+			path = Network;
 			sourceTree = "<group>";
 		};
-		55EA85EB2E6F3A9F001CC5A5 /* events */ = {
+		55EA85EB2E6F3A9F001CC5A5 /* Events */ = {
 			isa = PBXGroup;
 			children = (
 				55EA85EC2E6F3AB4001CC5A5 /* PublicPushEventFunctions.swift */,
 				55EA85EF2E6F3ADC001CC5A5 /* PushEvent.swift */,
 			);
-			path = events;
+			path = Events;
 			sourceTree = "<group>";
 		};
 /* End PBXGroup section */

@@ -53,7 +53,7 @@ final class SubscribeDbQueriesTests: XCTestCase {
         let container = CoreDataManager.shared.persistentContainer
         let bg = container.newBackgroundContext()
         bg.performAndWait {
-            let fr = NSFetchRequest<NSFetchRequestResult>(entityName: Constants.EntityNames.subscribeEntityName)
+            let fr = NSFetchRequest<NSFetchRequestResult>(entityName: Constants.EntityNames.subscribe)
             let req = NSBatchDeleteRequest(fetchRequest: fr)
             req.resultType = .resultTypeObjectIDs
             do {
@@ -72,7 +72,7 @@ final class SubscribeDbQueriesTests: XCTestCase {
     private func countSubscribe(in ctx: NSManagedObjectContext) -> Int? {
         var result: Int?
         ctx.performAndWait {
-            let fr = NSFetchRequest<NSFetchRequestResult>(entityName: Constants.EntityNames.subscribeEntityName)
+            let fr = NSFetchRequest<NSFetchRequestResult>(entityName: Constants.EntityNames.subscribe)
             do { result = try ctx.count(for: fr) } catch { result = nil }
         }
         return result

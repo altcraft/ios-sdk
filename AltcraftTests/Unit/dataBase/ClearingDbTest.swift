@@ -40,9 +40,9 @@ final class ClearingDbTests: XCTestCase {
 
     private var predefinedEntities: [String] {
         [
-            Constants.EntityNames.configEntityName,
-            Constants.EntityNames.subscribeEntityName,
-            Constants.EntityNames.pushEventEntityName
+            Constants.EntityNames.config,
+            Constants.EntityNames.subscribe,
+            Constants.EntityNames.pushEvent
         ]
     }
 

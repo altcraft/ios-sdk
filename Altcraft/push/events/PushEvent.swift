@@ -18,30 +18,25 @@ import CoreData
     
     /// Shared singleton instance of `PushEvent`.
     static let shared = PushEvent()
-    
-    /// The function code used for analytics or logging purposes.
-    let funcName = Constants.FunctionsCode.PE
 
     /// Manager for accessing stored user-related variables.
     let userDefault = StoredVariablesManager.shared
     
-    /// Provides access to background execution features.
-    let backgroundTask = AccessToBackground.shared
-    
-    /// Provides access to request and response functions
-    let requestManager = RequestManager.shared
+    private let pushEventQueue = DispatchQueue(label: Constants.Queues.pushEventQueue)
      
-     private var isSending = false
+     /// Result type to control next step in subscription processing.
+     private enum RequestResult {
+         case completed
+         case retry
+     }
      
-     private let pushEventQueue = DispatchQueue(label: Constants.Queues.pushEventQueue)
-
     /// Retries sending the push event if the initial attempt fails.
     ///
     /// - Parameters:
     ///   - context: The Core Data context used for background operations.
     ///   - event: The push event entity to retry.
-    private func retry(context: NSManagedObjectContext, event: PushEventEntity) {
-        requestRetry(request: funcName, context: context, event: event)
+    private func retry(event: NSManagedObjectID) {
+        requestRetry(request: Constants.FunctionsCode.PE, event: event)
     }
 
     /// Creates and stores a new push event based on received payload data.
@@ -49,90 +44,83 @@ import CoreData
     /// - Parameters:
     ///   - userInfo: The dictionary received in the push notification payload.
     ///   - type: A string representing the event type (e.g., "delivered", "opened").
-    func createPushEvent(userInfo: [String: Any], type: String) {
-        guard let uid = userInfo[Constants.UserInfoKeys.uid] as? String else {
-            errorEvent(#function, error: uidIsNil)
-            return
-        }
-        getContext { context in
-            addPushEventEntity(context: context, uid: uid, type: type) { entity in
-                guard let entity = entity else { return }
-                self.sendPushEvent(context: context, entity: entity)
-            }
-        }
-    }
+     func createPushEvent(userInfo: [String: Any], type: String) {
+         guard let uid = userInfo[Constants.UserInfoKeys.uid] as? String else {
+             errorEvent(#function, error: uidIsNil)
+             return
+         }
+         
+         addPushEventEntity(uid: uid, type: type) { objectID in
+             guard let entity = objectID else { return }
+             pushEventRetryCount = 0
+             self.sendPushEvent(objectID: entity)
+         }
+     }
      
-    /// Sends a previously saved push event to the remote server.
-    ///
-    /// - Parameters:
-    ///   - context: The Core Data context used for the operation.
-    ///   - entity: The push event entity to be sent.
+     /// Sends a previously saved push event to the remote server.
+     ///
+     /// - Parameters:
+     ///   - context: The Core Data context used for the operation.
+     ///   - entity: The push event entity to be sent.
      func sendPushEvent(
-        context: NSManagedObjectContext,
-        entity: PushEventEntity,
-        shouldRetry: Bool = true,
-        completion: (() -> Void)? = nil
+         context: NSManagedObjectContext? = nil,
+         objectID: NSManagedObjectID,
+         shouldRetry: Bool = true,
+         completion: (() -> Void)? = nil
      ) {
-         getPushEventRequestData(entity: entity) { data in
+         let ctx = context ?? getContext()
+         handlePushEvent(context: ctx, objectId: objectID) { completed in
+             if completed == .retry && shouldRetry { self.retry(event: objectID) }
+             completion?()
+         }
+     }
+     /// Handles a single subscription: decides whether to continue or retry.
+     ///
+     /// - Parameters:
+     ///   - context: The managed object context for Core Data operations.
+     ///   - subscription: Subscription to process.
+     ///   - completion: Called with `.continue` to proceed or `.retry` to abort with retry.
+     private func handlePushEvent(
+         context: NSManagedObjectContext,
+         objectId: NSManagedObjectID,
+         completion: @escaping (RequestResult) -> Void
+     ) {
+         self.sendPushEventRequest(context: context, objectID: objectId) { result in
+             if result is RetryEvent {
+                 pushEventLimit(context: context, for: objectId) { limit in completion(limit ? .completed : .retry) }
+                 return
+             }
+             deletePushEvent(context: context, objectID: objectId) { deleted in completion(deleted ? .completed : .retry) }
+         }
+     }
+     
+     /// Executes the subscription flow for a single entity, including request preparation and network submission.
+     ///
+     /// - Parameters:
+     ///   - entity: A `SubscribeEntity` representing stored subscription details.
+     ///   - completion: Closure called with the resulting `Event` (success, failure, or retry event).
+     func sendPushEventRequest(
+         context: NSManagedObjectContext,
+         objectID: NSManagedObjectID,
+         completion: @escaping (Event) -> Void
+     ) {
+         getPushEventRequestData(context: context, objectID: objectID) { data in
              guard let data = data else {
-                 retryEvent(#function, error: pushEventRequestDataIsNil)
-                 if shouldRetry {self.retry(context: context, event: entity)} else {
-                     completion?()
-                 }
+                 completion(retryEvent(#function, error: pushEventRequestDataIsNil))
                  return
              }
              
              guard let request = pushEventRequest(data: data) else {
-                 retryEvent(#function, error: failedCreateRequest)
-                 if shouldRetry {self.retry(context: context, event: entity)} else {
-                     completion?()
-                 }
+                 completion(retryEvent(#function, error: failedCreateRequest))
                  return
              }
              
-             self.requestManager.sendRequest(
-                request: request,
-                requestName: Constants.RequestName.pushEvent,
-                uid: entity.uid,
-                type: entity.type
-             ) { event in
-                 if shouldRetry {
-                     self.handlePushEventResponse(context: context, entity: entity, event: event)
-                 } else {
-                     if !(event is RetryEvent) {deletePushEvent(context: context, entity: entity) { _ in
-                         completion?()}
-                     } else {
-                         completion?()
-                     }
-                 }
-             }
+             RequestManager.shared.sendRequest(
+                request: request, requestName: Constants.RequestName.pushEvent, uid: data.uid, type: data.type, completion: completion
+             )
          }
      }
-     
-     /// Handles the result of a push event request.
-     ///
-     /// This method processes the result of a network request related to a push event.
-     /// Based on the result, it may delete the associated `PushEventEntity`,
-     /// emit events, or trigger retries.
-     ///
-     /// - Parameters:
-     ///   - context: The `NSManagedObjectContext` used for Core Data operations.
-     ///   - entity: The `PushEventEntity` representing the push event.
-     ///   - event: The `Event` returned by the network request.
-     private func handlePushEventResponse(
-        context: NSManagedObjectContext,
-        entity: PushEventEntity,
-        event: Event
-     ) {
-         if !(event is RetryEvent) {
-             deletePushEvent(context: context, entity: entity) { result in
-                 if !result {self.retry(context: context, event: entity)}}
-         } else {
-             pushEventLimit(context: context, for: entity) { limit in
-                 if !limit {self.retry(context: context, event: entity)}}
-         }
-     }
-
+    
     /// Sends all pending `PushEventEntity` events stored in Core Data with completion callback.
     ///
     /// This version uses DispatchGroup to track completion of all send attempts.
@@ -141,10 +129,8 @@ import CoreData
     /// - Parameters:
     ///   - context: The Core Data context to use.
     ///   - completion: Called when all events are processed (optional, default is empty closure).
-     func sendAllPushEvents(
-         context: NSManagedObjectContext,
-         completion: @escaping () -> Void = {}
-     ) {
+     func sendAllPushEvents(completion: @escaping () -> Void = {}) {
+         let context = getContext()
          pushEventQueue.async {
              let group = DispatchGroup()
 
@@ -157,13 +143,13 @@ import CoreData
 
                      for event in events {
                          group.enter()
-                         self.sendPushEvent(context: context, entity: event, shouldRetry: false) {
+                         self.sendPushEvent(context: context, objectID: event, shouldRetry: false) {
                              group.leave()
                          }
                      }
 
                      group.notify(queue: self.pushEventQueue) {
-                         DispatchQueue.main.async {
+                         DispatchQueue.main.async { 
                              completion()
                          }
                      }

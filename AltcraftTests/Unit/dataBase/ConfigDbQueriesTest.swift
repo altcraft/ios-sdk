@@ -59,13 +59,13 @@ final class ConfigDbQueriesTests: XCTestCase {
 
     override func setUp() {
         super.setUp()
-        wipeEntities([Constants.EntityNames.configEntityName,
-                      Constants.EntityNames.subscribeEntityName])
+        wipeEntities([Constants.EntityNames.config,
+                      Constants.EntityNames.subscribe])
     }
 
     override func tearDown() {
-        wipeEntities([Constants.EntityNames.configEntityName,
-                      Constants.EntityNames.subscribeEntityName])
+        wipeEntities([Constants.EntityNames.config,
+                      Constants.EntityNames.subscribe])
         super.tearDown()
     }
 
@@ -141,7 +141,7 @@ final class ConfigDbQueriesTests: XCTestCase {
         var thrown: Error?
         bg.performAndWait {
             guard let _ = NSEntityDescription.entity(
-                forEntityName: Constants.EntityNames.subscribeEntityName, in: bg
+                forEntityName: Constants.EntityNames.subscribe, in: bg
             ) else {
                 thrown = NSError(domain: "ConfigDbQueriesTests", code: 404,
                                  userInfo: [NSLocalizedDescriptionKey: "Entity SubscribeEntity not found"])
@@ -149,7 +149,7 @@ final class ConfigDbQueriesTests: XCTestCase {
             }
             for _ in 0..<n {
                 _ = NSEntityDescription.insertNewObject(
-                    forEntityName: Constants.EntityNames.subscribeEntityName, into: bg
+                    forEntityName: Constants.EntityNames.subscribe, into: bg
                 )
             }
             do { try bg.save() } catch { thrown = error }
@@ -225,7 +225,7 @@ final class ConfigDbQueriesTests: XCTestCase {
         }
         waitForExpectations(timeout: timeoutShort)
 
-        let cfgCount = count(entityName: Constants.EntityNames.configEntityName)
+        let cfgCount = count(entityName: Constants.EntityNames.config)
         XCTAssertEqual(cfgCount, 1, "Must keep a single ConfigurationEntity")
 
         guard let e = fetchSingleConfigurationEntity() else {
@@ -241,7 +241,7 @@ final class ConfigDbQueriesTests: XCTestCase {
     /// rToken change triggers NSBatchDelete over SubscribeEntity.
     func test_3_setConfig_tokenChange_triggersSubscriptionPurge() throws {
         try seedSubscribe(count: 5)
-        XCTAssertEqual(count(entityName: Constants.EntityNames.subscribeEntityName), 5)
+        XCTAssertEqual(count(entityName: Constants.EntityNames.subscribe), 5)
 
         // Create with token A
         let exp1 = expectation(description: "setConfig A")
@@ -257,7 +257,7 @@ final class ConfigDbQueriesTests: XCTestCase {
         }
         waitForExpectations(timeout: timeoutShort)
 
-        XCTAssertEqual(count(entityName: Constants.EntityNames.subscribeEntityName), 0,
+        XCTAssertEqual(count(entityName: Constants.EntityNames.subscribe), 0,
                        "SubscribeEntity must be purged on rToken change")
     }
 

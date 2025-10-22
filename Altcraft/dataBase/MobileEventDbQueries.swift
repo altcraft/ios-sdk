@@ -13,22 +13,22 @@ import CoreData
 /// Does **not** log on failure; error is returned via `completion`.
 ///
 /// - Parameters:
-///   - context: Managed object context used for the operation.
 ///   - userTag: User tag to bind the event to.
 ///   - timeZone: Timezone offset in minutes (signed).
-///   - time: Unix timestamp in seconds.
 ///   - sid: The string ID of the pixel.
-///   - altcraftClientID: Altcraft client identifier.
 ///   - eventName: Event name.
+///   - altcraftClientID: Altcraft client identifier.
 ///   - payload: Arbitrary payload as `[String: Any?]?` (serialized to JSON).
-///   - matching: Matching map as `[String: Any?]?` (serialized to JSON).
-///   - matchingType: Type of matching (e.g., `"push_sub"`, `"email"`, etc.).
+///   - matching: Matching parameters as `[String: Any?]?` (serialized to JSON).
 ///   - profileFields: Profile fields as `[String: Any?]?` (serialized to JSON).
 ///   - subscription: Subscription model to attach (encoded to JSON).
 ///   - sendMessageId: SMID.
+///   - matchingType: Type of matching (e.g., `"push_sub"`, `"email"`, etc.).
+///   - utmTags: Optional UTM tags for campaign attribution (e.g. `source`, `medium`,
+///              `campaign`, `term`, `content`). If provided, they are encoded
+///              and persisted with the event for downstream analytics.
 ///   - completion: `.success(())` on save, `.failure(error)` on error.
 func addMobileEventEntity(
-    context: NSManagedObjectContext,
     userTag: String,
     timeZone: Int16,
     sid: String,
@@ -43,51 +43,53 @@ func addMobileEventEntity(
     utmTags: UTM? = nil,
     completion: @escaping (Result<Void, Error>) -> Void
 ) {
-    do {
-        let entity = MobileEventEntity(context: context)
-        entity.userTag = userTag
-        entity.timeZone = timeZone
-        entity.time = Int64(Date().timeIntervalSince1970 * 1000)
-        entity.sid = sid
-        entity.altcraftClientID = altcraftClientID
-        entity.eventName = eventName
-        entity.payload = encodeAnyMap(payload)
-        entity.matching = encodeAnyMap(matching)
-        entity.profileFields = encodeAnyMap(profileFields)
-        entity.subscription = encodeSubscription(subscription)
-        entity.sendMessageId = sendMessageId
-        entity.retryCount = 0
-        entity.maxRetryCount = 15
+    withBackgroundContext { context in
+        do {
+            let entity = MobileEventEntity(context: context)
+            entity.userTag = userTag
+            entity.timeZone = timeZone
+            entity.time = Int64(Date().timeIntervalSince1970 * 1000)
+            entity.sid = sid
+            entity.altcraftClientID = altcraftClientID
+            entity.eventName = eventName
+            entity.payload = encodeAnyMap(payload)
+            entity.matching = encodeAnyMap(matching)
+            entity.profileFields = encodeAnyMap(profileFields)
+            entity.subscription = encodeSubscription(subscription)
+            entity.sendMessageId = sendMessageId
+            entity.retryCount = 0
+            entity.maxRetryCount = 15
+            entity.matchingType = matchingType
+            entity.utmTags = encodeUTM(utmTags)
 
-        // Новые поля
-        entity.matchingType = matchingType
-        entity.utmTags = encodeUTM(utmTags)
-
-        try context.save()
-        completion(.success(()))
-    } catch {
-        completion(.failure(error))
+            try context.save()
+            completion(.success(()))
+        } catch {
+            completion(.failure(error))
+        }
     }
 }
 
-
-/// Returns mobile events filtered by `userTag`, ordered by `time` ascending.
+/// Returns mobile events object IDs filtered by `userTag`, ordered by `time` ascending.
+///
 /// - Parameters:
-///   - context: Core Data context to perform the fetch in.x
-///   - userTag: Tag to filter by; pass `nil` to fetch records where `userTag == nil`.
-///   - completion: Callback with fetched events (empty on failure).
-func getAllMobileEvents(
+///   - context: The Core Data context to perform the fetch in.
+///   - userTag: Tag to filter by.
+///   - completion: Callback with fetched object IDs (empty on failure).
+func getAllMobileEventsByTag(
     context: NSManagedObjectContext,
     userTag: String,
-    completion: @escaping ([MobileEventEntity]) -> Void
+    completion: @escaping ([NSManagedObjectID]) -> Void
 ) {
     context.perform {
-        let fetchRequest: NSFetchRequest<MobileEventEntity> = MobileEventEntity.fetchRequest()
-        fetchRequest.predicate = NSPredicate(format: "userTag == %@", userTag)
-        fetchRequest.sortDescriptors = [NSSortDescriptor(key: "time", ascending: true)]
+        let request = NSFetchRequest<NSManagedObjectID>(
+            entityName: Constants.EntityNames.mobileEvent)
+        request.resultType = .managedObjectIDResultType
+        request.predicate = NSPredicate(format: "userTag == %@", userTag)
+        request.sortDescriptors = [NSSortDescriptor(key: "time", ascending: true)]
         do {
-            let entities = try context.fetch(fetchRequest)
-            completion(entities)
+            let ids = try context.fetch(request)
+            completion(ids)
         } catch {
             errorEvent(#function, error: error)
             completion([])
@@ -95,21 +97,31 @@ func getAllMobileEvents(
     }
 }
 
-/// Deletes the given `MobileEventEntity` from the Core Data context.
+/// Deletes the `MobileEventEntity` with the given object ID from Core Data.
 ///
 /// - Parameters:
 ///   - context: The `NSManagedObjectContext` used to perform the delete operation.
-///   - entity: The `MobileEventEntity` instance to delete.
-///   - completion: A closure called with `true` on success, `false` on failure.
+///   - objectID: The `NSManagedObjectID` of the entity to delete.
+///   - completion: A closure called with `true` on success (or if already gone / wrong type), `false` on failure.
 func deleteMobileEvent(
     context: NSManagedObjectContext,
-    entity: MobileEventEntity,
+    objectID: NSManagedObjectID,
     completion: ((Bool) -> Void)? = nil
 ) {
     context.perform {
+        guard
+            let obj = try? context.existingObject(with: objectID),
+                !obj.isDeleted
+        else {
+            completion?(true); return
+        }
+    
+        context.delete(obj)
+        
         do {
-            context.delete(entity)
-            try context.save()
+            if context.hasChanges {
+                try context.save()
+            }
             completion?(true)
         } catch {
             errorEvent(#function, error: error)
@@ -118,50 +130,39 @@ func deleteMobileEvent(
     }
 }
 
-/// Deletes all mobile events using batch delete.
-/// - Parameters:
-///   - context: Core Data context to perform the batch delete in.
-///   - completion: Result with deleted count or error.
-func deleteAllMobileEvents(
-    context: NSManagedObjectContext,
-    completion: @escaping (Result<Int, Error>) -> Void
-) {
-    context.perform {
-        let fetch: NSFetchRequest<NSFetchRequestResult> = MobileEventEntity.fetchRequest()
-        let deleteReq = NSBatchDeleteRequest(fetchRequest: fetch)
-        deleteReq.resultType = .resultTypeCount
-        do {
-            if let res = try context.execute(deleteReq) as? NSBatchDeleteResult,
-               let count = res.result as? Int {
-                context.reset()
-                completion(.success(count))
-            } else {
-                context.reset()
-                completion(.success(0))
-            }
-        } catch {
-            completion(.failure(error))
-        }
-    }
-}
-
-
 /// Increments retry counter or deletes the mobile event when max retries are reached.
+///
 /// - Parameters:
 ///   - context: Managed object context used to persist changes.
-///   - entity: MobileEventEntity to update or delete.
-///   - completion: `true` if the entity was deleted (limit reached), `false` otherwise.
+///   - objectID: `NSManagedObjectID` of `MobileEventEntity` to update or delete.
+///   - completion: `true` if the entity was deleted (limit reached or missing/wrong type), `false` otherwise.
 func mobileEventLimit(
     context: NSManagedObjectContext,
-    for entity: MobileEventEntity,
+    for objectID: NSManagedObjectID,
     completion: @escaping (Bool) -> Void
 ) {
     context.perform {
+        guard let materialized = try? context.existingObject(with: objectID) else {
+            completion(true)
+            return
+        }
+        
+        guard let entity = materialized as? MobileEventEntity else {
+            context.delete(materialized)
+            do {
+                try context.save()
+            } catch { 
+                errorEvent(#function, error: error)
+            }
+            completion(true)
+            return
+        }
+
         let retryCount = Int(entity.retryCount)
         let maxRetryCount = Int(entity.maxRetryCount)
 
         if retryCount >= maxRetryCount {
-            deleteMobileEvent(context: context, entity: entity) { _ in
+            deleteMobileEvent(context: context, objectID: objectID) { _ in
                 completion(true)
             }
         } else {

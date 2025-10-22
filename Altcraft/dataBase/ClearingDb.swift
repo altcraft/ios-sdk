@@ -71,9 +71,9 @@ class ClearingDb: NSObject {
         let group = DispatchGroup()
         var overallSuccess = true
         [
-            Constants.EntityNames.configEntityName,
-            Constants.EntityNames.subscribeEntityName,
-            Constants.EntityNames.pushEventEntityName
+            Constants.EntityNames.config,
+            Constants.EntityNames.subscribe,
+            Constants.EntityNames.pushEvent
         ].forEach { entityName in
             group.enter()
             deleteEntity(entityName: entityName) { success in
