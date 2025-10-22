@@ -11,7 +11,7 @@ import Foundation
 final class JWTManager {
     static let shared = JWTManager()
     
-    private static let suiteName = appGroup
+    private static let suiteName = appGroupID
     
     private let anonKey = "ANON_JWT"
     private let regKey = "REG_JWT"

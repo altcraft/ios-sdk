@@ -219,8 +219,7 @@ struct SubscribeSettingView: View {
     }
 }
 
-// Helper views
-
+/// Helper views
 struct Switch: View {
     let text: String
     @Binding var isChecked: Bool

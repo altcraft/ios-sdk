@@ -222,6 +222,7 @@ public class PublicPushSubscriptionFunctions: NSObject {
                 completion(nil)
                 return
             }
+            
             RequestManager.shared.sendRequest(
                 request: request,
                 requestName: Constants.RequestName.status

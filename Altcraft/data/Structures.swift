@@ -458,7 +458,13 @@ public struct EmailSubscription: Subscription, Codable {
     public let channel: String = "email"
 
     enum CodingKeys: String, CodingKey {
-        case resourceId = "resource_id", email, status, priority, customFields, cats, channel
+        case resourceId = "resource_id"
+        case email
+        case status
+        case priority
+        case customFields = "custom_fields"
+        case cats
+        case channel
     }
 
     public init(
@@ -496,7 +502,13 @@ public struct SmsSubscription: Subscription, Codable {
     public let channel: String = "sms"
 
     enum CodingKeys: String, CodingKey {
-        case resourceId = "resource_id", phone, status, priority, customFields, cats, channel
+        case resourceId = "resource_id"
+        case phone
+        case status
+        case priority
+        case customFields = "custom_fields"
+        case cats
+        case channel
     }
 
     public init(
@@ -536,9 +548,14 @@ public struct PushSubscription: Subscription, Codable {
     public let channel: String = "push"
 
     enum CodingKeys: String, CodingKey {
-        case resourceId = "resource_id", provider
+        case resourceId = "resource_id"
+        case provider
         case subscriptionId = "subscription_id"
-        case status, priority, customFields, cats, channel
+        case status
+        case priority
+        case customFields = "custom_fields"
+        case cats
+        case channel
     }
 
     public init(
@@ -578,9 +595,13 @@ public struct CcDataSubscription: Subscription, Codable {
     public let cats: [String]?
 
     enum CodingKeys: String, CodingKey {
-        case resourceId = "resource_id", channel
+        case resourceId = "resource_id"
+        case channel
         case ccData = "cc_data"
-        case status, priority, customFields, cats
+        case status
+        case priority
+        case customFields = "custom_fields"
+        case cats
     }
 
     public init(
@@ -599,66 +620,6 @@ public struct CcDataSubscription: Subscription, Codable {
         self.priority = priority
         self.customFields = customFields
         self.cats = cats
-    }
-}
-
-/// Encoded mobile event data model used for persistence and sending.
-///
-/// Represents a complete mobile event including identifiers,
-/// payloads, matching data, subscription info, and UTM tags.
-struct MobileEventData: Codable {
-    /// Altcraft client identifier.
-    let altcraftClientID: String?
-    /// Event name.
-    let eventName: String?
-    /// Matching pair encoded as JSON.
-    let matching: Data?
-    /// Matching type (e.g., `"email"`, `"smid"`).
-    let matchingType: String?
-    /// Maximum retry attempts for event delivery.
-    let maxRetryCount: Int16
-    /// Event payload encoded as JSON.
-    let payload: Data?
-    /// Profile fields encoded as JSON.
-    let profileFields: Data?
-    /// Current retry count.
-    let retryCount: Int16
-    /// Send Message ID (SMID).
-    let sendMessageId: String?
-    /// Pixel SID.
-    let sid: String?
-    /// Subscription data encoded as JSON (`Email`, `SMS`, `Push`, `CcData`).
-    let subscription: Data?
-    /// Event timestamp (UTC, milliseconds).
-    let time: Int64
-    /// Time zone offset.
-    let timeZone: Int16
-    /// Optional user tag associated with the event.
-    let userTag: String?
-    /// UTM tags encoded as JSON.
-    let utmTags: Data?
-    
-    /// Creates a `MobileEventData` instance from a Core Data entity.
-    /// - Parameter entity: The `MobileEventEntity` stored in Core Data.
-    /// - Returns: A decoded `MobileEventData` ready for serialization or sending.
-    static func from(entity: MobileEventEntity) -> MobileEventData {
-        return MobileEventData(
-            altcraftClientID: entity.altcraftClientID,
-            eventName: entity.eventName,
-            matching: entity.matching,
-            matchingType: entity.matchingType,
-            maxRetryCount: entity.maxRetryCount,
-            payload: entity.payload,
-            profileFields: entity.profileFields,
-            retryCount: entity.retryCount,
-            sendMessageId: entity.sendMessageId,
-            sid: entity.sid,
-            subscription: entity.subscription,
-            time: entity.time,
-            timeZone: entity.timeZone,
-            userTag: entity.userTag,
-            utmTags: entity.utmTags
-        )
     }
 }
 

@@ -6,7 +6,6 @@
 //
 //  Copyright © 2025 Altcraft. All rights reserved.
 
-
 import Foundation
 
 /// Serial FIFO job queue with optional "epoch" reset mechanism.

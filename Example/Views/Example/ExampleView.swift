@@ -16,10 +16,7 @@ struct ExampleView: View {
     var body: some View {
         VStack(alignment: .leading, spacing: 0) {
             Header()
-
-            // Notification Card with tap gesture
             VStack {
-                // Card content
                 VStack {
                     HStack(alignment: .top, spacing: 10) {
                     

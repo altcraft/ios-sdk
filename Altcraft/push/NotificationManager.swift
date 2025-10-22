@@ -89,4 +89,3 @@ public class NotificationManager: NSObject, UNUserNotificationCenterDelegate {
         completionHandler()
     }
 }
-

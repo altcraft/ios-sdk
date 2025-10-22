@@ -14,15 +14,13 @@ import FirebaseCore
 import FirebaseMessaging
 
 ///set AppGroups identifier
-let appGroup = "your_app_group_id"
+let appGroupID = "your.app.group.id"
 
 ///set the JWT value for the anonymous user as anonJWT or in the application IU interface (config)
 let anonJWT: String? = nil
 
 ///set the JWT value for the registered user as regJWT or in the application IU interface (config)
 let regJWT: String? = nil
-
-
 @main
 struct IOSAPNsExampleApp: App {
     @UIApplicationDelegateAdaptor(AppDelegate.self) var delegate
@@ -53,12 +51,12 @@ class AppDelegate: UIResponder, UIApplicationDelegate, UNUserNotificationCenterD
     ) -> Bool {
         registerAltcraftEventHandlers()
         
-        //Firebase  functions — uncomment if GoogleService-Info.plist is added to the project.
-        ///FirebaseConfiguration.shared.setLoggerLevel(.min)
-        ///FirebaseApp.configure()
+        ///Firebase  functions — uncomment if GoogleService-Info.plist is added to the project.
+        //FirebaseConfiguration.shared.setLoggerLevel(.min)
+        //FirebaseApp.configure()
         
         //Altcraft
-        AltcraftSDK.shared.setAppGroup(groupName: appGroup)
+        AltcraftSDK.shared.setAppGroup(groupName: appGroupID)
         AltcraftSDK.shared.backgroundTasks.registerBackgroundTask()
         AltcraftSDK.shared.setJWTProvider(provider: JWTProvider())
         AltcraftSDK.shared.pushTokenFunction.setFCMTokenProvider(FCMProvider())
@@ -67,7 +65,7 @@ class AppDelegate: UIResponder, UIApplicationDelegate, UNUserNotificationCenterD
         AltcraftSDK.shared.notificationManager.registerForPushNotifications(for: application)
         
         initSDK(config: getConfigFromUserDefault())
-
+        
         return true
     }
     
@@ -83,7 +81,7 @@ class AppDelegate: UIResponder, UIApplicationDelegate, UNUserNotificationCenterD
 
 /**
  * Altcraft SDK setup on iOS
- *
+ *'
  * You can configure Altcraft SDK via your app UI (Config screen) or initialize it programmatically.
  *
  * Example (programmatic init in AppDelegate):

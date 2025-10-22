@@ -2,8 +2,9 @@
 //  NotificationService.swift
 //  PushService
 //
-//  Created by andrey on 18.07.2025.
+//  Created by Andrey Pogodin.
 //
+//  Copyright © 2025 Altcraft. All rights reserved.
 
 import Altcraft
 import UserNotifications
@@ -11,8 +12,8 @@ import UserNotifications
 class NotificationService: UNNotificationServiceExtension {
     var service = AltcraftPushReceiver()
     
-    /// - important! Set app groups name.
-    var appGroupID = "your_app_group_id"
+    /// - important! Set app groups identifier.
+    var appGroupID = "your.app.group.id"
     let jwtProvider = JWTProvider()
 
     

@@ -2,8 +2,9 @@
 //  MultipartBody.swift
 //  Altcraft
 //
-//  Created by andrey on 07.10.2025.
+//  Created by Andrey Pogodin.
 //
+//  Copyright © 2025 Altcraft. All rights reserved.
 
 import Foundation
 
