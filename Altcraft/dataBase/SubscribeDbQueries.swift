@@ -15,7 +15,6 @@ import CoreData
 /// Entries are ordered by `time` so the oldest appear first.
 ///
 /// - Parameters:
-///   - context: The `NSManagedObjectContext` used to perform the operation.
 ///   - userTag: User tag string.
 ///   - status: Subscription status string.
 ///   - sync: Sync mode (integer).
@@ -29,7 +28,6 @@ import CoreData
 ///                 Use `.success(())` when the entity is saved successfully,
 ///                 or `.failure(error)` if save fails.
 func addSubscribeEntity(
-    context: NSManagedObjectContext,
     userTag: String,
     status: String,
     sync: Int,
@@ -41,47 +39,53 @@ func addSubscribeEntity(
     uid: String?,
     completion: @escaping (Result<Void, Error>) -> Void
 ) {
-    do {
-        let newEntity = SubscribeEntity(context: context)
-        newEntity.time = Int64(Date().timeIntervalSince1970 * 1000)
-        newEntity.uid = uid
-        newEntity.userTag = userTag
-        newEntity.status = status
-        newEntity.sync = Int16(sync)
-        newEntity.replace = replace ?? false
-        newEntity.skipTriggers = skipTriggers ?? false
-        newEntity.retryCount = 0
-        newEntity.maxRetryCount = 15
-        newEntity.cats = encodeCats(cats)
-        newEntity.profileFields = encodeAnyMap(profileFields)
-        newEntity.customFields = encodeAnyMap(customFields)
+    withBackgroundContext { context in
+        do {
+            let newEntity = SubscribeEntity(context: context)
+            newEntity.time = Int64(Date().timeIntervalSince1970 * 1000)
+            newEntity.uid = uid
+            newEntity.userTag = userTag
+            newEntity.status = status
+            newEntity.sync = Int16(sync)
+            newEntity.replace = replace ?? false
+            newEntity.skipTriggers = skipTriggers ?? false
+            newEntity.cats = encodeCats(cats)
+            newEntity.profileFields = encodeAnyMap(profileFields)
+            newEntity.customFields = encodeAnyMap(customFields)
+            newEntity.retryCount = 0
+            newEntity.maxRetryCount = 15
 
-        try context.save()
-        completion(.success(()))
-    } catch {
-        completion(.failure(error))
+            try context.save()
+            completion(.success(()))
+        } catch {
+            completion(.failure(error))
+        }
     }
 }
 
-/// Fetches all subscription entities from the `SubscribeEntity` table where `userTag` matches the provided tag.
+/// Fetches object IDs of all `SubscribeEntity` rows where `userTag` matches.
+/// Returns `NSManagedObjectID` to avoid leaking managed objects across queues.
 ///
 /// - Parameters:
 ///   - context: The `NSManagedObjectContext` used for Core Data operations.
-///   - userTag: The tag used to filter subscriptions.
-///   - completion: A closure that returns an array of `SubscribeEntity` objects.
-func getAllSubscribeByTag(
+///   - userTag: Tag used to filter subscriptions.
+///   - completion: Closure returning an array of `NSManagedObjectID`.
+func getAllSubscriptionsByTag(
     context: NSManagedObjectContext,
     userTag: String,
-    completion: @escaping ([SubscribeEntity]) -> Void
+    completion: @escaping ([NSManagedObjectID]) -> Void
 ) {
     context.perform {
-        let fetchRequest: NSFetchRequest<SubscribeEntity> = SubscribeEntity.fetchRequest()
-        fetchRequest.predicate = NSPredicate(format: "userTag == %@", userTag)
-        fetchRequest.sortDescriptors = [NSSortDescriptor(key: "time", ascending: true)]
+        let request = NSFetchRequest<NSManagedObjectID>(
+            entityName: Constants.EntityNames.subscribe
+        )
+        request.resultType = .managedObjectIDResultType
+        request.predicate = NSPredicate(format: "userTag == %@", userTag)
+        request.sortDescriptors = [NSSortDescriptor(key: "time", ascending: true)]
 
         do {
-            let entities = try context.fetch(fetchRequest)
-            completion(entities)
+            let ids = try context.fetch(request)
+            completion(ids)
         } catch {
             errorEvent(#function, error: error)
             completion([])
@@ -89,26 +93,38 @@ func getAllSubscribeByTag(
     }
 }
 
-/// Deletes the given `SubscribeEntity` from the Core Data context.
+/// Deletes the `SubscribeEntity` with the given object ID from Core Data.
 ///
 /// - Parameters:
 ///   - context: The `NSManagedObjectContext` used to perform the delete operation.
-///   - entity: The `SubscribeEntity` instance to delete.
-///   - completion: A closure called with a `Bool` value indicating success (`true`) or failure (`false`).
+///   - objectID: The `NSManagedObjectID` of the entity to delete.
+///   - completion: Called with `true` on success (or if already gone), `false` on failure.
 ///
-/// - Note: This function performs the delete operation asynchronously within the `context.perform` block.
-func deleteSubscribe(
+/// - Note: Runs on the context's queue via `perform`.
+func deleteSubscriptions(
     context: NSManagedObjectContext,
-    entity: SubscribeEntity,
+    objectID: NSManagedObjectID,
     completion: ((Bool) -> Void)? = nil
 ) {
-    do {
-        context.delete(entity)
-        try context.save()
-        completion?(true)
-    } catch {
-        errorEvent(#function, error: error)
-        completion?(false)
+    context.perform {
+        guard
+            let obj = try? context.existingObject(with: objectID),
+                !obj.isDeleted
+        else {
+            completion?(true); return
+        }
+        
+        context.delete(obj)
+        
+        do {
+            if context.hasChanges {
+                try context.save()
+            }
+            completion?(true)
+        } catch {
+            errorEvent(#function, error: error)
+            completion?(false)
+        }
     }
 }
 
@@ -116,26 +132,45 @@ func deleteSubscribe(
 ///
 /// Compares `retryCount` with `maxRetryCount`.
 /// If the retry count is below the limit, increments it and saves the entity.
-/// If it exceeds or equals the limit, deletes the entity.
+/// If it equals or exceeds the limit, deletes the entity.
+/// If the entity cannot be materialized by its `NSManagedObjectID` (already deleted/missing),
+/// or the materialized object is not a `SubscribeEntity`, it is deleted/treated as deleted.
 ///
 /// - Parameters:
 ///   - context: The `NSManagedObjectContext` used to update or delete the subscription entity.
-///   - entity: The `SubscribeEntity` instance to check and update.
-///   - completion: A closure called with `true` if the entity was deleted, or `false` if it was updated.
+///   - objectID: The `NSManagedObjectID` of the `SubscribeEntity` to check and update.
+///   - completion: A closure called with `true` if the entity was deleted (or not found / wrong type),
+///                 or `false` if it was updated (retry count incremented) or saving failed.
 ///
-/// - Note: If the retry limit is exceeded, the entity is deleted and `true` is returned.
-/// If the count is incremented, `false` is returned.
+/// - Note: If the retry limit is exceeded (or entity is missing / wrong type), the entity is deleted/treated as deleted and `true` is returned.
+///         If the count is incremented and saved, `false` is returned.
 func subscribeLimit(
     context: NSManagedObjectContext,
-    for entity: SubscribeEntity,
+    for objectID: NSManagedObjectID,
     completion: @escaping (Bool) -> Void
 ) {
     context.perform {
+        guard let materialized = try? context.existingObject(with: objectID) else {
+            completion(true)
+            return
+        }
+        
+        guard let entity = materialized as? SubscribeEntity else {
+            context.delete(materialized)
+            do {
+                try context.save()
+            } catch {
+                errorEvent(#function, error: error)
+            }
+            completion(true)
+            return
+        }
+
         let retryCount = Int(entity.retryCount)
         let maxRetryCount = Int(entity.maxRetryCount)
-        
+
         if retryCount >= maxRetryCount {
-            deleteSubscribe(context: context, entity: entity) { _ in
+            deleteSubscriptions(context: context, objectID: objectID) { _ in
                 completion(true)
             }
         } else {
@@ -150,4 +185,3 @@ func subscribeLimit(
         }
     }
 }
-

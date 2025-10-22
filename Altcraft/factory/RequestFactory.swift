@@ -44,7 +44,14 @@ func buildGetRequest(url: URL, authHeader: String, requestId: String) -> URLRequ
     return request
 }
 
-//?????????
+/// Constructs a multipart/form-data `POST` request with the given body parts and auth header.
+/// The function sets HTTP method, body, boundary-based Content-Type, Authorization, and Content-Length.
+///
+/// - Parameters:
+///   - url: Final endpoint URL.
+///   - parts: Multipart body parts (files/fields) to encode.
+///   - authHeader: Value for the `Authorization` HTTP header.
+/// - Returns: Fully configured `URLRequest` ready to be sent.
 @inline(__always)
 private func buildMultipartRequest(
     url: URL,
@@ -58,10 +65,8 @@ private func buildMultipartRequest(
     let body = buildMultipartBody(parts: parts, boundary: boundary)
     request.httpBody = body
 
-    // Headers
     request.setValue("multipart/form-data; boundary=\(boundary)", forHTTPHeaderField: Constants.HTTPHeader.contentType)
     request.setValue(authHeader, forHTTPHeaderField: Constants.HTTPHeader.authorization)
-    // По желанию можно указать длину:
     request.setValue(String(body.count), forHTTPHeaderField: "Content-Length")
 
     return request
@@ -358,22 +363,29 @@ func statusRequest(
     }
 }
 
-
-func createMobileEventMultipartRequest(
-    baseURLString: String,
-    sid: String,
-    parts: [Part],
-    authHeader: String
+/// Builds a multipart `URLRequest` for sending a mobile event using the provided request data.
+/// Resolves the final endpoint via `buildMobileEventURL(...)` and then delegates
+/// to `buildMultipartRequest(url:parts:authHeader:)` to construct the body and headers.
+///
+/// - Parameter requestData: Container with all required fields to build the request:
+///   - `url`: Base URL string (will be combined with tracker/type/version).
+///   - `sid`: Pixel ID.
+///   - `parst`: Multipart parts to encode.
+///   - `authHeader`: Authorization header value.
+/// - Returns: A configured `URLRequest` if the URL could be constructed; otherwise `nil`
+///            (and logs an error via `errorEvent`).
+func createMobileEventRequest(
+    data: MobileEventRequestData
 ) -> URLRequest? {
     guard let url = buildMobileEventURL(
-        baseURLString: baseURLString,
-        sid: sid,
+        baseURLString: data.url,
+        sid: data.sid,
         tracker: "px",
         type: "open",
         version: "2"
     ) else {
-        errorEvent(#function, error: invalidRequestUrl, value: [Constants.MapKeys.url: baseURLString])
+        errorEvent(#function, error: invalidRequestUrl, value: [Constants.MapKeys.url: data.url])
         return nil
     }
-    return buildMultipartRequest(url: url, parts: parts, authHeader: authHeader)
+    return buildMultipartRequest(url: url, parts: data.parst, authHeader: data.authHeader)
 }

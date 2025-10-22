@@ -62,13 +62,45 @@ public class PublicMobileEventFunctions: NSObject {
     // MARK: - Objective-C bridge (same selector name, hidden from Swift)
     //
     // Selector in ObjC:
-    // mobileEvent:altcraftClientID:eventName:sendMessageId:payload:matching:matchingType:profileFields:subscription:utmCampaign:utmContent:utmKeyword:utmMedium:utmSource:utmTemp:
+    //  mobileEvent:
+    //  altcraftClientID:
+    //  eventName:
+    //  sendMessageId:
+    //  payload:
+    //  matching:
+    //  matchingType:
+    //  profileFields:
+    //  subscription:
+    //  utmCampaign:
+    //  utmContent:
+    //  utmKeyword:
+    //  utmMedium:
+    //  utmSource:
+    //  utmTemp:
     //
     // Notes:
-    // - `subscription`: ACTSubscriptionBase? (or any subclass: ACTEmailSubscription, ACTSmsSubscription, ACTPushSubscription, ACTCcDataSubscription)
+    // - `subscription`: ACTSubscriptionBase? (
+    // or any subclass: ACTEmailSubscription, ACTSmsSubscription, ACTPushSubscription, ACTCcDataSubscription
+    // )
     //   will be automatically converted to a Swift `Subscription` via `.toSwift()`.
     @available(swift, obsoleted: 1)
-    @objc(mobileEvent:altcraftClientID:eventName:sendMessageId:payload:matching:matchingType:profileFields:subscription:utmCampaign:utmContent:utmKeyword:utmMedium:utmSource:utmTemp:)
+    @objc(
+        mobileEvent:
+        altcraftClientID:
+        eventName:
+        sendMessageId:
+        payload:
+        matching:
+        matchingType:
+        profileFields:
+        subscription:
+        utmCampaign:
+        utmContent:
+        utmKeyword:
+        utmMedium:
+        utmSource:
+        utmTemp:
+    )
     public func mobileEvent(
         _ sid: String,
         altcraftClientID: String,

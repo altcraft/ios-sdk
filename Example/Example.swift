@@ -53,9 +53,9 @@ class AppDelegate: UIResponder, UIApplicationDelegate, UNUserNotificationCenterD
     ) -> Bool {
         registerAltcraftEventHandlers()
         
-        /// Firebase  functions — uncomment if GoogleService-Info.plist is added to the project.
-        // FirebaseConfiguration.shared.setLoggerLevel(.min)
-        // FirebaseApp.configure()
+        //Firebase  functions — uncomment if GoogleService-Info.plist is added to the project.
+        ///FirebaseConfiguration.shared.setLoggerLevel(.min)
+        ///FirebaseApp.configure()
         
         //Altcraft
         AltcraftSDK.shared.setAppGroup(groupName: appGroup)
@@ -67,7 +67,7 @@ class AppDelegate: UIResponder, UIApplicationDelegate, UNUserNotificationCenterD
         AltcraftSDK.shared.notificationManager.registerForPushNotifications(for: application)
         
         initSDK(config: getConfigFromUserDefault())
-        
+
         return true
     }
     
@@ -103,7 +103,7 @@ class AppDelegate: UIResponder, UIApplicationDelegate, UNUserNotificationCenterD
  *             "ios-huawei"    // Huawei on iOS
  *         ])
  *
- *     // Optional app metadata (use either Swift or ObjC DTO)
+ *     // Optional  firebase analytics app metadata (use either Swift or ObjC DTO)
  *     // Swift:
  *     // let info = AppInfo(appID: "com.example.app",
  *     //                    appIID: "8b91f3a0-1111-2222-3333-c1a2c1a2c1a2",

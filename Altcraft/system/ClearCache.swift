@@ -26,11 +26,13 @@ func clearCache(completion: @escaping () -> Void) {
     
     if !userDefault.getDbErrorStatus() {
         clearingDb.deleteAllEntitiesFromDb { _ in
+            
+            subRetryCount = 0
+            updateRetryCount = 0
+            pushEventRetryCount = 0
+            mobileEventRetryCount = 0
             userDefault.clearSavedToken()
             userDefault.clearManualToken()
-            userDefault.setSubRetryCount(value: 0)
-            userDefault.setUpdateRetryCount(value: 0)
-            userDefault.setPushEventRetryCount(value: 0)
             TokenUpdate.shared.currentToken = nil
             TokenManager.shared.tokens.ts_removeAll()
             

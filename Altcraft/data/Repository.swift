@@ -7,6 +7,7 @@
 //  Copyright © 2025 Altcraft. All rights reserved.
 
 import Foundation
+import CoreData
 
 /// Retrieves common data required for the subscription process.
 ///
@@ -50,56 +51,173 @@ func getCommonData(completion: @escaping (CommonData?) -> Void) {
 }
 
 /// Builds `SubscribeRequestData` using entity details and SDK configuration.
-///
-/// If required fields are missing (e.g. config, token, auth), the function logs an error and returns `nil`.
+/// Safely materializes the `SubscribeEntity` by its `NSManagedObjectID` inside the given context.
 ///
 /// - Parameters:
-///   - entity: The `SubscribeEntity` containing local subscription info.
+///   - context: The `NSManagedObjectContext` used to materialize and read the entity.
+///   - entityID: The `NSManagedObjectID` of the `SubscribeEntity`.
 ///   - completion: Closure returning a valid `SubscribeRequestData` or `nil`.
 func getSubscribeRequestData(
-    entity: SubscribeEntity,
-    completion: @escaping (SubscribeRequestData?) -> Void) {
+    context: NSManagedObjectContext,
+    objectID: NSManagedObjectID,
+    completion: @escaping (SubscribeRequestData?) -> Void
+) {
     getCommonData { data in
-        
         guard let data = data else {
             errorEvent(#function, error: commonDataIsNil)
             completion(nil)
             return
         }
-        
         guard let currentToken = data.currentToken else {
             errorEvent(#function, error: currentTokenIsNil)
             completion(nil)
             return
         }
         
+        context.perform {
+            guard let entity = try? context.existingObject(
+                with: objectID
+            ) as? SubscribeEntity else {
+                errorEvent(#function, error: entityNotFoundByID)
+                completion(nil)
+                return
+            }
+            
+            let profileFields = decodeAnyMap(entity.profileFields)
+            let customFields  = getFields(config: data.config, entity: entity)
+            
+            let requestData = SubscribeRequestData(
+                url: subscribeURL(data.config.url),
+                time: entity.time / 1000,
+                rToken: data.config.rToken,
+                requestId: entity.uid ?? "",
+                authHeader: data.authHeader,
+                matchingMode: data.matchingMode,
+                provider: currentToken.provider,
+                deviceToken: currentToken.token,
+                status: entity.status ?? "",
+                sync: entity.sync,
+                profileFields: profileFields,
+                customFields: customFields,
+                cats: decodeCats(entity.cats),
+                replace: entity.replace,
+                skipTriggers: entity.skipTriggers
+            )
+            
+            if requestData.isValid() {
+                completion(requestData)
+            } else {
+                errorEvent(#function, error: invalidSubscribeRequestData)
+                completion(nil)
+            }
+        }
+    }
+}
 
-        let profileFields = decodeAnyMap(entity.profileFields)
-        let customFields = getFields(config: data.config, entity: entity)
-
-        let requestData = SubscribeRequestData(
-            url: subscribeURL(data.config.url),
-            time: entity.time / 1000,
-            rToken: data.config.rToken,
-            requestId: entity.uid ?? "",
-            authHeader: data.authHeader,
-            matchingMode: data.matchingMode,
-            provider: currentToken.provider,
-            deviceToken: currentToken.token,
-            status: entity.status ?? "",
-            sync: entity.sync,
-            profileFields: profileFields,
-            customFields: customFields,
-            cats: decodeCats(entity.cats),
-            replace: entity.replace,
-            skipTriggers: entity.skipTriggers
-        )
-
-        if requestData.isValid() {
-            completion(requestData)
-        } else {
-            errorEvent(#function, error: invalidSubscribeRequestData)
+/// Builds `MobileEventRequestData` from a `MobileEventEntity` identified by `objectID`.
+///
+/// - Parameters:
+///   - context: The `NSManagedObjectContext` used to materialize the object.
+///   - objectID: The `NSManagedObjectID` of the `MobileEventEntity`.
+///   - completion: Closure returning a fully built `MobileEventRequestData` or `nil` on failure.
+///
+/// - Notes:
+///   - Object materialization and field access happen inside `context.perform {}` to ensure thread safety.
+///   - If the materialized object is missing or has a wrong type, it is treated as invalid; the function returns `nil`.
+func getMobileEventRequestData(
+    context: NSManagedObjectContext,
+    objectID: NSManagedObjectID,
+    completion: @escaping (MobileEventRequestData?) -> Void
+) {
+    getCommonData { data in
+        guard let data = data else {
+            errorEvent(#function, error: commonDataIsNil)
             completion(nil)
+            return
+        }
+
+        context.perform {
+            guard let entity = try? context.existingObject(
+                with: objectID
+            ) as? MobileEventEntity else {
+                errorEvent(#function, error: entityNotFoundByID)
+                completion(nil)
+                return
+            }
+            
+            guard let sid = entity.sid, let name = entity.eventName else {
+                errorEvent(#function, error: mobileRequestDataIsNil)
+                completion(nil)
+                return
+            }
+            
+            let parts = PartsFactory.createMobileEventParts(from: entity)
+
+            // Build request data
+            let requestData = MobileEventRequestData(
+                url: eventMobileURL(data.config.url),
+                sid: sid,
+                eventName: name,
+                parst: parts,
+                authHeader: data.authHeader
+            )
+            completion(requestData)
+        }
+    }
+}
+
+/// Builds `PushEventRequestData` from a `PushEventEntity` identified by `objectID`.
+///
+/// - Parameters:
+///   - context: The `NSManagedObjectContext` used to materialize the object and read fields.
+///   - objectID: The `NSManagedObjectID` of the `PushEventEntity`.
+///   - completion: Closure returning a fully built `PushEventRequestData` or `nil` on failure.
+///
+/// - Note: Object materialization and field access happen inside `context.perform {}` to ensure thread safety.
+func getPushEventRequestData(
+    context: NSManagedObjectContext,
+    objectID: NSManagedObjectID,
+    completion: @escaping (PushEventRequestData?) -> Void
+) {
+    getCommonData { data in
+        guard let data = data else {
+            errorEvent(#function, error: commonDataIsNil)
+            completion(nil)
+            return
+        }
+
+        context.perform {
+            guard let entity = try? context.existingObject(
+                with: objectID
+            ) as? PushEventEntity else {
+                errorEvent(#function, error: entityNotFoundByID)
+                completion(nil)
+                return
+            }
+ 
+            guard let uid = entity.uid,
+                  let type = entity.type
+            else {
+                errorEvent(#function, error: invalidPushEventRequestData)
+                completion(nil)
+                return
+            }
+
+            let requestData = PushEventRequestData(
+                url: eventPushURL(data.config.url, event: entity),
+                time: entity.time / 1000,
+                type: type,
+                uid: uid,
+                authHeader: data.authHeader,
+                matchingMode: data.matchingMode
+            )
+
+            if requestData.isValid() {
+                completion(requestData)
+            } else {
+                errorEvent(#function, error: invalidPushEventRequestData)
+                completion(nil)
+            }
         }
     }
 }
@@ -133,86 +251,6 @@ func getUpdateRequestData(completion: @escaping (UpdateRequestData?) -> Void) {
                 oldProvider: data.savedToken?.provider,
                 newProvider: currentToken.provider
                 
-            )
-        )
-    }
-}
-
-/// Constructs a `PushEventRequestData` object from a `PushEventEntity`.
-///
-/// Retrieves configuration and builds the push event request data.
-/// Returns `nil` if required fields are missing or invalid.
-///
-/// - Parameters:
-///   - event: The `PushEventEntity` representing a local push event.
-///   - completion: A closure that receives a valid `PushEventRequestData` or `nil`.
-func getPushEventRequestData(
-    entity: PushEventEntity,
-    completion: @escaping (PushEventRequestData?) -> Void
-) {
-    getCommonData { data in
-        
-        guard let data = data else {
-            errorEvent(#function, error: commonDataIsNil)
-            completion(nil)
-            return
-        }
-
-        guard let uid = entity.uid, let type = entity.type else {
-            errorEvent(#function, error: invalidPushEventRequestData)
-            completion(nil)
-            return
-        }
-        
-        let requestData = PushEventRequestData(
-            url: eventPushURL(data.config.url, event: entity),
-            time: entity.time / 1000,
-            type: type,
-            uid: uid + type,
-            authHeader: data.authHeader,
-            matchingMode: data.matchingMode
-        )
-
-        if requestData.isValid() {
-            completion(requestData)
-        } else {
-            errorEvent(#function, error: invalidPushEventRequestData)
-            completion(nil)
-        }
-    }
-}
-
-/// Constructs a `MobileEventRequestData` object from a `MobileEventEntity`.
-///
-/// Retrieves configuration and builds the mobile event request data.
-/// Returns `nil` if required fields are missing or invalid.
-///
-/// - Parameters:
-///   - event: The `MobileEventEntity` representing a local push event.
-///   - completion: A closure that receives a valid `MobileEventRequestData` or `nil`.
-func getMobileEventRequestData(
-    eventData: MobileEventData,
-    completion: @escaping (MobileEventRequestData?) -> Void
-) {
-    getCommonData { data in
-        guard let data = data else {
-            errorEvent(#function, error: commonDataIsNil)
-            completion(nil)
-            return
-        }
-        
-        guard let sid = eventData.sid, let name = eventData.eventName else {
-            errorEvent(#function, error: mobileRequestDataIsNil)
-            completion(nil)
-            return
-        }
-        
-        completion(
-            MobileEventRequestData(
-                url: eventMobileURL(data.config.url),
-                sid: sid,
-                name: name,
-                authHeader: data.authHeader
             )
         )
     }

@@ -9,54 +9,57 @@
 import Foundation
 import CoreData
 
-/// Creates and saves a new `PushEventEntity` into the Core Data context.
+/// Creates and saves a new `PushEventEntity` into the Core Data context, returning its `NSManagedObjectID`.
 ///
 /// Initializes a new push event with the given `uid` and `type`, sets the timestamp and retry counters,
-/// and saves it to Core Data. Returns the created entity if successful.
+/// saves it to Core Data, and returns the created object's ID.
 ///
 /// - Parameters:
 ///   - context: The `NSManagedObjectContext` used to create and save the entity.
 ///   - uid: The unique identifier of the push event.
 ///   - type: The type of the push event (e.g., "delivered", "opened").
-///   - completion: A closure called with the created `PushEventEntity` or `nil` if saving failed.
+///   - completion: A closure called with the created entity's `NSManagedObjectID` or `nil` if saving failed.
 func addPushEventEntity(
-    context: NSManagedObjectContext,
     uid: String,
     type: String,
-    completion: @escaping (PushEventEntity?) -> Void
+    completion: @escaping (NSManagedObjectID?) -> Void
 ) {
-    do {
-        let newEntity = PushEventEntity(context: context)
-        newEntity.time = Int64(Date().timeIntervalSince1970 * 1000)
-        newEntity.uid = uid
-        newEntity.type = type
-        newEntity.retryCount = 0
-        newEntity.maxRetryCount = 15
+    withBackgroundContext{ context in
+        let entity = PushEventEntity(context: context)
+        entity.time = Int64(Date().timeIntervalSince1970 * 1000)
+        entity.uid = uid
+        entity.type = type
+        entity.retryCount = 0
+        entity.maxRetryCount = 15
 
-        try context.save()
-        completion(newEntity)
-    } catch {
-        errorEvent(#function, error: error)
-        completion(nil)
+        do {
+            try context.save()
+            completion(entity.objectID)
+        } catch {
+            errorEvent(#function, error: error)
+            completion(nil)
+        }
     }
 }
 
-/// Fetches all `PushEventEntity` objects from the Core Data context, sorted by time in ascending order.
+/// Returns push event object IDs ordered by `time` ascending.
 ///
 /// - Parameters:
 ///   - context: The `NSManagedObjectContext` used to perform the fetch.
-///   - completion: A closure returning an array of `PushEventEntity` objects, or an empty array if fetch fails.
+///   - completion: Callback with fetched object IDs (empty on failure).
 func getAllPushEvents(
     context: NSManagedObjectContext,
-    completion: @escaping ([PushEventEntity]) -> Void
+    completion: @escaping ([NSManagedObjectID]) -> Void
 ) {
     context.perform {
-        let fetchRequest: NSFetchRequest<PushEventEntity> = PushEventEntity.fetchRequest()
-        fetchRequest.sortDescriptors = [NSSortDescriptor(key: "time", ascending: true)]
-        
+        let request = NSFetchRequest<NSManagedObjectID>(
+            entityName: Constants.EntityNames.pushEvent
+        )
+        request.resultType = .managedObjectIDResultType
+        request.sortDescriptors = [NSSortDescriptor(key: "time", ascending: true)]
         do {
-            let events = try context.fetch(fetchRequest)
-            completion(events)
+            let ids = try context.fetch(request)
+            completion(ids)
         } catch {
             errorEvent(#function, error: error)
             completion([])
@@ -64,21 +67,31 @@ func getAllPushEvents(
     }
 }
 
-/// Deletes the given `PushEventEntity` from the Core Data context.
+/// Deletes the `PushEventEntity` with the given object ID from Core Data.
 ///
 /// - Parameters:
 ///   - context: The `NSManagedObjectContext` used to perform the delete operation.
-///   - entity: The `PushEventEntity` instance to delete.
-///   - completion: A closure called with a `Bool` value indicating success (`true`) or failure (`false`).
+///   - objectID: The `NSManagedObjectID` of the entity to delete.
+///   - completion: A closure called with `true` on success (or if already gone / wrong type), `false` on failure.
 func deletePushEvent(
     context: NSManagedObjectContext,
-    entity: PushEventEntity,
+    objectID: NSManagedObjectID,
     completion: ((Bool) -> Void)? = nil
 ) {
     context.perform {
+        guard
+            let obj = try? context.existingObject(with: objectID),
+                !obj.isDeleted
+        else {
+            completion?(true); return
+        }
+    
+        context.delete(obj)
+        
         do {
-            context.delete(entity)
-            try context.save()
+            if context.hasChanges {
+                try context.save()
+            }
             completion?(true)
         } catch {
             errorEvent(#function, error: error)
@@ -87,26 +100,43 @@ func deletePushEvent(
     }
 }
 
-/// Checks the retry limit for a given push event entity and updates its retry count if needed.
+/// Checks the retry limit for a given push event (by object ID) and updates its retry count if needed.
 ///
 /// If `retryCount` < `maxRetryCount`, increments the count and saves the entity.
-/// If `retryCount` ≥ `maxRetryCount`, deletes the entity.
+/// If `retryCount` ≥ `maxRetryCount`, deletes the entity (or treats as deleted if missing/wrong type).
 ///
 /// - Parameters:
 ///   - context: The `NSManagedObjectContext` for database operations.
-///   - entity: The `PushEventEntity` to process.
-///   - completion: Closure with `true` if the entity was deleted, `false` if retry count was incremented.
+///   - objectID: `NSManagedObjectID` of `PushEventEntity` to process.
+///   - completion: `true` if the entity was deleted (limit reached or missing/wrong type), `false` otherwise.
 func pushEventLimit(
     context: NSManagedObjectContext,
-    for entity: PushEventEntity,
+    for objectID: NSManagedObjectID,
     completion: @escaping (Bool) -> Void
 ) {
     context.perform {
-        let retryCount = Int(entity.retryCount)
-        let maxRetryCount = Int(entity.maxRetryCount)
+        guard let materialized = try? context.existingObject(with: objectID) else {
+            completion(true)
+            return
+        }
         
+        guard let entity = materialized as? PushEventEntity else {
+            context.delete(materialized)
+            do {
+                try context.save()
+            } catch {
+                errorEvent(#function, error: error)
+            }
+            completion(true)
+            return
+        }
+
+        let retryCount = Int(entity.retryCount)
+        
+        let maxRetryCount = Int(entity.maxRetryCount)
+
         if retryCount >= maxRetryCount {
-            deletePushEvent(context: context, entity: entity) { _ in
+            deletePushEvent(context: context, objectID: objectID) { _ in
                 completion(true)
             }
         } else {
@@ -121,8 +151,6 @@ func pushEventLimit(
         }
     }
 }
-
-import CoreData
 
 /// Clears oldest `PushEventEntity` records when the total exceeds a threshold (mobile-like behavior).
 ///

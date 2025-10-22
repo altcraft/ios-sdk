@@ -1,71 +1,105 @@
-//
-//  CoreDataManager.swift
-//  Altcraft
-//
-//  Created by Andrey Pogodin.
-//
-//  Copyright © 2025 Altcraft. All rights reserved.
-//
-
 import Foundation
 import CoreData
 
 /**
  A singleton class responsible for managing the Core Data stack.
- 
+
  This implementation loads the Core Data model from the Swift Package resources
- (`Bundle.module`) and configures a persistent container. If an App Group ID is
+ (`Bundle.module`) or the framework/app bundle (depending on build),
+ and configures a persistent container. If an App Group ID is
  provided, the SQLite store will be placed in the shared container; otherwise,
  it falls back to the app’s document directory.
  */
 public final class CoreDataManager {
-    
+
     /// The shared instance of `CoreDataManager`.
     public static let shared = CoreDataManager()
-    
+
     /// The persistent container for Core Data, which holds the managed object
     /// context and the persistent store coordinator.
     public let persistentContainer: NSPersistentContainer
-    
+
     /// Initializes the `CoreDataManager` and sets up the Core Data stack.
     ///
     /// - Parameter appGroup: Optional App Group ID. If nil, `StoredVariablesManager.shared.getGroupName()` is used.
     public init(appGroup: String? = nil) {
-        
+
         let modelName     = Constants.CoreData.modelName
-        let storeFileName = Constants.CoreData.storeFileName   
+        let storeFileName = Constants.CoreData.storeFileName
         let userDefaults  = StoredVariablesManager.shared
         let group         = appGroup ?? userDefaults.getGroupName()
-        
-        /// Loads the Core Data model from the Swift Package bundle.
-        func loadModel() -> NSManagedObjectModel? {
+
+        /// Loads the Core Data model (single .momd/.mom) from bundle, without using mergedModel.
+        ///
+        /// We explicitly load exactly one model by name to avoid duplicate entities
+        /// and ambiguity warnings.
+        func loadModel(named: String) -> NSManagedObjectModel? {
             #if SWIFT_PACKAGE
             // When used inside a Swift Package, always load from Bundle.module
-            return NSManagedObjectModel.mergedModel(from: [Bundle.module])
+            let baseBundle = Bundle.module
             #else
             // Fallback for framework/app targets
-            let bundle = Bundle(for: CoreDataManager.self)
-            return NSManagedObjectModel.mergedModel(from: [bundle])
+            let baseBundle = Bundle(for: CoreDataManager.self)
             #endif
-        }
-        
-        /// Creates a persistent store description for the given App Group and file name.
-        func makeStoreDescription() -> NSPersistentStoreDescription {
-            let storeURL: URL
-            if let group, !group.isEmpty,
-               let groupURL = FileManager.default.containerURL(forSecurityApplicationGroupIdentifier: group) {
-                storeURL = groupURL.appendingPathComponent(storeFileName)
-            } else {
-                let docURL = FileManager.default.urls(for: .documentDirectory, in: .userDomainMask).first!
-                storeURL = docURL.appendingPathComponent(storeFileName)
+
+            if let url = baseBundle.url(forResource: named, withExtension: "momd")
+                ?? baseBundle.url(forResource: named, withExtension: "mom") {
+                return NSManagedObjectModel(contentsOf: url)
             }
+
+            // Optional fallback: if your model resides in a resource sub-bundle (e.g., CocoaPods)
+            if let resURL = baseBundle.url(forResource: "AltcraftResources", withExtension: "bundle"),
+               let resBundle = Bundle(url: resURL),
+               let url = resBundle.url(forResource: named, withExtension: "momd")
+                    ?? resBundle.url(forResource: named, withExtension: "mom") {
+                return NSManagedObjectModel(contentsOf: url)
+            }
+
+            return nil
+        }
+
+        /// Creates URL for persistent store inside App Group **Altcraft** subdirectory,
+        /// or Documents/Altcraft as a fallback. Ensures directory exists.
+        func makeStoreURL() -> URL {
+            let fm = FileManager.default
+            let subdirName = Constants.CoreData.subdirName
+
+            let baseDir: URL = {
+                if let group, !group.isEmpty,
+                   let groupURL = fm.containerURL(forSecurityApplicationGroupIdentifier: group) {
+                    return groupURL.appendingPathComponent(subdirName, isDirectory: true)
+                } else {
+                    let docs = fm.urls(for: .documentDirectory, in: .userDomainMask).first!
+                    return docs.appendingPathComponent(subdirName, isDirectory: true)
+                }
+            }()
+            do {
+                try fm.createDirectory(at: baseDir, withIntermediateDirectories: true)
+            } catch {
+                errorEvent(#function, error: error)
+            }
+            return baseDir.appendingPathComponent(storeFileName)
+        }
+
+        /// Creates a persistent store description for the given store URL.
+        /// Enables lightweight migrations and cross-process change propagation.
+        func makeStoreDescription(for storeURL: URL) -> NSPersistentStoreDescription {
             let description = NSPersistentStoreDescription(url: storeURL)
             description.type = NSSQLiteStoreType
             description.shouldMigrateStoreAutomatically = true
             description.shouldInferMappingModelAutomatically = true
+
+            description.setOption(true as NSNumber, forKey: NSPersistentHistoryTrackingKey)
+            description.setOption(true as NSNumber, forKey: NSPersistentStoreRemoteChangeNotificationPostOptionKey)
+
+            let isExtension = Bundle.main.bundlePath.hasSuffix(".appex")
+            if isExtension {
+                description.setOption(FileProtectionType.none as NSObject,
+                                      forKey: NSPersistentStoreFileProtectionKey)
+            }
             return description
         }
-        
+
         /// Returns a closure that handles the load completion of a persistent store.
         func makeStoreLoadHandler() -> (NSPersistentStoreDescription, Error?) -> Void {
             return { _, error in
@@ -75,17 +109,20 @@ public final class CoreDataManager {
                 }
             }
         }
-        
+
         /// Configures the persistent container with the provided model.
         func configureContainer(model: NSManagedObjectModel) -> NSPersistentContainer {
             let container = NSPersistentContainer(name: modelName, managedObjectModel: model)
-            container.persistentStoreDescriptions = [makeStoreDescription()]
+            let storeURL = makeStoreURL()
+            container.persistentStoreDescriptions = [makeStoreDescription(for: storeURL)]
             container.loadPersistentStores(completionHandler: makeStoreLoadHandler())
+
             container.viewContext.automaticallyMergesChangesFromParent = true
             container.viewContext.mergePolicy = NSMergeByPropertyObjectTrumpMergePolicy
+            container.viewContext.name = "ViewContext"
             return container
         }
-        
+
         /// Creates a fallback persistent container with an empty model.
         ///
         /// This is used if the actual Core Data model cannot be loaded,
@@ -97,8 +134,8 @@ public final class CoreDataManager {
                 managedObjectModel: NSManagedObjectModel()
             )
         }
-        
-        if let model = loadModel() {
+
+        if let model = loadModel(named: modelName) {
             persistentContainer = configureContainer(model: model)
         } else {
             persistentContainer = fallbackContainer()
@@ -106,16 +143,37 @@ public final class CoreDataManager {
     }
 }
 
-/// Retrieves a background context for performing Core Data operations in a background thread.
+/// Returns a new private-queue background `NSManagedObjectContext`.
 ///
-/// This function executes the provided completion closure with a background context
-/// from Core Data's persistent container, allowing you to perform background tasks
-/// without blocking the main thread.
+/// The caller is responsible for performing all Core Data operations
+/// inside `context.perform { ... }` or `context.performAndWait { ... }`,
+/// and for managing the context’s lifetime.
 ///
-/// - Parameter completion: A closure that takes an `NSManagedObjectContext` as an argument.
-///   This closure is executed once the background context is ready for use.
-public func getContext(completion: @escaping (NSManagedObjectContext) -> Void) {
-    CoreDataManager.shared.persistentContainer.performBackgroundTask { context in
-        completion(context)
+/// Use when several async steps must share one context.
+/// For one-off tasks, prefer `withBackgroundContext(_:)`.
+func getContext() -> NSManagedObjectContext {
+    let ctx = CoreDataManager.shared.persistentContainer.newBackgroundContext()
+    ctx.mergePolicy = NSMergeByPropertyObjectTrumpMergePolicy
+    ctx.automaticallyMergesChangesFromParent = true
+    ctx.undoManager = nil
+    return ctx
+}
+
+/// Executes a closure with a preconfigured background context.
+/// The context is created using `performBackgroundTask`, ensuring all Core Data work
+/// runs on a private queue without blocking the main thread.
+///
+/// The context is configured with:
+/// - `NSMergeByPropertyObjectTrumpMergePolicy` for safe merge conflict resolution
+/// - `automaticallyMergesChangesFromParent = true` to stay in sync with parent contexts
+/// - `undoManager = nil` to reduce memory overhead in background operations
+///
+/// - Parameter block: A closure receiving a configured `NSManagedObjectContext` to perform Core Data work.
+func withBackgroundContext(_ block: @escaping (NSManagedObjectContext) -> Void) {
+    CoreDataManager.shared.persistentContainer.performBackgroundTask { ctx in
+        ctx.mergePolicy = NSMergeByPropertyObjectTrumpMergePolicy
+        ctx.automaticallyMergesChangesFromParent = true
+        ctx.undoManager = nil
+        block(ctx)
     }
 }

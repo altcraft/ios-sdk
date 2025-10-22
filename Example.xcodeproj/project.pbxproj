@@ -14,6 +14,7 @@
 		55302CB12EA1349B003A1A4C /* Altcraft.framework in Embed Frameworks */ = {isa = PBXBuildFile; fileRef = 55302CAD2EA13466003A1A4C /* Altcraft.framework */; settings = {ATTRIBUTES = (CodeSignOnCopy, RemoveHeadersOnCopy, ); }; };
 		55302CB22EA134A4003A1A4C /* Altcraft.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 55302CAD2EA13466003A1A4C /* Altcraft.framework */; };
 		55302CB32EA134A4003A1A4C /* Altcraft.framework in Embed Frameworks */ = {isa = PBXBuildFile; fileRef = 55302CAD2EA13466003A1A4C /* Altcraft.framework */; settings = {ATTRIBUTES = (CodeSignOnCopy, RemoveHeadersOnCopy, ); }; };
+		55302CBC2EA2395C003A1A4C /* FirebaseMessaging in Frameworks */ = {isa = PBXBuildFile; productRef = 55302CBB2EA2395C003A1A4C /* FirebaseMessaging */; };
 		5557A9232DF026B700BEF354 /* SDKFunctions.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5557A9222DF026B700BEF354 /* SDKFunctions.swift */; };
 		556FC6FF2E27BE55000584AA /* BoxModeManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 556FC6FE2E27BE55000584AA /* BoxModeManager.swift */; };
 		556FC7012E27C15A000584AA /* AppConstants.swift in Sources */ = {isa = PBXBuildFile; fileRef = 556FC7002E27C15A000584AA /* AppConstants.swift */; };
@@ -35,7 +36,7 @@
 		558C47EF2C9DA6120006750E /* NavigatorView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 558C47EE2C9DA6120006750E /* NavigatorView.swift */; };
 		558C47F12C9DA6ED0006750E /* ExampleView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 558C47F02C9DA6ED0006750E /* ExampleView.swift */; };
 		558C47F32C9DB2D50006750E /* LogsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 558C47F22C9DB2D50006750E /* LogsView.swift */; };
-		558C70202C9C29D10062F600 /* IOSAPNsExampleApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = 558C701F2C9C29D10062F600 /* IOSAPNsExampleApp.swift */; };
+		558C70202C9C29D10062F600 /* Example.swift in Sources */ = {isa = PBXBuildFile; fileRef = 558C701F2C9C29D10062F600 /* Example.swift */; };
 		558C70222C9C29D10062F600 /* ContentView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 558C70212C9C29D10062F600 /* ContentView.swift */; };
 		558C70242C9C29D30062F600 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 558C70232C9C29D30062F600 /* Assets.xcassets */; };
 		558C70282C9C29D30062F600 /* Preview Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 558C70272C9C29D30062F600 /* Preview Assets.xcassets */; };
@@ -56,13 +57,13 @@
 		559F2D332E250EF800C5B7EE /* AGConnectCredential.xcframework in Frameworks */ = {isa = PBXBuildFile; fileRef = 55E566482D107BE900FA2B07 /* AGConnectCredential.xcframework */; };
 		559F2D352E250EF800C5B7EE /* HiAnalytics.xcframework in Frameworks */ = {isa = PBXBuildFile; fileRef = 55E5664B2D107BEE00FA2B07 /* HiAnalytics.xcframework */; };
 		559F2D372E250EF800C5B7EE /* HMFoundation.xcframework in Frameworks */ = {isa = PBXBuildFile; fileRef = 55E5664E2D107C0B00FA2B07 /* HMFoundation.xcframework */; };
-		559F2D3D2E25113B00C5B7EE /* FirebaseMessaging.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 559F2D3C2E25113B00C5B7EE /* FirebaseMessaging.framework */; };
 		559F2D522E2522E700C5B7EE /* FCMProvider.swift in Sources */ = {isa = PBXBuildFile; fileRef = 559F2D512E2522E700C5B7EE /* FCMProvider.swift */; };
 		559F2D542E25232E00C5B7EE /* HMSProvider.swift in Sources */ = {isa = PBXBuildFile; fileRef = 559F2D532E25232E00C5B7EE /* HMSProvider.swift */; };
 		559F2D562E25284B00C5B7EE /* APNSProvider.swift in Sources */ = {isa = PBXBuildFile; fileRef = 559F2D552E25284B00C5B7EE /* APNSProvider.swift */; };
 		55E566552D108A5100FA2B07 /* libz.tbd in Frameworks */ = {isa = PBXBuildFile; fileRef = 55E566542D108A4800FA2B07 /* libz.tbd */; };
 		55E566562D108A6500FA2B07 /* libc++.tbd in Frameworks */ = {isa = PBXBuildFile; fileRef = 55E566422D107BD100FA2B07 /* libc++.tbd */; };
 		7B0051A8AB7AC55CA360DAEF /* Pods_IOSAPNsExample.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 0287FADB74248695A501B1F1 /* Pods_IOSAPNsExample.framework */; };
+		C9A038FC517787B7E74A5C4A /* Pods_PushService.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 4AA2DDD1707D6A449043469A /* Pods_PushService.framework */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -157,11 +158,11 @@
 		558C47EE2C9DA6120006750E /* NavigatorView.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = NavigatorView.swift; sourceTree = "<group>"; };
 		558C47F02C9DA6ED0006750E /* ExampleView.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = ExampleView.swift; sourceTree = "<group>"; };
 		558C47F22C9DB2D50006750E /* LogsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LogsView.swift; sourceTree = "<group>"; };
-		558C701C2C9C29D10062F600 /* IOSAPNsExample.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = IOSAPNsExample.app; sourceTree = BUILT_PRODUCTS_DIR; };
-		558C701F2C9C29D10062F600 /* IOSAPNsExampleApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = IOSAPNsExampleApp.swift; sourceTree = "<group>"; };
+		558C701C2C9C29D10062F600 /* Example.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = Example.app; sourceTree = BUILT_PRODUCTS_DIR; };
+		558C701F2C9C29D10062F600 /* Example.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Example.swift; sourceTree = "<group>"; };
 		558C70212C9C29D10062F600 /* ContentView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ContentView.swift; sourceTree = "<group>"; };
 		558C70232C9C29D30062F600 /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
-		558C70252C9C29D30062F600 /* IOSAPNsExample.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = IOSAPNsExample.entitlements; sourceTree = "<group>"; };
+		558C70252C9C29D30062F600 /* Example.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = Example.entitlements; sourceTree = "<group>"; };
 		558C70272C9C29D30062F600 /* Preview Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = "Preview Assets.xcassets"; sourceTree = "<group>"; };
 		558C704A2C9C2A6C0062F600 /* TokenManager.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = TokenManager.swift; sourceTree = "<group>"; };
 		558C704B2C9C2A6C0062F600 /* EventManager.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = EventManager.swift; sourceTree = "<group>"; };
@@ -199,6 +200,7 @@
 			buildActionMask = 2147483647;
 			files = (
 				55302CB22EA134A4003A1A4C /* Altcraft.framework in Frameworks */,
+				C9A038FC517787B7E74A5C4A /* Pods_PushService.framework in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -206,13 +208,13 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				55302CBC2EA2395C003A1A4C /* FirebaseMessaging in Frameworks */,
 				559F2D352E250EF800C5B7EE /* HiAnalytics.xcframework in Frameworks */,
 				55E566562D108A6500FA2B07 /* libc++.tbd in Frameworks */,
 				55302CB02EA1349B003A1A4C /* Altcraft.framework in Frameworks */,
 				55E566552D108A5100FA2B07 /* libz.tbd in Frameworks */,
 				559F2D372E250EF800C5B7EE /* HMFoundation.xcframework in Frameworks */,
 				559F2D312E250EF800C5B7EE /* AGConnectCore.xcframework in Frameworks */,
-				559F2D3D2E25113B00C5B7EE /* FirebaseMessaging.framework in Frameworks */,
 				7B0051A8AB7AC55CA360DAEF /* Pods_IOSAPNsExample.framework in Frameworks */,
 				559F2D332E250EF800C5B7EE /* AGConnectCredential.xcframework in Frameworks */,
 			);
@@ -252,35 +254,35 @@
 			path = PushService;
 			sourceTree = "<group>";
 		};
-		556FC7342E2FE7C5000584AA /* navigator */ = {
+		556FC7342E2FE7C5000584AA /* Navigator */ = {
 			isa = PBXGroup;
 			children = (
 				558C47EE2C9DA6120006750E /* NavigatorView.swift */,
 			);
-			path = navigator;
+			path = Navigator;
 			sourceTree = "<group>";
 		};
-		556FC7352E2FE7FE000584AA /* example */ = {
+		556FC7352E2FE7FE000584AA /* Example */ = {
 			isa = PBXGroup;
 			children = (
 				558C47F02C9DA6ED0006750E /* ExampleView.swift */,
 			);
-			path = example;
+			path = Example;
 			sourceTree = "<group>";
 		};
-		556FC7362E2FE831000584AA /* logs */ = {
+		556FC7362E2FE831000584AA /* Logs */ = {
 			isa = PBXGroup;
 			children = (
 				558C47F22C9DB2D50006750E /* LogsView.swift */,
 			);
-			path = logs;
+			path = Logs;
 			sourceTree = "<group>";
 		};
 		558C70132C9C29D10062F600 = {
 			isa = PBXGroup;
 			children = (
 				55302CA72EA13466003A1A4C /* Altcraft.xcodeproj */,
-				558C701E2C9C29D10062F600 /* IOSAPNsExample */,
+				558C701E2C9C29D10062F600 /* Example */,
 				556FC71F2E2AB1FC000584AA /* PushService */,
 				558C701D2C9C29D10062F600 /* Products */,
 				558C70632C9C2B180062F600 /* Frameworks */,
@@ -291,27 +293,27 @@
 		558C701D2C9C29D10062F600 /* Products */ = {
 			isa = PBXGroup;
 			children = (
-				558C701C2C9C29D10062F600 /* IOSAPNsExample.app */,
+				558C701C2C9C29D10062F600 /* Example.app */,
 				556FC71E2E2AB1FC000584AA /* PushService.appex */,
 			);
 			name = Products;
 			sourceTree = "<group>";
 		};
-		558C701E2C9C29D10062F600 /* IOSAPNsExample */ = {
+		558C701E2C9C29D10062F600 /* Example */ = {
 			isa = PBXGroup;
 			children = (
-				55FD2F222CEE2AEE008FC841 /* views */,
-				559F2D4E2E2522C400C5B7EE /* providers */,
-				55FD2F262CEE2BDF008FC841 /* functions */,
-				55FD2F252CEE2BB9008FC841 /* data */,
-				55FD2F242CEE2B99008FC841 /* managers */,
+				55FD2F222CEE2AEE008FC841 /* Views */,
+				559F2D4E2E2522C400C5B7EE /* Providers */,
+				55FD2F262CEE2BDF008FC841 /* Functions */,
+				55FD2F252CEE2BB9008FC841 /* Data */,
+				55FD2F242CEE2B99008FC841 /* Managers */,
 				558C706E2C9C3A130062F600 /* Info.plist */,
-				558C701F2C9C29D10062F600 /* IOSAPNsExampleApp.swift */,
+				558C701F2C9C29D10062F600 /* Example.swift */,
 				558C70232C9C29D30062F600 /* Assets.xcassets */,
-				558C70252C9C29D30062F600 /* IOSAPNsExample.entitlements */,
+				558C70252C9C29D30062F600 /* Example.entitlements */,
 				558C70262C9C29D30062F600 /* Preview Content */,
 			);
-			path = IOSAPNsExample;
+			path = Example;
 			sourceTree = "<group>";
 		};
 		558C70262C9C29D30062F600 /* Preview Content */ = {
@@ -341,7 +343,7 @@
 			name = Frameworks;
 			sourceTree = "<group>";
 		};
-		559F2CF22E213AAF00C5B7EE /* main */ = {
+		559F2CF22E213AAF00C5B7EE /* Main */ = {
 			isa = PBXGroup;
 			children = (
 				558C70692C9C341E0062F600 /* MainView.swift */,
@@ -352,18 +354,18 @@
 				559F2CFC2E214D7100C5B7EE /* Switch.swift */,
 				556FC7042E280402000584AA /* ProfileComponents.swift */,
 			);
-			path = main;
+			path = Main;
 			sourceTree = "<group>";
 		};
-		559F2CFE2E24F4F000C5B7EE /* header */ = {
+		559F2CFE2E24F4F000C5B7EE /* Header */ = {
 			isa = PBXGroup;
 			children = (
 				559F2CFF2E24F50700C5B7EE /* Header.swift */,
 			);
-			path = header;
+			path = Header;
 			sourceTree = "<group>";
 		};
-		559F2D012E24FA7000C5B7EE /* config */ = {
+		559F2D012E24FA7000C5B7EE /* Config */ = {
 			isa = PBXGroup;
 			children = (
 				558C704E2C9C2A6C0062F600 /* ConfigurationView.swift */,
@@ -373,10 +375,10 @@
 				556FC7122E2A6F15000584AA /* ConfigSettingComponents.swift */,
 				556FC7162E2A71B7000584AA /* JWTSettingComponents.swift */,
 			);
-			path = config;
+			path = Config;
 			sourceTree = "<group>";
 		};
-		559F2D4E2E2522C400C5B7EE /* providers */ = {
+		559F2D4E2E2522C400C5B7EE /* Providers */ = {
 			isa = PBXGroup;
 			children = (
 				5516B3592D9C3AA7001FAF66 /* JWTProvider.swift */,
@@ -384,24 +386,24 @@
 				559F2D532E25232E00C5B7EE /* HMSProvider.swift */,
 				559F2D552E25284B00C5B7EE /* APNSProvider.swift */,
 			);
-			path = providers;
+			path = Providers;
 			sourceTree = "<group>";
 		};
-		55FD2F222CEE2AEE008FC841 /* views */ = {
+		55FD2F222CEE2AEE008FC841 /* Views */ = {
 			isa = PBXGroup;
 			children = (
-				556FC7362E2FE831000584AA /* logs */,
-				556FC7352E2FE7FE000584AA /* example */,
-				556FC7342E2FE7C5000584AA /* navigator */,
-				559F2D012E24FA7000C5B7EE /* config */,
-				559F2CFE2E24F4F000C5B7EE /* header */,
-				559F2CF22E213AAF00C5B7EE /* main */,
+				556FC7362E2FE831000584AA /* Logs */,
+				556FC7352E2FE7FE000584AA /* Example */,
+				556FC7342E2FE7C5000584AA /* Navigator */,
+				559F2D012E24FA7000C5B7EE /* Config */,
+				559F2CFE2E24F4F000C5B7EE /* Header */,
+				559F2CF22E213AAF00C5B7EE /* Main */,
 				558C70212C9C29D10062F600 /* ContentView.swift */,
 			);
-			path = views;
+			path = Views;
 			sourceTree = "<group>";
 		};
-		55FD2F242CEE2B99008FC841 /* managers */ = {
+		55FD2F242CEE2B99008FC841 /* Managers */ = {
 			isa = PBXGroup;
 			children = (
 				556FC7322E2E8109000584AA /* NotificationDataManager.swift */,
@@ -416,25 +418,25 @@
 				556FC7082E2A5ECB000584AA /* ConfigSettingManager.swift */,
 				556FC7142E2A710E000584AA /* JWTSettingManager.swift */,
 			);
-			path = managers;
+			path = Managers;
 			sourceTree = "<group>";
 		};
-		55FD2F252CEE2BB9008FC841 /* data */ = {
+		55FD2F252CEE2BB9008FC841 /* Data */ = {
 			isa = PBXGroup;
 			children = (
 				558C704F2C9C2A6C0062F600 /* AppUserDefaults.swift */,
 				556FC7002E27C15A000584AA /* AppConstants.swift */,
 			);
-			path = data;
+			path = Data;
 			sourceTree = "<group>";
 		};
-		55FD2F262CEE2BDF008FC841 /* functions */ = {
+		55FD2F262CEE2BDF008FC841 /* Functions */ = {
 			isa = PBXGroup;
 			children = (
 				558C704D2C9C2A6C0062F600 /* SubFunctions.swift */,
 				5557A9222DF026B700BEF354 /* SDKFunctions.swift */,
 			);
-			path = functions;
+			path = Functions;
 			sourceTree = "<group>";
 		};
 /* End PBXGroup section */
@@ -444,6 +446,7 @@
 			isa = PBXNativeTarget;
 			buildConfigurationList = 556FC7262E2AB1FC000584AA /* Build configuration list for PBXNativeTarget "PushService" */;
 			buildPhases = (
+				63C5F1137E4A9CE6FD48A8BD /* [CP] Check Pods Manifest.lock */,
 				556FC71A2E2AB1FC000584AA /* Sources */,
 				556FC71B2E2AB1FC000584AA /* Frameworks */,
 				556FC71C2E2AB1FC000584AA /* Resources */,
@@ -458,9 +461,9 @@
 			productReference = 556FC71E2E2AB1FC000584AA /* PushService.appex */;
 			productType = "com.apple.product-type.app-extension";
 		};
-		558C701B2C9C29D10062F600 /* IOSAPNsExample */ = {
+		558C701B2C9C29D10062F600 /* Example */ = {
 			isa = PBXNativeTarget;
-			buildConfigurationList = 558C70412C9C29D30062F600 /* Build configuration list for PBXNativeTarget "IOSAPNsExample" */;
+			buildConfigurationList = 558C70412C9C29D30062F600 /* Build configuration list for PBXNativeTarget "Example" */;
 			buildPhases = (
 				A4F0665D6936902C22A1EC54 /* [CP] Check Pods Manifest.lock */,
 				558C70182C9C29D10062F600 /* Sources */,
@@ -468,7 +471,6 @@
 				558C701A2C9C29D10062F600 /* Resources */,
 				558C476F2C9C3CE10006750E /* Embed Foundation Extensions */,
 				8617309B2BA99D3CAA84BD9F /* [CP] Copy Pods Resources */,
-				F4DB7F2B9081B080BC1C6F99 /* [CP] Embed Pods Frameworks */,
 				55EA85E92E68503D001CC5A5 /* Embed Frameworks */,
 			);
 			buildRules = (
@@ -476,9 +478,12 @@
 			dependencies = (
 				556FC7242E2AB1FC000584AA /* PBXTargetDependency */,
 			);
-			name = IOSAPNsExample;
+			name = Example;
+			packageProductDependencies = (
+				55302CBB2EA2395C003A1A4C /* FirebaseMessaging */,
+			);
 			productName = IOSAPNsExample;
-			productReference = 558C701C2C9C29D10062F600 /* IOSAPNsExample.app */;
+			productReference = 558C701C2C9C29D10062F600 /* Example.app */;
 			productType = "com.apple.product-type.application";
 		};
 /* End PBXNativeTarget section */
@@ -499,7 +504,7 @@
 					};
 				};
 			};
-			buildConfigurationList = 558C70172C9C29D10062F600 /* Build configuration list for PBXProject "IOSAPNsExample" */;
+			buildConfigurationList = 558C70172C9C29D10062F600 /* Build configuration list for PBXProject "Example" */;
 			compatibilityVersion = "Xcode 14.0";
 			developmentRegion = en;
 			hasScannedForEncodings = 0;
@@ -509,6 +514,7 @@
 			);
 			mainGroup = 558C70132C9C29D10062F600;
 			packageReferences = (
+				55302CBA2EA2395C003A1A4C /* XCRemoteSwiftPackageReference "firebase-ios-sdk" */,
 			);
 			productRefGroup = 558C701D2C9C29D10062F600 /* Products */;
 			projectDirPath = "";
@@ -520,7 +526,7 @@
 			);
 			projectRoot = "";
 			targets = (
-				558C701B2C9C29D10062F600 /* IOSAPNsExample */,
+				558C701B2C9C29D10062F600 /* Example */,
 				556FC71D2E2AB1FC000584AA /* PushService */,
 			);
 		};
@@ -563,6 +569,28 @@
 /* End PBXResourcesBuildPhase section */
 
 /* Begin PBXShellScriptBuildPhase section */
+		63C5F1137E4A9CE6FD48A8BD /* [CP] Check Pods Manifest.lock */ = {
+			isa = PBXShellScriptBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			inputFileListPaths = (
+			);
+			inputPaths = (
+				"${PODS_PODFILE_DIR_PATH}/Podfile.lock",
+				"${PODS_ROOT}/Manifest.lock",
+			);
+			name = "[CP] Check Pods Manifest.lock";
+			outputFileListPaths = (
+			);
+			outputPaths = (
+				"$(DERIVED_FILE_DIR)/Pods-PushService-checkManifestLockResult.txt",
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+			shellPath = /bin/sh;
+			shellScript = "diff \"${PODS_PODFILE_DIR_PATH}/Podfile.lock\" \"${PODS_ROOT}/Manifest.lock\" > /dev/null\nif [ $? != 0 ] ; then\n    # print error to STDERR\n    echo \"error: The sandbox is not in sync with the Podfile.lock. Run 'pod install' or update your CocoaPods installation.\" >&2\n    exit 1\nfi\n# This output is used by Xcode 'outputs' to avoid re-running this script phase.\necho \"SUCCESS\" > \"${SCRIPT_OUTPUT_FILE_0}\"\n";
+			showEnvVarsInLog = 0;
+		};
 		8617309B2BA99D3CAA84BD9F /* [CP] Copy Pods Resources */ = {
 			isa = PBXShellScriptBuildPhase;
 			buildActionMask = 2147483647;
@@ -602,23 +630,6 @@
 			shellScript = "diff \"${PODS_PODFILE_DIR_PATH}/Podfile.lock\" \"${PODS_ROOT}/Manifest.lock\" > /dev/null\nif [ $? != 0 ] ; then\n    # print error to STDERR\n    echo \"error: The sandbox is not in sync with the Podfile.lock. Run 'pod install' or update your CocoaPods installation.\" >&2\n    exit 1\nfi\n# This output is used by Xcode 'outputs' to avoid re-running this script phase.\necho \"SUCCESS\" > \"${SCRIPT_OUTPUT_FILE_0}\"\n";
 			showEnvVarsInLog = 0;
 		};
-		F4DB7F2B9081B080BC1C6F99 /* [CP] Embed Pods Frameworks */ = {
-			isa = PBXShellScriptBuildPhase;
-			buildActionMask = 2147483647;
-			files = (
-			);
-			inputFileListPaths = (
-				"${PODS_ROOT}/Target Support Files/Pods-IOSAPNsExample/Pods-IOSAPNsExample-frameworks-${CONFIGURATION}-input-files.xcfilelist",
-			);
-			name = "[CP] Embed Pods Frameworks";
-			outputFileListPaths = (
-				"${PODS_ROOT}/Target Support Files/Pods-IOSAPNsExample/Pods-IOSAPNsExample-frameworks-${CONFIGURATION}-output-files.xcfilelist",
-			);
-			runOnlyForDeploymentPostprocessing = 0;
-			shellPath = /bin/sh;
-			shellScript = "\"${PODS_ROOT}/Target Support Files/Pods-IOSAPNsExample/Pods-IOSAPNsExample-frameworks.sh\"\n";
-			showEnvVarsInLog = 0;
-		};
 /* End PBXShellScriptBuildPhase section */
 
 /* Begin PBXSourcesBuildPhase section */
@@ -656,7 +667,7 @@
 				556FC7032E27F5B6000584AA /* ProfileDataManager.swift in Sources */,
 				558C70532C9C2A6C0062F600 /* EventManager.swift in Sources */,
 				556FC7072E29515F000584AA /* SubscribeSettingManager.swift in Sources */,
-				558C70202C9C29D10062F600 /* IOSAPNsExampleApp.swift in Sources */,
+				558C70202C9C29D10062F600 /* Example.swift in Sources */,
 				559F2D542E25232E00C5B7EE /* HMSProvider.swift in Sources */,
 				5516B35A2D9C3AA7001FAF66 /* JWTProvider.swift in Sources */,
 				556FC7152E2A710E000584AA /* JWTSettingManager.swift in Sources */,
@@ -690,6 +701,7 @@
 /* Begin XCBuildConfiguration section */
 		556FC7272E2AB1FC000584AA /* Debug */ = {
 			isa = XCBuildConfiguration;
+			baseConfigurationReference = 89712A9CD728D7842DC6613B /* Pods-PushService.debug.xcconfig */;
 			buildSettings = {
 				CODE_SIGN_ENTITLEMENTS = PushService/PushService.entitlements;
 				CODE_SIGN_IDENTITY = "Apple Development";
@@ -725,6 +737,7 @@
 		};
 		556FC7282E2AB1FC000584AA /* Release */ = {
 			isa = XCBuildConfiguration;
+			baseConfigurationReference = 02F07B5176EFAF454E573BEB /* Pods-PushService.release.xcconfig */;
 			buildSettings = {
 				CODE_SIGN_ENTITLEMENTS = PushService/PushService.entitlements;
 				CODE_SIGN_IDENTITY = "Apple Development";
@@ -882,16 +895,16 @@
 				ALWAYS_EMBED_SWIFT_STANDARD_LIBRARIES = YES;
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
-				CODE_SIGN_ENTITLEMENTS = IOSAPNsExample/IOSAPNsExample.entitlements;
+				CODE_SIGN_ENTITLEMENTS = Example/Example.entitlements;
 				CODE_SIGN_IDENTITY = "Apple Development";
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
-				DEVELOPMENT_ASSET_PATHS = "\"IOSAPNsExample/Preview Content\"";
+				DEVELOPMENT_ASSET_PATHS = "\"Example/Preview Content\"";
 				DEVELOPMENT_TEAM = 6G7526ELLP;
 				ENABLE_HARDENED_RUNTIME = YES;
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
-				INFOPLIST_FILE = IOSAPNsExample/Info.plist;
+				INFOPLIST_FILE = Example/Info.plist;
 				INFOPLIST_KEY_CFBundleDisplayName = AltcraftMobile;
 				"INFOPLIST_KEY_UIApplicationSceneManifest_Generation[sdk=iphoneos*]" = YES;
 				"INFOPLIST_KEY_UIApplicationSceneManifest_Generation[sdk=iphonesimulator*]" = YES;
@@ -927,16 +940,16 @@
 				ALWAYS_EMBED_SWIFT_STANDARD_LIBRARIES = YES;
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
-				CODE_SIGN_ENTITLEMENTS = IOSAPNsExample/IOSAPNsExample.entitlements;
+				CODE_SIGN_ENTITLEMENTS = Example/Example.entitlements;
 				CODE_SIGN_IDENTITY = "Apple Development";
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
-				DEVELOPMENT_ASSET_PATHS = "\"IOSAPNsExample/Preview Content\"";
+				DEVELOPMENT_ASSET_PATHS = "\"Example/Preview Content\"";
 				DEVELOPMENT_TEAM = 6G7526ELLP;
 				ENABLE_HARDENED_RUNTIME = YES;
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
-				INFOPLIST_FILE = IOSAPNsExample/Info.plist;
+				INFOPLIST_FILE = Example/Info.plist;
 				INFOPLIST_KEY_CFBundleDisplayName = AltcraftMobile;
 				"INFOPLIST_KEY_UIApplicationSceneManifest_Generation[sdk=iphoneos*]" = YES;
 				"INFOPLIST_KEY_UIApplicationSceneManifest_Generation[sdk=iphonesimulator*]" = YES;
@@ -977,7 +990,7 @@
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Release;
 		};
-		558C70172C9C29D10062F600 /* Build configuration list for PBXProject "IOSAPNsExample" */ = {
+		558C70172C9C29D10062F600 /* Build configuration list for PBXProject "Example" */ = {
 			isa = XCConfigurationList;
 			buildConfigurations = (
 				558C703F2C9C29D30062F600 /* Debug */,
@@ -986,7 +999,7 @@
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Release;
 		};
-		558C70412C9C29D30062F600 /* Build configuration list for PBXNativeTarget "IOSAPNsExample" */ = {
+		558C70412C9C29D30062F600 /* Build configuration list for PBXNativeTarget "Example" */ = {
 			isa = XCConfigurationList;
 			buildConfigurations = (
 				558C70422C9C29D30062F600 /* Debug */,
@@ -996,6 +1009,25 @@
 			defaultConfigurationName = Release;
 		};
 /* End XCConfigurationList section */
+
+/* Begin XCRemoteSwiftPackageReference section */
+		55302CBA2EA2395C003A1A4C /* XCRemoteSwiftPackageReference "firebase-ios-sdk" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/firebase/firebase-ios-sdk";
+			requirement = {
+				kind = upToNextMajorVersion;
+				minimumVersion = 10.17.0;
+			};
+		};
+/* End XCRemoteSwiftPackageReference section */
+
+/* Begin XCSwiftPackageProductDependency section */
+		55302CBB2EA2395C003A1A4C /* FirebaseMessaging */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = 55302CBA2EA2395C003A1A4C /* XCRemoteSwiftPackageReference "firebase-ios-sdk" */;
+			productName = FirebaseMessaging;
+		};
+/* End XCSwiftPackageProductDependency section */
 	};
 	rootObject = 558C70142C9C29D10062F600 /* Project object */;
 }

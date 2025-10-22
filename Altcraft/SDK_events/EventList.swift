@@ -36,6 +36,7 @@ let appGroupIsNotSet = (405, "App Group name was not set.")
 let apnsIsNotUpdated = (406, "Forcing a push token update is not possible: the operation is not supported for APNs.")
 let longWaitConfigInstall = (407, "long wait for configuration installation > 5s")
 let invalidCoreDataEntityName = (408, "the coreData entity name is not valid")
+let entityNotFoundByID = (409, "entity not found by ID")
 
 // Invalid value
 let invalidUrlValue = (471, "invalid apiUrl value - empty or null.")
@@ -76,8 +77,7 @@ let configIsNil  = (501, "config data is nil")
 let currentTokenIsNil  = (502, "current token is is nil")
 let userTagIsNil = (503, "userTag is null. It is impossible to identify the user")
 let permissionDenied = (504, "notification permission denied.")
-let sdkIsNotInit = (505, "sdk is not initialized. Automatic repeat of the check after a while.")
-let backgroundTaskExpired = (506, "SDK background task expired")
+let backgroundTaskExpired = (505, "SDK background task expired")
 
 /// 520–529 — Missing or null request payloads
 /// These indicate that required data for a request is not available at the time of execution.

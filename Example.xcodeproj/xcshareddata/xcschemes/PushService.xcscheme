@@ -19,7 +19,7 @@
                BlueprintIdentifier = "556FC71D2E2AB1FC000584AA"
                BuildableName = "PushService.appex"
                BlueprintName = "PushService"
-               ReferencedContainer = "container:IOSAPNsExample.xcodeproj">
+               ReferencedContainer = "container:Example.xcodeproj">
             </BuildableReference>
          </BuildActionEntry>
          <BuildActionEntry
@@ -31,9 +31,9 @@
             <BuildableReference
                BuildableIdentifier = "primary"
                BlueprintIdentifier = "558C701B2C9C29D10062F600"
-               BuildableName = "IOSAPNsExample.app"
-               BlueprintName = "IOSAPNsExample"
-               ReferencedContainer = "container:IOSAPNsExample.xcodeproj">
+               BuildableName = "Example.app"
+               BlueprintName = "Example"
+               ReferencedContainer = "container:Example.xcodeproj">
             </BuildableReference>
          </BuildActionEntry>
       </BuildActionEntries>
@@ -66,9 +66,9 @@
          <BuildableReference
             BuildableIdentifier = "primary"
             BlueprintIdentifier = "558C701B2C9C29D10062F600"
-            BuildableName = "IOSAPNsExample.app"
-            BlueprintName = "IOSAPNsExample"
-            ReferencedContainer = "container:IOSAPNsExample.xcodeproj">
+            BuildableName = "Example.app"
+            BlueprintName = "Example"
+            ReferencedContainer = "container:Example.xcodeproj">
          </BuildableReference>
       </MacroExpansion>
    </LaunchAction>
@@ -85,9 +85,9 @@
          <BuildableReference
             BuildableIdentifier = "primary"
             BlueprintIdentifier = "558C701B2C9C29D10062F600"
-            BuildableName = "IOSAPNsExample.app"
-            BlueprintName = "IOSAPNsExample"
-            ReferencedContainer = "container:IOSAPNsExample.xcodeproj">
+            BuildableName = "Example.app"
+            BlueprintName = "Example"
+            ReferencedContainer = "container:Example.xcodeproj">
          </BuildableReference>
       </BuildableProductRunnable>
    </ProfileAction>

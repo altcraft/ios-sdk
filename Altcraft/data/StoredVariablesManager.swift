@@ -18,20 +18,11 @@ public class StoredVariablesManager: NSObject {
     
     private let initStatus = "INIT_STATUS"
     private let critCoreDataKey = "CRIT_DB"
-    
     private let tokenKey = "CURRENT_TOKEN"
     private let manualTokenKey = "MANUAL_TOKEN"
     private let currentTokenKey = "CURRENT_TOKEN"
     private let savedTokenKey = "SAVED_TOKEN"
-    
     private let appGroupNameKey = "GROUP_NAME"
-    
-    //retry count keys
-    private let pushSubLocalRetryKey = "PUSH_SUB_LOC_RETRY"
-    private let tokenUpdateLocalRetryKey = "TOKEN_UPDATE_LOC_RETRY"
-    private let pushEventLocalRetryKey = "PUSH_EVENT_LOC_RETRY"
-    private let mobileEventLocalRetryKey = "MOB_EVENT_LOC_RETRY"
-    private let profileSearchKey = "PROFILE_SEARCH"
    
     /// Sets true if there are critical errors in the database.
     ///
@@ -139,61 +130,5 @@ public class StoredVariablesManager: NSObject {
     func clearSavedToken() {
         let defaults = UserDefaults(suiteName: getGroupName() ?? "")
         defaults?.removeObject(forKey: tokenKey)
-    }
-    
-    /// Updates the local retry count for push subscription requests.
-    ///
-    /// - Parameter value: The new retry count to be stored.
-    func setSubRetryCount(value: Int) {
-        UserDefaults.standard.set(value, forKey: pushSubLocalRetryKey)
-    }
-    
-    /// Retrieves the local retry count for push subscription requests.
-    ///
-    /// - Returns: The current retry count. Defaults to `1` if no value is found.
-    func getSubRetryCount() -> Int? {
-        return UserDefaults.standard.object(forKey: pushSubLocalRetryKey) as? Int ?? 1
-    }
-
-    /// Updates the local retry count for token update requests.
-    ///
-    /// - Parameter value: The new retry count to be stored.
-    func setUpdateRetryCount(value: Int) {
-        UserDefaults.standard.set(value, forKey: tokenUpdateLocalRetryKey)
-    }
-
-    /// Retrieves the local retry count for token update requests.
-    ///
-    /// - Returns: The current retry count. Defaults to `1` if no value is found.
-    func getUpdateRetryCount() -> Int? {
-        return UserDefaults.standard.object(forKey: tokenUpdateLocalRetryKey) as? Int ?? 1
-    }
-
-    /// Updates the local retry count for push event request.
-    ///
-    /// - Parameter value: The new retry count to be stored.
-    func setPushEventRetryCount(value: Int) {
-        UserDefaults.standard.set(value, forKey: pushEventLocalRetryKey)
-    }
-
-    /// Retrieves the local retry count for push event request.
-    ///
-    /// - Returns: The current retry count or `nil` if no value is found.
-    func getPushEventRetryCount() -> Int? {
-        return UserDefaults.standard.object(forKey: pushEventLocalRetryKey) as? Int
-    }
-    
-    /// Updates the local retry count for mobile event request.
-    ///
-    /// - Parameter value: The new retry count to be stored.
-    func setMobileEventRetryCount(value: Int) {
-        UserDefaults.standard.set(value, forKey: mobileEventLocalRetryKey)
-    }
-
-    /// Retrieves the local retry count for mobile event request.
-    ///
-    /// - Returns: The current retry count or `nil` if no value is found.
-    func getMobileEventRetryCount() -> Int? {
-        return UserDefaults.standard.object(forKey: mobileEventLocalRetryKey) as? Int
     }
 }

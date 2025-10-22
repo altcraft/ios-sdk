@@ -32,27 +32,20 @@ func pushModuleIsActive(userDefault: StoredVariablesManager, tokenManager: Token
 func performRetryOperations(userDefault: StoredVariablesManager, tokenManager: TokenManager) {
     NetworkMonitor.shared.performActionWhenConnected {
         ForegroundCheck.shared.isForeground {
-            getContext { context in
-                userDefault.setSubRetryCount(value: 0)
-                userDefault.setUpdateRetryCount(value: 0)
-                userDefault.setPushEventRetryCount(value: 0)
-                userDefault.setMobileEventRetryCount(value: 0)
-                
-                MobileEventQueues.startQueue.submit { done in
-                    MobileEvent.shared.startEventsSend(context: context, enableRetry: false) {
-                        done()
-                    }
-                }
-                
-                if pushModuleIsActive(userDefault: userDefault, tokenManager: tokenManager) {
-                    PushEvent.shared.sendAllPushEvents(context: context)
-                    TokenUpdate.shared.tokenUpdate()
-                    SubscribeQueues.startQueue.submit { done in
-                        PushSubscribe.shared.startSubscribe(context: context, enableRetry: false) {
-                            done()
-                        }
-                    }
-                }
+            
+            subRetryCount = 0
+            updateRetryCount = 0
+            pushEventRetryCount = 0
+            mobileEventRetryCount = 0
+            
+            
+            MobileEvent.shared.enqueueStart(enableRetry: false)
+            
+            
+            if pushModuleIsActive(userDefault: userDefault, tokenManager: tokenManager) {
+                PushSubscribe.shared.enqueueStart(enableRetry: false)
+                PushEvent.shared.sendAllPushEvents()
+                TokenUpdate.shared.tokenUpdate()
             }
         }
     }
