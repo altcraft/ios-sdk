@@ -234,6 +234,51 @@ final class TokenManager {
         }
         tryFetch()
     }
+    
+    /// Checks whether the push module is active **without touching the main thread**.
+    ///
+    /// **Behavior**
+    /// - Performs up to **3 attempts** in total:
+    ///   - Attempt 1 runs **immediately**.
+    ///   - Attempts 2–3 run with a **1s** delay each.
+    /// - On every attempt, considers the module active if either:
+    ///   - a manual token exists, **or**
+    ///   - any provider (`FCM`/`HMS`/`APNs`) is available.
+    /// - Runs entirely on a background queue; the `completion` is also invoked **off the main thread**.
+    ///
+    /// - Parameter completion: Called with `true` as soon as an attempt detects activity;
+    ///   called with `false` after all attempts fail.
+    ///
+    /// - Note: If you need to update UI, dispatch to `DispatchQueue.main` in the caller.
+    public func pushModuleIsActive(_ completion: @escaping (Bool) -> Void) {
+        let workQueue = DispatchQueue.global(qos: .utility)
+
+        workQueue.async { [self] in
+            func isCurrentlyActive() -> Bool {
+                (StoredVariablesManager.shared.getManualToken() != nil) ||
+                (self.fcmProvider != nil) ||
+                (self.hmsProvider != nil) ||
+                (self.apnsProvider != nil)
+            }
+
+            let maxAttempts = 3
+            let delay: TimeInterval = 1.0
+
+            func attempt(_ index: Int) {
+                let when: DispatchTime = (index == 1) ? .now() : (.now() + delay)
+                
+                workQueue.asyncAfter(deadline: when) {
+                    if isCurrentlyActive() {
+                        completion(true)
+                    } else if index < maxAttempts {
+                        attempt(index + 1)
+                    } else {
+                        completion(false)
+                    }
+                }
+            }
+
+            attempt(1)
+        }
+    }
 }
-
-

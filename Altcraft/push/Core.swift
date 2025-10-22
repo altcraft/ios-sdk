@@ -8,16 +8,6 @@
 
 import Foundation
 
-/// Checks whether push token acquisition is possible.
-///
-/// Returns `true` if any provider is registered.
-func pushModuleIsActive(userDefault: StoredVariablesManager, tokenManager: TokenManager) -> Bool {
-    return userDefault.getManualToken() != nil
-    || tokenManager.fcmProvider != nil
-    || tokenManager.hmsProvider != nil
-    || tokenManager.apnsProvider != nil
-}
-
 /// Performs a check and update for the push token, and handles any pending push/subscribe requests.
 ///
 /// This function disables token debug logging, resets all retry counters,
@@ -29,7 +19,7 @@ func pushModuleIsActive(userDefault: StoredVariablesManager, tokenManager: Token
 /// - Parameters:
 ///   - userDefault: The instance responsible for managing stored retry counters.
 ///   - tokenManager: The token manager used to update the push token and disable logs.
-func performRetryOperations(userDefault: StoredVariablesManager, tokenManager: TokenManager) {
+func performRetryOperations() {
     NetworkMonitor.shared.performActionWhenConnected {
         ForegroundCheck.shared.isForeground {
             
@@ -41,11 +31,12 @@ func performRetryOperations(userDefault: StoredVariablesManager, tokenManager: T
             
             MobileEvent.shared.enqueueStart(enableRetry: false)
             
-            
-            if pushModuleIsActive(userDefault: userDefault, tokenManager: tokenManager) {
-                PushSubscribe.shared.enqueueStart(enableRetry: false)
-                PushEvent.shared.sendAllPushEvents()
-                TokenUpdate.shared.tokenUpdate()
+            TokenManager.shared.pushModuleIsActive{ active in
+                if active {
+                    PushSubscribe.shared.enqueueStart(enableRetry: false)
+                    PushEvent.shared.sendAllPushEvents()
+                    TokenUpdate.shared.tokenUpdate()
+                }
             }
         }
     }

@@ -119,8 +119,7 @@ public class PublicMobileEventFunctions: NSObject {
         utmTemp: String? = nil
     ) {
         let smid: String = sendMessageId ?? ""
-        
-        // Compose UTM data
+
         let utm = UTM(
             campaign: utmCampaign,
             content: utmContent,
@@ -130,12 +129,10 @@ public class PublicMobileEventFunctions: NSObject {
             temp: utmTemp
         )
         
-        // Convert Foundation types to Swift dictionaries
         let payloadFields     = payload as? [String: Any?]
         let matchingFields    = matching as? [String: Any?]
         let profileFieldsAny  = profileFields as? [String: Any?]
-        
-        // Convert ObjC subscription to Swift Subscription
+    
         let swiftSubscription = subscription?.toSwift()
         
         MobileEvent.shared.sendMobileEvent(

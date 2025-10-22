@@ -27,7 +27,7 @@ public final class CoreDataManager {
         let modelName     = Constants.CoreData.modelName
         let storeFileName = Constants.CoreData.storeFileName
         let userDefaults  = StoredVariablesManager.shared
-        let group         = appGroup ?? userDefaults.getGroupName()
+        let groupId       = appGroup ?? userDefaults.getGroupName()
 
         /// Loads the Core Data model (single .momd/.mom) from bundle, without using mergedModel.
         ///
@@ -35,10 +35,8 @@ public final class CoreDataManager {
         /// and ambiguity warnings.
         func loadModel(named: String) -> NSManagedObjectModel? {
             #if SWIFT_PACKAGE
-            // When used inside a Swift Package, always load from Bundle.module
             let baseBundle = Bundle.module
             #else
-            // Fallback for framework/app targets
             let baseBundle = Bundle(for: CoreDataManager.self)
             #endif
 
@@ -47,7 +45,6 @@ public final class CoreDataManager {
                 return NSManagedObjectModel(contentsOf: url)
             }
 
-            // Optional fallback: if your model resides in a resource sub-bundle (e.g., CocoaPods)
             if let resURL = baseBundle.url(forResource: "AltcraftResources", withExtension: "bundle"),
                let resBundle = Bundle(url: resURL),
                let url = resBundle.url(forResource: named, withExtension: "momd")
@@ -65,8 +62,8 @@ public final class CoreDataManager {
             let subdirName = Constants.CoreData.subdirName
 
             let baseDir: URL = {
-                if let group, !group.isEmpty,
-                   let groupURL = fm.containerURL(forSecurityApplicationGroupIdentifier: group) {
+                if let groupId, !groupId.isEmpty,
+                   let groupURL = fm.containerURL(forSecurityApplicationGroupIdentifier: groupId) {
                     return groupURL.appendingPathComponent(subdirName, isDirectory: true)
                 } else {
                     let docs = fm.urls(for: .documentDirectory, in: .userDomainMask).first!

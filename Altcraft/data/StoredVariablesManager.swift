@@ -62,14 +62,15 @@ public class StoredVariablesManager: NSObject {
     ///   - provider: Non-optional provider string.
     ///   - token: Optional token string. If `nil`, nothing is saved.
     public func setPushToken(provider: String, token: String?) {
+        let defaults = UserDefaults(suiteName: getGroupName() ?? "")
         guard let token = token,
               !provider.isEmpty,
               !token.isEmpty else {
+            defaults?.set(nil, forKey: manualTokenKey)
             return
         }
         let stored = TokenData(provider: provider, token: token)
         if let data = try? JSONEncoder().encode(stored) {
-            let defaults = UserDefaults(suiteName: getGroupName() ?? "")
             defaults?.set(data, forKey: manualTokenKey)
         }
     }
