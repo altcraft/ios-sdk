@@ -13,21 +13,17 @@ import XCTest
  * ExtensionsTest
  *
  * Positive scenarios:
- *  - test_1: base64UrlEncoded decodes a valid Base64URL string.
- *  - test_2: base64UrlEncoded handles missing padding correctly.
- *  - test_3: ts_append adds elements including nil.
- *  - test_4: ts_last returns the most recently added element.
- *  - test_5: ts_removeAll clears the array and keeps capacity when requested.
+ *  - test_1: Data(base64UrlEncoded:) with valid Base64URL string → successfully decodes to original data.
+ *  - test_2: Data(base64UrlEncoded:) with missing padding → correctly handles and decodes the string.
+ *  - test_3: Array<String?>.ts_append with mixed values → adds all elements including nil values.
+ *  - test_4: Array<String?>.ts_last on non-empty array → returns the most recently added element.
+ *  - test_5: Array<String?>.ts_removeAll → clears all elements from the array.
  *
  * Edge scenarios:
- *  - test_6: base64UrlEncoded returns nil for invalid string.
- *  - test_7: ts_last on empty array returns nil.
+ *  - test_6: Data(base64UrlEncoded:) with invalid string → returns nil.
+ *  - test_7: Array<String?>.ts_last on empty array → returns nil.
  */
 final class ExtensionsTest: XCTestCase {
-
-    // ---------------------------
-    // Data(base64UrlEncoded:)
-    // ---------------------------
 
     /// test_1: decodes a valid Base64URL string
     func test_1_base64UrlEncoded_decodesValid() {
@@ -42,20 +38,16 @@ final class ExtensionsTest: XCTestCase {
 
     /// test_2: handles missing padding correctly
     func test_2_base64UrlEncoded_handlesMissingPadding() {
-        let base64url = "aGVsbG8" // "hello" without padding
+        let base64url = "aGVsbG8"
         let decoded = Data(base64UrlEncoded: base64url)
         XCTAssertEqual(decoded.flatMap { String(data: $0, encoding: .utf8) }, "hello")
     }
 
     /// test_6: returns nil for invalid input
     func test_6_base64UrlEncoded_returnsNilForInvalid() {
-        let invalid = "%%%@@@" // not valid Base64
+        let invalid = "%%%@@@"
         XCTAssertNil(Data(base64UrlEncoded: invalid))
     }
-
-    // ---------------------------
-    // Array<String?> thread-safe
-    // ---------------------------
 
     /// test_3: ts_append adds elements including nil
     func test_3_tsAppend_addsElements() {

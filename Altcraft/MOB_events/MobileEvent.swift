@@ -102,7 +102,6 @@ class MobileEvent: NSObject {
                         done()
                     }
                 }
-                
             }
         }
     }
@@ -213,10 +212,10 @@ class MobileEvent: NSObject {
     ) {
         self.sendMobileEventRequest(context: context, event: event) { result in
             if result is RetryEvent {
-                mobileEventLimit(context: context, for: event) { limit in completion(limit ? .completed : .retry) }
+                retryLimit(context: context, for: event) { limit in completion(limit ? .completed : .retry) }
                 return
             }
-            deleteMobileEvent(context: context, objectID: event) { deleted in completion(deleted ? .completed : .retry) }
+            deleteEntity(context: context, objectID: event) { deleted in completion(deleted ? .completed : .retry) }
         }
     }
     

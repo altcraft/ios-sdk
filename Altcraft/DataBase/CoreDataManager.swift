@@ -34,24 +34,36 @@ public final class CoreDataManager {
         /// We explicitly load exactly one model by name to avoid duplicate entities
         /// and ambiguity warnings.
         func loadModel(named: String) -> NSManagedObjectModel? {
+            var candidates: [Bundle] = []
+
+            let frameworkBundle = Bundle(for: CoreDataManager.self)
+            if let urlInFramework = frameworkBundle.url(forResource: "AltcraftResources", withExtension: "bundle"),
+               let resInFramework = Bundle(url: urlInFramework) {
+                candidates.append(resInFramework)
+            }
+
+            if let urlInMain = Bundle.main.url(forResource: "AltcraftResources", withExtension: "bundle"),
+               let resInMain = Bundle(url: urlInMain) {
+                candidates.append(resInMain)
+            }
+
             #if SWIFT_PACKAGE
-            let baseBundle = Bundle.module
-            #else
-            let baseBundle = Bundle(for: CoreDataManager.self)
+            candidates.append(Bundle.module)
             #endif
 
-            if let url = baseBundle.url(forResource: named, withExtension: "momd")
-                ?? baseBundle.url(forResource: named, withExtension: "mom") {
-                return NSManagedObjectModel(contentsOf: url)
-            }
+            candidates.append(frameworkBundle)
+            candidates.append(Bundle.main)
 
-            if let resURL = baseBundle.url(forResource: "AltcraftResources", withExtension: "bundle"),
-               let resBundle = Bundle(url: resURL),
-               let url = resBundle.url(forResource: named, withExtension: "momd")
-                    ?? resBundle.url(forResource: named, withExtension: "mom") {
-                return NSManagedObjectModel(contentsOf: url)
+            for bundle in candidates {
+                if let url = bundle.url(forResource: named, withExtension: "momd"),
+                   let model = NSManagedObjectModel(contentsOf: url) {
+                    return model
+                }
+                if let url = bundle.url(forResource: named, withExtension: "mom"),
+                   let model = NSManagedObjectModel(contentsOf: url) {
+                    return model
+                }
             }
-
             return nil
         }
 

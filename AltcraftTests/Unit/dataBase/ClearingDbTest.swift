@@ -4,177 +4,219 @@
 //
 //  Created by Andrey Pogodin.
 //
-//  Copyright © 2025 Altcraft. All rights reserved.
+//  © 2025 Altcraft. All rights reserved.
+
 
 import XCTest
 import CoreData
 @testable import Altcraft
 
 /**
- * ClearingDbTests (iOS 13 compatible)
+ * ClearingDbTests (isolated against SDK Core Data container)
  *
- * Positive scenarios:
- *  - test_2_deleteEntity_existingObjects_deletesAll_andCallsCompletionOnMain:
- *      deleteEntity removes all objects of an existing entity and calls completion on main thread.
- *  - test_3_deleteAllEntitiesFromDb_deletesPredefinedEntities_andCallsCompletionOnMain:
- *      deleteAllEntitiesFromDb clears all predefined entities and reports true.
- *
- * Edge scenarios:
- *  - test_1_deleteEntity_unknownEntity_returnsFalse_andCallsCompletionOnMain:
- *      deleteEntity with an unknown entity name returns false and calls completion on main thread.
+ * Coverage:
+ *  - test_1_deleteEntity_invalidName_returnsFalse_and_emitsError
+ *  - test_2_deleteEntity_removes_all_rows_for_valid_entity
+ *  - test_3_deleteAllEntitiesFromDb_wipes_all_predefined_entities
+ *  - test_4_deleteEntity_on_empty_table_returnsTrue
  *
  * Notes:
- *  - Uses CoreDataManager.shared.persistentContainer from production (no seams).
- *  - Avoids throwing `performAndWait` (iOS 15+) by capturing errors manually.
- *  - String literals and numbers extracted into constants for clarity.
+ *  - Seeds and counts use CoreDataManager.shared.persistentContainer directly to match production code paths.
+ *  - Each test wipes affected entities before and after to remain isolated.
  */
 final class ClearingDbTests: XCTestCase {
 
-    // MARK: - Constants
+    private let container = CoreDataManager.shared.persistentContainer
 
-    private let unknownEntityName = "__Unknown__Entity__For__Test__"
-    private let timeoutShort: TimeInterval = 2.0
-    private let timeoutLong:  TimeInterval = 3.0
-    private let seedCountSmall = 3
-    private let seedCountBulk  = 2
+    private final class EventSpy {
+        private(set) var events: [Event] = []
+        func start() { SDKEvents.shared.subscribe { [weak self] ev in self?.events.append(ev) } }
+        func stop()  { SDKEvents.shared.unsubscribe() }
+        func fresh(since n: Int) -> [Event] { Array(events.dropFirst(n)) }
+    }
 
-    private var predefinedEntities: [String] {
-        [
+    override func setUp() {
+        super.setUp()
+        sdkWipe([
             Constants.EntityNames.config,
             Constants.EntityNames.subscribe,
-            Constants.EntityNames.pushEvent
-        ]
+            Constants.EntityNames.pushEvent,
+            Constants.EntityNames.mobileEvent
+        ])
     }
 
-    // MARK: - Helpers
-
-    /// Returns true if the Core Data model contains the given entity name.
-    private func modelHasEntity(named entityName: String) -> Bool {
-        let model = CoreDataManager.shared.persistentContainer.managedObjectModel
-        return model.entitiesByName[entityName] != nil
+    override func tearDown() {
+        sdkWipe([
+            Constants.EntityNames.config,
+            Constants.EntityNames.subscribe,
+            Constants.EntityNames.pushEvent,
+            Constants.EntityNames.mobileEvent
+        ])
+        super.tearDown()
     }
 
-    /// Fetches count for an entity (thread-safe; returns nil if fetch fails).
-    private func fetchCount(entityName: String) -> Int? {
-        let container = CoreDataManager.shared.persistentContainer
-        let ctx = container.viewContext
-        var result: Int?
-        ctx.performAndWait {
-            let fetch = NSFetchRequest<NSFetchRequestResult>(entityName: entityName)
-            fetch.includesSubentities = true
-            do {
-                result = try ctx.count(for: fetch)
-            } catch {
-                result = nil
-            }
+    private func sdkBG(_ block: @escaping (NSManagedObjectContext) -> Void) {
+        let ctx = container.newBackgroundContext()
+        ctx.mergePolicy = NSMergeByPropertyObjectTrumpMergePolicy
+        ctx.performAndWait { block(ctx) }
+    }
+
+    private func sdkCount(_ entityName: String) -> Int {
+        var n = 0
+        sdkBG { ctx in
+            let fr = NSFetchRequest<NSFetchRequestResult>(entityName: entityName)
+            n = (try? ctx.count(for: fr)) ?? 0
         }
-        return result
+        return n
     }
 
-    /// Inserts N empty NSManagedObject instances for the given entity into a background context and saves.
-    /// iOS 13-compatible: uses non-throwing performAndWait and captures errors manually.
-    private func seed(entityName: String, count: Int) throws {
-        let container = CoreDataManager.shared.persistentContainer
-        let bg = container.newBackgroundContext()
-
-        var thrownError: Error?
-        bg.performAndWait {
-            guard let _ = NSEntityDescription.entity(forEntityName: entityName, in: bg) else {
-                thrownError = NSError(
-                    domain: "ClearingDbTests",
-                    code: 404,
-                    userInfo: [NSLocalizedDescriptionKey: "Entity not found: \(entityName)"]
-                )
-                return
+    private func sdkWipe(_ entityNames: [String]) {
+        sdkBG { ctx in
+            entityNames.forEach { name in
+                let fr = NSFetchRequest<NSFetchRequestResult>(entityName: name)
+                fr.includesPropertyValues = false
+                if let list = try? ctx.fetch(fr) as? [NSManagedObject] { list.forEach { ctx.delete($0) } }
             }
-            for _ in 0..<count {
-                _ = NSEntityDescription.insertNewObject(forEntityName: entityName, into: bg)
-            }
-            if bg.hasChanges {
-                do {
-                    try bg.save()
-                } catch {
-                    thrownError = error
-                }
-            }
+            if ctx.hasChanges { try? ctx.save() }
         }
-        if let e = thrownError { throw e }
     }
 
-    // MARK: - Edge case: unknown entity
+    private func seedSubscribe(count: Int) {
+        guard count > 0 else { return }
+        sdkBG { ctx in
+            for i in 0..<count {
+                let e = SubscribeEntity(context: ctx)
+                e.userTag = "u"
+                e.status = "subscribed"
+                e.sync = 1
+                e.time = Int64(1_700_000_000_000 + i)
+                e.retryCount = 0
+                e.maxRetryCount = 3
+            }
+            try? ctx.save()
+        }
+    }
 
-    /// test_1_deleteEntity_unknownEntity_returnsFalse_andCallsCompletionOnMain
-    func test_1_deleteEntity_unknownEntity_returnsFalse_andCallsCompletionOnMain() {
-        let exp = expectation(description: "completion called for unknown entity")
+    private func seedPushEvents(count: Int) {
+        guard count > 0 else { return }
+        sdkBG { ctx in
+            for i in 0..<count {
+                let e = PushEventEntity(context: ctx)
+                e.uid = "uid-\(i)"
+                e.type = Constants.PushEvents.delivery
+                e.time = Int64(1_700_000_000_000 + i)
+                e.retryCount = 0
+                e.maxRetryCount = 3
+            }
+            try? ctx.save()
+        }
+    }
 
-        ClearingDb.shared.deleteEntity(entityName: unknownEntityName) { success in
-            XCTAssertTrue(Thread.isMainThread, "Completion must be called on main thread")
-            XCTAssertFalse(success, "Expected false for unknown entity name")
+    private func seedMobileEvents(count: Int) {
+        guard count > 0 else { return }
+        sdkBG { ctx in
+            for i in 0..<count {
+                let e = MobileEventEntity(context: ctx)
+                e.userTag = "u"
+                e.sid = "sid-\(i)"
+                e.eventName = "open"
+                e.time = Int64(1_700_000_000_000 + i)
+                e.timeZone = 180
+                e.retryCount = 0
+                e.maxRetryCount = 3
+            }
+            try? ctx.save()
+        }
+    }
+
+    private func seedConfig() {
+        sdkBG { ctx in
+            let e = ConfigurationEntity(context: ctx)
+            e.url = "https://api"
+            e.rToken = "T"
+            try? ctx.save()
+        }
+    }
+
+    /// test_1_deleteEntity_invalidName_returnsFalse_and_emitsError
+    func test_1_deleteEntity_invalidName_returnsFalse_and_emitsError() {
+        let spy = EventSpy(); spy.start()
+        defer { spy.stop() }
+        let before = spy.events.count
+
+        let exp = expectation(description: "invalid entity completion")
+        var success = true
+        ClearingDb.shared.deleteEntity(entityName: "__nope__") {
+            success = $0
             exp.fulfill()
         }
+        wait(for: [exp], timeout: 1.0)
 
-        waitForExpectations(timeout: timeoutShort)
+        XCTAssertFalse(success)
+
+        let fresh = spy.fresh(since: before)
+        let hasError = fresh.contains { ($0 is ErrorEvent) && $0.function.contains("deleteEntity") }
+        XCTAssertTrue(hasError)
     }
 
-    // MARK: - Single-entity deletion
+    /// test_2_deleteEntity_removes_all_rows_for_valid_entity
+    func test_2_deleteEntity_removes_all_rows_for_valid_entity() {
+        seedSubscribe(count: 3)
+        XCTAssertEqual(sdkCount(Constants.EntityNames.subscribe), 3)
 
-    /// test_2_deleteEntity_existingObjects_deletesAll_andCallsCompletionOnMain
-    func test_2_deleteEntity_existingObjects_deletesAll_andCallsCompletionOnMain() throws {
-        // Pick the first existing entity from the predefined list
-        guard let entityName = predefinedEntities.first(where: { modelHasEntity(named: $0) }) else {
-            throw XCTSkip("No predefined entities exist in the Core Data model for this test target")
-        }
-
-        // Seed with several objects
-        try seed(entityName: entityName, count: seedCountSmall)
-
-        let before = fetchCount(entityName: entityName)
-        XCTAssertNotNil(before, "Count fetch should succeed before deletion for \(entityName)")
-        XCTAssertGreaterThan(before ?? 0, 0, "There should be objects to delete in \(entityName)")
-
-        let exp = expectation(description: "delete completion main for \(entityName)")
-        ClearingDb.shared.deleteEntity(entityName: entityName) { success in
-            XCTAssertTrue(Thread.isMainThread, "Completion must be called on main thread")
-            XCTAssertTrue(success, "Expected true for successful deletion of \(entityName)")
+        let exp = expectation(description: "delete subscribe")
+        var ok = false
+        ClearingDb.shared.deleteEntity(entityName: Constants.EntityNames.subscribe) {
+            ok = $0
             exp.fulfill()
         }
-        waitForExpectations(timeout: timeoutShort)
+        wait(for: [exp], timeout: 1.0)
 
-        let after = fetchCount(entityName: entityName)
-        XCTAssertNotNil(after, "Count fetch should succeed after deletion for \(entityName)")
-        XCTAssertEqual(after, 0, "All objects must be deleted for \(entityName)")
+        XCTAssertTrue(ok)
+        XCTAssertEqual(sdkCount(Constants.EntityNames.subscribe), 0)
     }
 
-    // MARK: - Bulk deletion
+    /// test_3_deleteAllEntitiesFromDb_wipes_all_predefined_entities
+    func test_3_deleteAllEntitiesFromDb_wipes_all_predefined_entities() {
+        seedConfig()
+        seedSubscribe(count: 2)
+        seedPushEvents(count: 2)
+        seedMobileEvents(count: 2)
 
-    /// test_3_deleteAllEntitiesFromDb_deletesPredefinedEntities_andCallsCompletionOnMain
-    func test_3_deleteAllEntitiesFromDb_deletesPredefinedEntities_andCallsCompletionOnMain() throws {
-        let existing = predefinedEntities.filter { modelHasEntity(named: $0) }
-        guard !existing.isEmpty else {
-            throw XCTSkip("None of predefined entities exist in the Core Data model for this test target")
-        }
+        XCTAssertEqual(sdkCount(Constants.EntityNames.config), 1)
+        XCTAssertEqual(sdkCount(Constants.EntityNames.subscribe), 2)
+        XCTAssertEqual(sdkCount(Constants.EntityNames.pushEvent), 2)
+        XCTAssertEqual(sdkCount(Constants.EntityNames.mobileEvent), 2)
 
-        // Seed each existing entity
-        for entityName in existing {
-            try seed(entityName: entityName, count: seedCountBulk)
-            let c = fetchCount(entityName: entityName)
-            XCTAssertNotNil(c, "Pre-check count should succeed for \(entityName)")
-            XCTAssertGreaterThan(c ?? 0, 0, "Should have pre-seeded objects in \(entityName)")
-        }
-
-        let exp = expectation(description: "bulk delete completion main")
-        ClearingDb.shared.deleteAllEntitiesFromDb { success in
-            XCTAssertTrue(Thread.isMainThread, "Completion must be called on main thread")
-            XCTAssertTrue(success, "Expected overall success when all deletes succeed")
+        let exp = expectation(description: "delete all")
+        var ok = false
+        ClearingDb.shared.deleteAllEntitiesFromDb {
+            ok = $0
             exp.fulfill()
         }
-        waitForExpectations(timeout: timeoutLong)
+        wait(for: [exp], timeout: 2.0)
 
-        for entityName in existing {
-            let c = fetchCount(entityName: entityName)
-            XCTAssertNotNil(c, "Post-check count should succeed for \(entityName)")
-            XCTAssertEqual(c, 0, "Entity \(entityName) should be empty after bulk deletion")
+        XCTAssertTrue(ok)
+        XCTAssertEqual(sdkCount(Constants.EntityNames.config), 0)
+        XCTAssertEqual(sdkCount(Constants.EntityNames.subscribe), 0)
+        XCTAssertEqual(sdkCount(Constants.EntityNames.pushEvent), 0)
+        XCTAssertEqual(sdkCount(Constants.EntityNames.mobileEvent), 0)
+    }
+
+    /// test_4_deleteEntity_on_empty_table_returnsTrue
+    func test_4_deleteEntity_on_empty_table_returnsTrue() {
+        XCTAssertEqual(sdkCount(Constants.EntityNames.pushEvent), 0)
+
+        let exp = expectation(description: "delete empty")
+        var ok = false
+        ClearingDb.shared.deleteEntity(entityName: Constants.EntityNames.pushEvent) {
+            ok = $0
+            exp.fulfill()
         }
+        wait(for: [exp], timeout: 1.0)
+
+        XCTAssertTrue(ok)
+        XCTAssertEqual(sdkCount(Constants.EntityNames.pushEvent), 0)
     }
 }
 

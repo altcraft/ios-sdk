@@ -225,4 +225,3 @@ func retryEvent(_ function: String, error: Any?, value: [String: Any?]? = nil) -
     SDKEvents.shared.emit(event: retry)
     return retry
 }
-

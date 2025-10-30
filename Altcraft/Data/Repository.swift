@@ -158,7 +158,7 @@ func getMobileEventRequestData(
                 url: eventMobileURL(data.config.url),
                 sid: sid,
                 eventName: name,
-                parst: parts,
+                parts: parts,
                 authHeader: data.authHeader
             )
             completion(requestData)

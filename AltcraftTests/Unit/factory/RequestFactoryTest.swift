@@ -3,8 +3,8 @@
 //  AltcraftTests
 //
 //  Created by Andrey Pogodin.
-//
 //  Copyright © 2025 Altcraft. All rights reserved.
+//
 
 import XCTest
 @testable import Altcraft
@@ -26,31 +26,24 @@ import XCTest
  *  - test_11_updateRequest_endToEnd_nonNilBodyAndRequest
  *  - test_12_pushEventRequest_endToEnd_nonNilBodyAndRequest
  *  - test_13_unSuspendRequest_endToEnd_nonNilBodyAndRequest
+ *  - test_14_buildMobileEventURL_appendsQueryItems_andValidatesSchemeHost
+ *  - test_15_buildMobileEventURL_invalidBase_returnsNil
+ *  - test_16_createMobileEventRequest_buildsMultipart_withHeadersBoundaryAndURL
+ *  - test_17_statusRequest_invalidMode_returnsNil_quickly
+ *  - test_18_statusRequest_noProfileData_emitsError_andReturnsNil
  *
  * Notes:
- *  - Uses Core production constants & helpers from the Altcraft module.
- *  - Captures SDKEvents via a test spy to assert error emission on invalid URL.
- *  - Parses built URLs back into URLComponents to validate query items.
+ *  - Uses production constants/helpers from Altcraft.
+ *  - Captures SDKEvents via a test spy to assert error emission where applicable.
+ *  - Parses URLs back into URLComponents to validate query items.
  */
 final class RequestFactoryTests: XCTestCase {
 
-    // MARK: - Event Spy
-
     private final class EventSpy {
         private(set) var events: [Event] = []
-
-        func start() {
-            SDKEvents.shared.subscribe { [weak self] ev in
-                self?.events.append(ev)
-            }
-        }
-
-        func stop() {
-            SDKEvents.shared.unsubscribe()
-        }
+        func start() { SDKEvents.shared.subscribe { [weak self] in self?.events.append($0) } }
+        func stop()  { SDKEvents.shared.unsubscribe() }
     }
-
-    // MARK: - Helpers
 
     private func components(from url: URL) -> URLComponents {
         guard let c = URLComponents(url: url, resolvingAgainstBaseURL: false) else {
@@ -62,37 +55,25 @@ final class RequestFactoryTests: XCTestCase {
 
     private func queryDict(_ comps: URLComponents) -> [String: String] {
         var dict: [String: String] = [:]
-        for qi in comps.queryItems ?? [] {
-            dict[qi.name] = qi.value ?? ""
-        }
+        for qi in comps.queryItems ?? [] { dict[qi.name] = qi.value ?? "" }
         return dict
     }
 
-    /// Normalizes function names coming from `#function`:
-    /// strips parameter list and trailing "()" if present.
     private func normalizeFunctionName(_ raw: String?) -> String {
         guard let raw = raw else { return "" }
-        if let idx = raw.firstIndex(of: "(") {
-            return String(raw[..<idx]).trimmingCharacters(in: .whitespacesAndNewlines)
-        }
-        if raw.hasSuffix("()") {
-            return String(raw.dropLast(2)).trimmingCharacters(in: .whitespacesAndNewlines)
-        }
+        if let idx = raw.firstIndex(of: "(") { return String(raw[..<idx]).trimmingCharacters(in: .whitespacesAndNewlines) }
+        if raw.hasSuffix("()") { return String(raw.dropLast(2)).trimmingCharacters(in: .whitespacesAndNewlines) }
         return raw.trimmingCharacters(in: .whitespacesAndNewlines)
     }
 
-    // MARK: - Tests
-
     /// test_1_buildURLComponents_includesOnlyNonNil_andEncodesValues
     func test_1_buildURLComponents_includesOnlyNonNil_andEncodesValues() {
-        // Given
         let base = "https://api.altcraft.test/v1/sub"
         let provider = "ios-apns"
         let mode = "match_current_context"
         let sync: Int16 = 7
-        let subId = "abc:123+/=" // force encoding checks
+        let subId = "abc:123+/="
 
-        // When
         let comps = buildURLComponents(
             url: base,
             provider: provider,
@@ -101,7 +82,6 @@ final class RequestFactoryTests: XCTestCase {
             subscriptionId: subId
         )
 
-        // Then
         XCTAssertNotNil(comps)
         XCTAssertEqual(comps?.scheme, "https")
         XCTAssertEqual(comps?.host, "api.altcraft.test")
@@ -175,16 +155,14 @@ final class RequestFactoryTests: XCTestCase {
         XCTAssertEqual(q[Constants.QueryItem.provider], "ios-apns")
         XCTAssertEqual(q[Constants.QueryItem.matchingMode], "match_current_context")
         XCTAssertEqual(q[Constants.QueryItem.sync], "1")
-        XCTAssertNil(q[Constants.QueryItem.subscriptionId]) // not set for subscribe
+        XCTAssertNil(q[Constants.QueryItem.subscriptionId])
     }
 
     /// test_5_createSubscribeRequest_invalidURL_emitsError_andReturnsNil
     func test_5_createSubscribeRequest_invalidURL_emitsError_andReturnsNil() {
-        let spy = EventSpy(); spy.start()
-        defer { spy.stop() }
-
+        let spy = EventSpy(); spy.start(); defer { spy.stop() }
         let data = SubscribeRequestData(
-            url: "://bad url", // invalid
+            url: "://bad url",
             time: 1,
             rToken: nil,
             requestId: "RID-ERR",
@@ -200,24 +178,16 @@ final class RequestFactoryTests: XCTestCase {
             replace: nil,
             skipTriggers: nil
         )
-        let body = createSubscribeJSONBody(data: data)! // body can be built
+        let body = createSubscribeJSONBody(data: data)!
         let req = createSubscribeRequest(data: data, requestBody: body)
-
-        XCTAssertNil(req, "createSubscribeRequest must return nil on invalid URL")
-
-        // At least one ErrorEvent must be emitted.
-        XCTAssertTrue(spy.events.contains { $0 is ErrorEvent }, "errorEvent should be emitted")
-
-        // There must be an ErrorEvent specifically from createSubscribeRequest (normalize name).
-        let hasCreateError = spy.events.contains {
-            ($0 is ErrorEvent) && normalizeFunctionName($0.function) == "createSubscribeRequest"
-        }
-        XCTAssertTrue(hasCreateError, "Expected ErrorEvent from createSubscribeRequest")
+        XCTAssertNil(req)
+        XCTAssertTrue(spy.events.contains { $0 is ErrorEvent })
+        let hasCreateError = spy.events.contains { ($0 is ErrorEvent) && normalizeFunctionName($0.function) == "createSubscribeRequest" }
+        XCTAssertTrue(hasCreateError)
     }
 
     /// test_6_createUpdateRequest_addsOldToken_asSubscriptionId_andUsesNewProvider
     func test_6_createUpdateRequest_addsOldToken_asSubscriptionId_andUsesNewProvider() {
-        // Important: createUpdateRequest takes a ready body; we don't rely on createUpdateJSONBody here.
         let data = UpdateRequestData(
             url: "https://api.altcraft.test/update",
             requestId: "RID-U",
@@ -339,7 +309,6 @@ final class RequestFactoryTests: XCTestCase {
 
     /// test_11_updateRequest_endToEnd_nonNilBodyAndRequest
     func test_11_updateRequest_endToEnd_nonNilBodyAndRequest() {
-        // Important: for createUpdateJSONBody to succeed, use non-nil oldToken/oldProvider.
         let data = UpdateRequestData(
             url: "https://api.altcraft.test/update",
             requestId: "RID-11",
@@ -350,7 +319,7 @@ final class RequestFactoryTests: XCTestCase {
             newProvider: "ios-firebase"
         )
         let req = updateRequest(data: data)
-        XCTAssertNotNil(req, "Body encoding should succeed with non-nil fields")
+        XCTAssertNotNil(req)
         XCTAssertEqual(req?.httpMethod, "POST")
     }
 
@@ -383,6 +352,86 @@ final class RequestFactoryTests: XCTestCase {
         let req = unSuspendRequest(data: data)
         XCTAssertNotNil(req)
         XCTAssertEqual(req?.httpMethod, "POST")
+    }
+
+    /// test_14_buildMobileEventURL_appendsQueryItems_andValidatesSchemeHost
+    func test_14_buildMobileEventURL_appendsQueryItems_andValidatesSchemeHost() {
+        let base = "https://px.altcraft.test/pixel"
+        let url = buildMobileEventURL(baseURLString: base, sid: "SID1", tracker: "px", type: "open", version: "2")
+        XCTAssertNotNil(url)
+        let comps = components(from: url!)
+        let q = queryDict(comps)
+        XCTAssertEqual(comps.scheme, "https")
+        XCTAssertEqual(comps.host, "px.altcraft.test")
+        XCTAssertEqual(q["i"], "SID1")
+        XCTAssertEqual(q["tr"], "px")
+        XCTAssertEqual(q["t"], "open")
+        XCTAssertEqual(q["v"], "2")
+    }
+
+    /// test_15_buildMobileEventURL_invalidBase_returnsNil
+    func test_15_buildMobileEventURL_invalidBase_returnsNil() {
+        XCTAssertNil(buildMobileEventURL(baseURLString: ":// broken", sid: "S", tracker: "px", type: "open", version: "2"))
+        XCTAssertNil(buildMobileEventURL(baseURLString: "file://local", sid: "S", tracker: "px", type: "open", version: "2"))
+        XCTAssertNil(buildMobileEventURL(baseURLString: "https://", sid: "S", tracker: "px", type: "open", version: "2"))
+    }
+
+    /// test_16_createMobileEventRequest_buildsMultipart_withHeadersBoundaryAndURL
+    func test_16_createMobileEventRequest_buildsMultipart_withHeadersBoundaryAndURL() {
+        let parts: [Part] = [
+            Part(name: "meta", data: Data(#"{"k":"v"}"#.utf8), mime: "application/json", filename: nil),
+            Part(name: "file", data: Data("hello".utf8), mime: "text/plain", filename: "a.txt"),
+        ]
+        let data = MobileEventRequestData(
+            url: "https://px.altcraft.test/pixel",
+            sid: "SID-99",
+            eventName: "test",
+            parts: parts,
+            authHeader: "Bearer M"
+        )
+        let spy = EventSpy(); spy.start(); defer { spy.stop() }
+        let req = createMobileEventRequest(data: data)
+        XCTAssertNotNil(req)
+        XCTAssertEqual(req?.httpMethod, "POST")
+        XCTAssertEqual(req?.value(forHTTPHeaderField: Constants.HTTPHeader.authorization), "Bearer M")
+        let ctype = req?.value(forHTTPHeaderField: Constants.HTTPHeader.contentType) ?? ""
+        XCTAssertTrue(ctype.hasPrefix("multipart/form-data; boundary="))
+        let comps = components(from: req!.url!)
+        let q = queryDict(comps)
+        XCTAssertEqual(q["i"], "SID-99")
+        XCTAssertEqual(q["tr"], "px")
+        XCTAssertEqual(q["t"], "open")
+        XCTAssertEqual(q["v"], "2")
+        let bodyStr = String(data: req!.httpBody ?? Data(), encoding: .utf8) ?? ""
+        XCTAssertTrue(bodyStr.contains("Content-Disposition: form-data; name=\"meta\""))
+        XCTAssertTrue(bodyStr.contains("Content-Type: application/json"))
+        XCTAssertTrue(bodyStr.contains("Content-Disposition: form-data; name=\"file\"; filename=\"a.txt\""))
+        XCTAssertTrue(bodyStr.contains("Content-Type: text/plain"))
+        XCTAssertTrue((req?.value(forHTTPHeaderField: "Content-Length")).flatMap(Int.init) ?? 0 > 0)
+        XCTAssertFalse(spy.events.contains { $0 is ErrorEvent })
+    }
+
+    /// test_17_statusRequest_invalidMode_returnsNil_quickly
+    func test_17_statusRequest_invalidMode_returnsNil_quickly() {
+        let exp = expectation(description: "status invalid mode")
+        statusRequest(mode: "___bad___", provider: nil) { req in
+            XCTAssertNil(req)
+            exp.fulfill()
+        }
+        wait(for: [exp], timeout: 1.0)
+    }
+
+    /// test_18_statusRequest_noProfileData_emitsError_andReturnsNil
+    func test_18_statusRequest_noProfileData_emitsError_andReturnsNil() {
+        let spy = EventSpy(); spy.start(); defer { spy.stop() }
+        let exp = expectation(description: "status no data")
+        statusRequest(mode: Constants.StatusMode.matchCurrentContext, provider: nil) { req in
+            XCTAssertNil(req)
+            let hasError = spy.events.contains { ($0 is ErrorEvent) && (self.normalizeFunctionName($0.function) == "statusRequest") }
+            XCTAssertTrue(hasError)
+            exp.fulfill()
+        }
+        wait(for: [exp], timeout: 2.0)
     }
 }
 

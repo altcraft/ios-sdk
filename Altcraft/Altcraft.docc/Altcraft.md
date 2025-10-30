@@ -1,4 +1,4 @@
-# README Altcraft iOS SDK
+# Altcraft iOS SDK
 
 ![Altcraft SDK Logo](https://guides.altcraft.com/img/logo.svg)
 

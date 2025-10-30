@@ -35,8 +35,7 @@ final class PublicPushSubscriptionFunctionsTests: XCTestCase {
         }
         func stop() { SDKEvents.shared.unsubscribe() }
     }
-
-    // Normalize names like "funcName()" -> "funcName"
+    
     private func normalizeFunctionName(_ raw: String?) -> String {
         guard let raw = raw else { return "" }
         if let idx = raw.firstIndex(of: "(") {
@@ -44,8 +43,6 @@ final class PublicPushSubscriptionFunctionsTests: XCTestCase {
         }
         return raw.hasSuffix("()") ? String(raw.dropLast(2)) : raw
     }
-
-    // MARK: - Tests
 
     /// test_1_getStatusOfLatestSubscriptionForProvider_invalidProvider_emitsError_andReturnsNil
     func test_1_getStatusOfLatestSubscriptionForProvider_invalidProvider_emitsError_andReturnsNil() {
@@ -66,7 +63,6 @@ final class PublicPushSubscriptionFunctionsTests: XCTestCase {
         XCTAssertNil(received, "Completion must receive nil for invalid provider")
 
         let newEvents = Array(spy.events.dropFirst(before))
-        // Must emit an ErrorEvent from getStatusOfLatestSubscriptionForProvider
         let hasErrorFromAPI = newEvents.contains {
             ($0 is ErrorEvent) && normalizeFunctionName($0.function) == "getStatusOfLatestSubscriptionForProvider"
         }
@@ -84,7 +80,6 @@ final class PublicPushSubscriptionFunctionsTests: XCTestCase {
         let del   = b.delete(value: "old")
         let up    = b.upsert(value: ["k":"v"])
 
-        // Helper to validate shape: ["_score": ["action": <x>, "value": <y>]]
         func assertShape(_ entry: [String: Any?], action: String, valueCheck: (Any?) -> Bool, line: UInt = #line) {
             XCTAssertEqual(entry.keys.count, 1, line: line)
             let payload = entry["_score"] as? [String: Any?]
@@ -108,13 +103,10 @@ final class PublicPushSubscriptionFunctionsTests: XCTestCase {
         let age = PublicPushSubscriptionFunctions.shared.actionField(key: "_age").incr(value: 1)
         let simple: [String: Any?] = ["simple_field": "value"]
 
-        // Later dictionaries override earlier ones on key conflicts
         let merged = mergeFields(name, age, simple, nameOverride)
 
-        // Expect keys: _fname, _age, simple_field
         XCTAssertEqual(Set(merged.keys), Set(["_fname", "_age", "simple_field"]))
 
-        // _fname should be overridden by nameOverride -> "A."
         if let fnamePayload = merged["_fname"] as? [String: Any?] {
             XCTAssertEqual(fnamePayload["action"] as? String, "set")
             XCTAssertEqual(fnamePayload["value"] as? String, "A.")
@@ -122,7 +114,6 @@ final class PublicPushSubscriptionFunctionsTests: XCTestCase {
             XCTFail("_fname payload missing or wrong type")
         }
 
-        // _age should be an incr payload with 1
         if let agePayload = merged["_age"] as? [String: Any?] {
             XCTAssertEqual(agePayload["action"] as? String, "incr")
             XCTAssertEqual(agePayload["value"] as? Int, 1)

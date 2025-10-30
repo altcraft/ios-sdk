@@ -171,7 +171,6 @@ func encodeSubscription(_ sub: (any Subscription)?) -> Data? {
         case let s as CcDataSubscription:
             return try encoder.encode(s)
         default:
-            // Неизвестная реализация протокола Subscription
             errorEvent(#function, error: unsupportedSubscriptionType)
             return nil
         }

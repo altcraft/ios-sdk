@@ -3,295 +3,209 @@
 //  AltcraftTests
 //
 //  Created by Andrey Pogodin.
+//  © 2025 Altcraft. All rights reserved.
 //
-//  Copyright © 2025 Altcraft. All rights reserved.
 
 import XCTest
 import CoreData
 @testable import Altcraft
 
 /**
- * PushEventDbQueriesTests (iOS 13 compatible)
+ * PushEventDbQueriesTests
  *
- * Coverage:
- *  - test_1_addPushEventEntity_createsAndPersistsFields:
- *      Creates a new PushEventEntity, persists scalar fields, and returns the created entity.
- *
- *  - test_2_getAllPushEvents_fetchesAndSortsAscending:
- *      Fetches all events and returns them sorted by "time" ascending.
- *
- *  - test_3_deletePushEvent_removesEntity_andReturnsTrue:
- *      Deletes a given event entity and completes with true on success.
- *
- *  - test_4_pushEventLimit_incrementsBelowMax_andDeletesAtLimit:
- *      Increments retryCount when below max; deletes the row when retryCount >= max.
- *
- *  - test_5_clearOldPushEvents_noOpOrDeletesOldest:
- *      No-op when total count ≤ 500; deletes 100 oldest events when total > 500.
- *
- * Notes:
- *  - Uses CoreDataManager.shared.persistentContainer (production stack).
- *  - Each test runs in its own background context to avoid UI-thread coupling.
- *  - Deterministic ordering is ensured by manually adjusting "time" values after insertion.
+ * Positive scenarios:
+ *  - test_1_addPushEventEntity_persistsFields_andReturnsID:
+ *      addPushEventEntity creates a row, sets core fields (uid/type/time/retry counters) and returns objectID.
+ *  - test_2_getAllPushEvents_ordersByTimeAscending:
+ *      getAllPushEvents returns object IDs sorted by increasing time.
+ *  - test_3_getAllPushEvents_returnsEmpty_whenNoRows:
+ *      getAllPushEvents returns an empty list when there are no rows.
+ *  - test_4_clearOldPushEvents_noop_belowOrEqualThreshold:
+ *      clearOldPushEvents keeps all rows when total <= threshold.
+ *  - test_5_clearOldPushEvents_deletesOldest_whenOverThreshold:
+ *      clearOldPushEvents deletes the oldest N rows when total exceeds threshold.
  */
-final class PushEventDbQueriesTests: XCTestCase {
+final class PushEventDbQueriesTests: IsolatedTestCase {
 
-    // MARK: - Constants
+    override class var useSDKCoreData: Bool { true }
+
+    private var sdkContainer: NSPersistentContainer {
+        CoreDataManager.shared.persistentContainer
+    }
+    private var sdkViewContext: NSManagedObjectContext {
+        sdkContainer.viewContext
+    }
+
+    private func sdkNewBG() -> NSManagedObjectContext {
+        let ctx = sdkContainer.newBackgroundContext()
+        ctx.mergePolicy = NSMergeByPropertyObjectTrumpMergePolicy
+        ctx.automaticallyMergesChangesFromParent = true
+        ctx.undoManager = nil
+        return ctx
+    }
 
     private let timeoutShort: TimeInterval = 2.5
-    private let timeoutLong:  TimeInterval = 6.0
 
-    // MARK: - Lifecycle
-
-    override func setUp() {
-        super.setUp()
-        wipePushEvents()
+    override func setUpWithError() throws {
+        try super.setUpWithError()
+        sdkWipe([Constants.EntityNames.pushEvent])
     }
 
-    override func tearDown() {
-        wipePushEvents()
-        super.tearDown()
+    override func tearDownWithError() throws {
+        sdkWipe([Constants.EntityNames.pushEvent])
+        try super.tearDownWithError()
     }
 
-    // MARK: - Helpers
-
-    /// Batch-deletes PushEventEntity via background context (best effort).
-    private func wipePushEvents() {
-        let container = CoreDataManager.shared.persistentContainer
-        let bg = container.newBackgroundContext()
+    /// Removes all rows for provided entities in the SDK container.
+    private func sdkWipe(_ entityNames: [String]) {
+        let bg = sdkNewBG()
         bg.performAndWait {
-            let fr = NSFetchRequest<NSFetchRequestResult>(entityName: Constants.EntityNames.pushEvent)
-            let req = NSBatchDeleteRequest(fetchRequest: fr)
-            req.resultType = .resultTypeObjectIDs
-            do {
-                if let res = try bg.execute(req) as? NSBatchDeleteResult,
-                   let oids = res.result as? [NSManagedObjectID] {
-                    NSManagedObjectContext.mergeChanges(
-                        fromRemoteContextSave: [NSDeletedObjectsKey: oids],
-                        into: [bg, container.viewContext]
-                    )
+            for name in entityNames {
+                let fr = NSFetchRequest<NSFetchRequestResult>(entityName: name)
+                fr.includesPropertyValues = false
+                if let objects = try? bg.fetch(fr) as? [NSManagedObject] {
+                    objects.forEach { bg.delete($0) }
                 }
-            } catch {
-                // best-effort cleanup
             }
+            if bg.hasChanges { try? bg.save() }
         }
     }
 
-    /// Counts PushEventEntity objects in the given context.
-    private func countPushEvents(in ctx: NSManagedObjectContext) -> Int? {
-        var result: Int?
+    /// Counts rows for an entity; returns 0 on failure.
+    private func sdkCount(_ entityName: String) -> Int {
+        let ctx = sdkViewContext
+        var result = 0
         ctx.performAndWait {
-            let fr = NSFetchRequest<NSFetchRequestResult>(entityName: Constants.EntityNames.pushEvent)
-            do { result = try ctx.count(for: fr) } catch { result = nil }
+            let fr = NSFetchRequest<NSFetchRequestResult>(entityName: entityName)
+            fr.includesSubentities = true
+            result = (try? ctx.count(for: fr)) ?? 0
         }
         return result
     }
 
-    /// Fetches all PushEventEntity sorted by time asc from the given context.
-    private func fetchAllPushEvents(in ctx: NSManagedObjectContext) -> [PushEventEntity] {
-        var out: [PushEventEntity] = []
+    /// Fetches all PushEventEntity rows ordered by time asc.
+    private func fetchAllPushEventsAsc() -> [PushEventEntity] {
+        let ctx = sdkViewContext
+        var list: [PushEventEntity] = []
         ctx.performAndWait {
-            let fr: NSFetchRequest<PushEventEntity> = PushEventEntity.fetchRequest()
+            let fr = NSFetchRequest<PushEventEntity>(entityName: Constants.EntityNames.pushEvent)
             fr.sortDescriptors = [NSSortDescriptor(key: "time", ascending: true)]
-            out = (try? ctx.fetch(fr)) ?? []
+            list = (try? ctx.fetch(fr)) ?? []
         }
-        return out
+        return list
     }
 
-    /// Sets "time" for an entity and saves.
-    private func setTime(_ t: Int64, for entity: PushEventEntity, in ctx: NSManagedObjectContext) {
+    /// Materializes managed object by ID as PushEventEntity.
+    private func fetchPushEvent(by id: NSManagedObjectID) -> PushEventEntity? {
+        let ctx = sdkViewContext
+        var obj: PushEventEntity?
         ctx.performAndWait {
-            entity.time = t
-            try? ctx.save()
-        }
-    }
-
-    // MARK: - Tests
-
-    /// addPushEventEntity creates an entity, sets default fields, and returns it via completion.
-    func test_1_addPushEventEntity_creates_andReturnsEntity() {
-        let container = CoreDataManager.shared.persistentContainer
-        let ctx = container.newBackgroundContext()
-
-        let uid = "evt-001"
-        let type = "delivered"
-
-        let exp = expectation(description: "add completion")
-        var created: PushEventEntity?
-        ctx.performAndWait {
-            addPushEventEntity(context: ctx, uid: uid, type: type) { e in
-                created = e
-                exp.fulfill()
+            if let e = try? ctx.existingObject(with: id) as? PushEventEntity {
+                obj = e
             }
         }
-        waitForExpectations(timeout: timeoutShort)
-
-        XCTAssertNotNil(created, "Created entity must be returned")
-        XCTAssertEqual(created?.uid, uid)
-        XCTAssertEqual(created?.type, type)
-        XCTAssertEqual(created?.retryCount, 0)
-        XCTAssertEqual(created?.maxRetryCount, 15)
-
-        let nowSec = Int64(Date().timeIntervalSince1970)
-        XCTAssertGreaterThanOrEqual(created?.time ?? 0, nowSec - 5)
-        XCTAssertLessThanOrEqual(created?.time ?? 0, nowSec + 5)
-
-        // Verify count in the same context
-        XCTAssertEqual(countPushEvents(in: ctx), 1)
+        return obj
     }
 
-    /// getAllPushEvents returns rows sorted by time ascending.
-    func test_2_getAllPushEvents_sortsAscendingByTime() {
-        let container = CoreDataManager.shared.persistentContainer
-        let ctx = container.newBackgroundContext()
-
-        // Insert three events
-        let ids = ["A", "B", "C"]
-        for id in ids {
-            let exp = expectation(description: "add \(id)")
-            addPushEventEntity(context: ctx, uid: id, type: "opened") { _ in exp.fulfill() }
-            waitForExpectations(timeout: timeoutShort)
+    /// Adds N events and then deterministically sets their times from a base, step = 1 ms.
+    private func seedPushEvents(count n: Int, base: Int64 = 1_000_000) {
+        let group = DispatchGroup()
+        for i in 0..<n {
+            group.enter()
+            addPushEventEntity(uid: "u-\(i)", type: "delivered") { _ in group.leave() }
         }
+        _ = group.wait(timeout: .now() + timeoutShort)
 
-        // Make time deterministic: A=200, B=100, C=300
-        let all = fetchAllPushEvents(in: ctx)
-        let map = Dictionary(uniqueKeysWithValues: all.map { ($0.uid ?? UUID().uuidString, $0) })
-        setTime(200, for: map["A"]!, in: ctx)
-        setTime(100, for: map["B"]!, in: ctx)
-        setTime(300, for: map["C"]!, in: ctx)
+        let bg = sdkNewBG()
+        bg.performAndWait {
+            let fr = NSFetchRequest<PushEventEntity>(entityName: Constants.EntityNames.pushEvent)
+            if let rows = try? bg.fetch(fr) {
+                for (idx, row) in rows.enumerated() {
+                    row.time = base + Int64(idx)
+                }
+                try? bg.save()
+            }
+        }
+    }
 
-        let expFetch = expectation(description: "fetch all")
-        getAllPushEvents(context: ctx) { rows in
-            XCTAssertEqual(rows.map { $0.uid }, ["B", "A", "C"])
-            expFetch.fulfill()
+    /// addPushEventEntity creates a row and returns objectID.
+    func test_1_addPushEventEntity_persistsFields_andReturnsID() {
+        let exp = expectation(description: "insert")
+        addPushEventEntity(uid: "uid-1", type: "opened") { id in
+            XCTAssertNotNil(id)
+            exp.fulfill()
+        }
+        waitForExpectations(timeout: timeoutShort)
+
+        let all = fetchAllPushEventsAsc()
+        XCTAssertEqual(all.count, 1)
+        let e = all[0]
+        XCTAssertEqual(e.uid, "uid-1")
+        XCTAssertEqual(e.type, "opened")
+        XCTAssertEqual(e.retryCount, 0)
+        XCTAssertEqual(e.maxRetryCount, 15)
+        XCTAssertGreaterThan(e.time, 0)
+    }
+
+    /// getAllPushEvents returns IDs ordered by time ascending.
+    func test_2_getAllPushEvents_ordersByTimeAscending() {
+        seedPushEvents(count: 3, base: 10_000)
+
+        let bg = sdkNewBG()
+        let exp = expectation(description: "fetch ids")
+        getAllPushEvents(context: bg) { ids in
+            let times = ids.compactMap { self.fetchPushEvent(by: $0)?.time }
+            let sorted = times.sorted()
+            XCTAssertEqual(times, sorted)
+            XCTAssertEqual(times.count, 3)
+            exp.fulfill()
         }
         waitForExpectations(timeout: timeoutShort)
     }
 
-    /// deletePushEvent deletes the entity and returns true.
-    func test_3_deletePushEvent_deletes_andReturnsTrue() {
-        let container = CoreDataManager.shared.persistentContainer
-        let ctx = container.newBackgroundContext()
-
-        // Seed one event
-        let expAdd = expectation(description: "add")
-        addPushEventEntity(context: ctx, uid: "DEL", type: "delivered") { _ in expAdd.fulfill() }
-        waitForExpectations(timeout: timeoutShort)
-        XCTAssertEqual(countPushEvents(in: ctx), 1)
-
-        guard let row = fetchAllPushEvents(in: ctx).first else {
-            XCTFail("Expected one row"); return
-        }
-
-        let expDel = expectation(description: "delete")
-        deletePushEvent(context: ctx, entity: row) { ok in
-            XCTAssertTrue(ok, "deletePushEvent must return true on success")
-            expDel.fulfill()
+    /// getAllPushEvents returns an empty list when there are no rows.
+    func test_3_getAllPushEvents_returnsEmpty_whenNoRows() {
+        XCTAssertEqual(sdkCount(Constants.EntityNames.pushEvent), 0)
+        let bg = sdkNewBG()
+        let exp = expectation(description: "fetch empty")
+        getAllPushEvents(context: bg) { ids in
+            XCTAssertTrue(ids.isEmpty)
+            exp.fulfill()
         }
         waitForExpectations(timeout: timeoutShort)
-
-        XCTAssertEqual(countPushEvents(in: ctx), 0, "Row must be deleted")
     }
 
-    /// pushEventLimit increments below max and deletes at/above max.
-    func test_4_pushEventLimit_incrementsBelowMax_andDeletesAtLimit() {
-        let container = CoreDataManager.shared.persistentContainer
-        let ctx = container.newBackgroundContext()
+    /// clearOldPushEvents keeps all rows when total <= threshold.
+    func test_4_clearOldPushEvents_noop_belowOrEqualThreshold() {
+        seedPushEvents(count: 5, base: 100)
+        XCTAssertEqual(sdkCount(Constants.EntityNames.pushEvent), 5)
 
-        // Seed one
-        let expAdd = expectation(description: "add")
-        addPushEventEntity(context: ctx, uid: "LIM-1", type: "opened") { _ in expAdd.fulfill() }
-        waitForExpectations(timeout: timeoutShort)
-
-        guard let row = fetchAllPushEvents(in: ctx).first else {
-            XCTFail("Expected one row"); return
-        }
-
-        // Below max: increment, completion(false)
-        ctx.performAndWait {
-            row.retryCount = 2
-            row.maxRetryCount = 3
-            try? ctx.save()
-        }
-
-        let expInc = expectation(description: "increment")
-        pushEventLimit(context: ctx, for: row) { deleted in
-            XCTAssertFalse(deleted, "Must not delete when retryCount < max")
-            expInc.fulfill()
+        let bg = sdkNewBG()
+        let exp = expectation(description: "clear below-equal")
+        clearOldPushEvents(context: bg, threshold: 5, purgeCount: 3) {
+            exp.fulfill()
         }
         waitForExpectations(timeout: timeoutShort)
 
-        ctx.performAndWait {
-            XCTAssertEqual(row.retryCount, 3, "retryCount must be incremented by 1")
-        }
-
-        // At limit: delete, completion(true)
-        ctx.performAndWait {
-            row.retryCount = row.maxRetryCount // equals -> should delete
-            try? ctx.save()
-        }
-
-        let expDel = expectation(description: "delete at limit")
-        pushEventLimit(context: ctx, for: row) { deleted in
-            XCTAssertTrue(deleted, "Must delete when retryCount >= max")
-            expDel.fulfill()
-        }
-        waitForExpectations(timeout: timeoutShort)
-
-        XCTAssertEqual(countPushEvents(in: ctx), 0, "Entity must be deleted at/over limit")
+        XCTAssertEqual(sdkCount(Constants.EntityNames.pushEvent), 5)
+        let remainingTimes = fetchAllPushEventsAsc().map { $0.time }
+        XCTAssertEqual(remainingTimes, [100, 101, 102, 103, 104])
     }
 
-    /// clearOldPushEvents: no-op when total <= 500; delete 100 oldest when total > 500.
-    func test_5_clearOldPushEvents_noopWhenLE500_andDeletes100WhenGT500() {
-        let container = CoreDataManager.shared.persistentContainer
-        let ctx = container.newBackgroundContext()
+    /// clearOldPushEvents deletes the oldest N rows when total exceeds threshold.
+    func test_5_clearOldPushEvents_deletesOldest_whenOverThreshold() {
+        seedPushEvents(count: 7, base: 500) // times = 500..506
+        XCTAssertEqual(sdkCount(Constants.EntityNames.pushEvent), 7)
 
-        // Case 1: total <= 500 -> no deletion
-        // Seed 5 events
-        for i in 0..<5 {
-            let exp = expectation(description: "add small \(i)")
-            addPushEventEntity(context: ctx, uid: "S\(i)", type: "opened") { _ in exp.fulfill() }
-            waitForExpectations(timeout: timeoutShort)
-        }
-        XCTAssertEqual(countPushEvents(in: ctx), 5)
-
-        let expNoop = expectation(description: "clear small")
-        clearOldPushEvents(context: ctx) {
-            expNoop.fulfill()
+        let bg = sdkNewBG()
+        let exp = expectation(description: "clear over")
+        clearOldPushEvents(context: bg, threshold: 5, purgeCount: 3) {
+            exp.fulfill()
         }
         waitForExpectations(timeout: timeoutShort)
-        XCTAssertEqual(countPushEvents(in: ctx), 5, "No deletions expected when total <= 500")
 
-        // Case 2: total > 500 -> delete 100 oldest by time asc
-        // Seed 500 more (S0..S499)
-        for i in 0..<500 {
-            let exp = expectation(description: "add bulk \(i)")
-            addPushEventEntity(context: ctx, uid: "B\(i)", type: "delivered") { _ in exp.fulfill() }
-            waitForExpectations(timeout: timeoutShort)
-        }
-        XCTAssertEqual(countPushEvents(in: ctx), 505)
-
-        // Make oldest 100 clearly the earliest by setting their time to [1..100]
-        let all = fetchAllPushEvents(in: ctx)
-        // Ensure we have at least 100
-        XCTAssertGreaterThanOrEqual(all.count, 100)
-        for i in 0..<100 {
-            setTime(Int64(i + 1), for: all[i], in: ctx)
-        }
-
-        let expClear = expectation(description: "clear big")
-        clearOldPushEvents(context: ctx) {
-            expClear.fulfill()
-        }
-        waitForExpectations(timeout: timeoutLong)
-
-        // Expect exactly 405 left
-        XCTAssertEqual(countPushEvents(in: ctx), 405, "Exactly 100 oldest must be deleted when total > 500")
-
-        // Validate that the smallest remaining time is >= 101
-        let remaining = fetchAllPushEvents(in: ctx)
-        let minTime = remaining.first?.time ?? 0
-        XCTAssertGreaterThanOrEqual(minTime, 101)
+        XCTAssertEqual(sdkCount(Constants.EntityNames.pushEvent), 4)
+        let remainingTimes = fetchAllPushEventsAsc().map { $0.time }
+        XCTAssertEqual(remainingTimes, [503, 504, 505, 506])
     }
 }
-

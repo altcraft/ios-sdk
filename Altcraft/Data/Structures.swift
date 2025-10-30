@@ -219,7 +219,7 @@ struct MobileEventRequestData {
     let url: String
     let sid: String
     let eventName: String
-    let parst: [Part]
+    let parts: [Part]
     let authHeader: String
 }
 

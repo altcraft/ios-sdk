@@ -73,7 +73,8 @@ class ClearingDb: NSObject {
         [
             Constants.EntityNames.config,
             Constants.EntityNames.subscribe,
-            Constants.EntityNames.pushEvent
+            Constants.EntityNames.pushEvent,
+            Constants.EntityNames.mobileEvent
         ].forEach { entityName in
             group.enter()
             deleteEntity(entityName: entityName) { success in
@@ -88,5 +89,3 @@ class ClearingDb: NSObject {
         }
     }
 }
-
-

@@ -199,10 +199,8 @@ struct SubBoxView: View {
                     backgroundColor: Color(hex: "#33FF5F").opacity(0.1),
                     icon: AnyView(PlusIcon(lineWidth: 15, lineHeight: 3, color: Color.black)),
                     onClick: {
-                        //SubscribeButton
                         GlobalBoxModeManager.shared.mode = AppConstants.BoxModeName.events
                         pushSubscribe()
-                        
                     })
                 
                 Spacer().frame(width: 2.5)
@@ -212,7 +210,6 @@ struct SubBoxView: View {
                     backgroundColor: Color.black.opacity(0.1),
                     icon: AnyView(UShapedIcon(topArcColor: Color.black, bottomArcColor: Color.black)),
                     onClick: {
-                        //SuspendButton
                         GlobalBoxModeManager.shared.mode = AppConstants.BoxModeName.events
                         pushSuspend()
                     })
@@ -224,7 +221,6 @@ struct SubBoxView: View {
                     backgroundColor: Color.black.opacity(0.1),
                     icon: AnyView(XShapedIcon(lineWidth: 15, lineHeight: 3, firstColor: Color.black, secondColor: Color.black)),
                     onClick: {
-                        //UnsubscribeButton
                         GlobalBoxModeManager.shared.mode = AppConstants.BoxModeName.events
                         pushUnsubscribe()
                     })
@@ -240,7 +236,6 @@ struct SubBoxView: View {
                         circleSize: 23,
                         cornerRadius: 15,
                         onClick: {
-                            //LogInButton
                             GlobalBoxModeManager.shared.mode = AppConstants.BoxModeName.events
                             logIn()
                         }
@@ -254,7 +249,6 @@ struct SubBoxView: View {
                         circleSize: 23,
                         cornerRadius: 15,
                         onClick: {
-                            //LogOutButton
                             GlobalBoxModeManager.shared.mode = AppConstants.BoxModeName.events
                             logOut()
                         }

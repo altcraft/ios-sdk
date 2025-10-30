@@ -115,17 +115,29 @@ final class SDKEventsTests: XCTestCase {
 
     /// Confirms a new subscriber replaces the previous one.
     func test_3_subscribe_replacesPreviousSubscriber() {
+        let marker = fn("t3")
         let shouldNotFire = expectation(description: "old subscriber").thenInverted()
-        SDKEvents.shared.subscribe { _ in shouldNotFire.fulfill() }
+
+        // Old subscriber reacts only to our marker
+        SDKEvents.shared.subscribe { ev in
+            if ev.function.contains(marker) {
+                shouldNotFire.fulfill()
+            }
+        }
 
         let exp = expectation(description: "new subscriber")
         var firedByNew = false
-        SDKEvents.shared.subscribe { _ in
+
+        // New subscriber also фильтрует по маркеру и сразу отписывается
+        SDKEvents.shared.subscribe { ev in
+            guard ev.function.contains(marker) else { return }
             firedByNew = true
+            SDKEvents.shared.unsubscribe()
             exp.fulfill()
         }
 
-        SDKEvents.shared.emit(event: Event(function: fn("t3"), message: "X", eventCode: 0, value: nil))
+        // Emit only our marked event
+        SDKEvents.shared.emit(event: Event(function: marker, message: "X", eventCode: 0, value: nil))
 
         waitForExpectations(timeout: 1.0)
         XCTAssertTrue(firedByNew)
@@ -246,10 +258,8 @@ final class SDKEventsTests: XCTestCase {
 // MARK: - Small XCTest convenience
 
 private extension XCTestExpectation {
-    /// Marks expectation as inverted and returns it for chaining.
     func thenInverted() -> XCTestExpectation {
         isInverted = true
         return self
     }
 }
-

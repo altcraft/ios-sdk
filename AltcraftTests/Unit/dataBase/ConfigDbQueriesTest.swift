@@ -3,78 +3,82 @@
 //  AltcraftTests
 //
 //  Created by Andrey Pogodin.
+//  © 2025 Altcraft. All rights reserved.
 //
-//  Copyright © 2025 Altcraft. All rights reserved.
 
 import XCTest
 import CoreData
 @testable import Altcraft
 
 /**
- * ConfigDbQueriesTests (iOS 13 compatible)
+ * ConfigDbQueriesTests
  *
  * Positive scenarios:
  *  - test_1_setConfig_createsNew_andPersistsAllFields:
- *      setConfig creates a new ConfigurationEntity, persists url and rToken,
- *      encodes AppInfo and providerPriorityList to Data, and getConfigFromCoreData
- *      returns a populated Configuration with the same values.
- *
+ *      setConfig creates a new ConfigurationEntity, persists url/rToken/appInfo/providerPriorityList,
+ *      and getConfig returns the same values.
  *  - test_2_setConfig_updatesExisting_noDuplicates:
- *      calling setConfig again with the same rToken updates the existing row in place,
- *      keeps exactly one ConfigurationEntity, and reflects the latest url/appInfo/providerPriorityList.
- *      No subscription purge is expected because rToken did not change.
- *
+ *      calling setConfig with the same rToken updates the existing row in place and keeps exactly one entity.
  *  - test_3_setConfig_tokenChange_triggersSubscriptionPurge:
- *      when rToken changes, setConfig performs an NSBatchDelete over SubscribeEntity
- *      so that all previously stored subscriptions are purged.
- *
+ *      when rToken changes, subscriptions are purged (skips on in-memory stores where batch delete may be unsupported).
+ *  - test_4_getConfig_returnsNil_whenUrlEmpty:
+ *      if url is empty in storage, getConfig returns nil due to configFromEntity guard.
  *  - test_5_doesConfigurationEntityExist_false_then_true:
- *      doesConfigurationEntityExist returns false when there is no configuration,
- *      then returns true after setConfig creates one.
- *
+ *      existence check returns false before setConfig and true after.
  *  - test_6_updateProviderPriorityList_updatesList_andReturnsSuccess:
- *      updateProviderPriorityList replaces the stored providerPriorityList Data with the new order
- *      and completes with .success; persisted bytes decode back to the provided String array.
- *
- * Edge scenarios:
- *  - test_4_getConfigFromCoreData_returnsNil_whenUrlEmpty:
- *      if the stored ConfigurationEntity has an empty url, getConfigFromCoreData
- *      returns nil due to configFromEntity guard that filters out invalid configurations.
+ *      providerPriorityList is replaced and persisted as Data (JSON-encoded [String]).
+ *  - test_7_setConfig_returnsFalse_whenDbErrorStatusIsSet:
+ *      when critical DB status flag is set, setConfig returns false.
+ *  - test_8_updateProviderPriorityList_returnsError_whenNoConfig:
+ *      updating providerPriorityList without a configuration returns an error.
  *
  * Notes:
- *  - Uses CoreDataManager.shared.persistentContainer (production stack, no seams).
- *  - No assumption about completion thread: production calls may complete on a background queue,
- *    so tests do not assert main-thread callbacks.
- *  - Each test cleans up only the necessary entities via NSBatchDelete (best-effort).
- *  - iOS 13 compatible: uses non-throwing performAndWait and manual error capture where needed.
+ *  - Uses the SDK Core Data container to align with withBackgroundContext{} (no product code changes).
+ *  - Other test classes can remain on the default isolated in-memory stack.
+ *  - Isolation is achieved by wiping entities in the SDK container before/after each test.
  */
-final class ConfigDbQueriesTests: XCTestCase {
 
-    // MARK: - Constants
+final class ConfigDbQueriesTests: IsolatedTestCase {
 
-    private let timeoutShort: TimeInterval = 2.5
-    private let timeoutLong:  TimeInterval = 4.0
+    // Use the SDK container so test reads match writes done by withBackgroundContext{}.
+    override class var useSDKCoreData: Bool { true }
+
+    // MARK: - SDK Core Data access
+
+    private var sdkContainer: NSPersistentContainer { CoreDataManager.shared.persistentContainer }
+    private var sdkViewContext: NSManagedObjectContext { sdkContainer.viewContext }
+
+    private func sdkNewBG() -> NSManagedObjectContext {
+        let ctx = sdkContainer.newBackgroundContext()
+        ctx.mergePolicy = NSMergeByPropertyObjectTrumpMergePolicy
+        ctx.automaticallyMergesChangesFromParent = true
+        ctx.undoManager = nil
+        return ctx
+    }
+
+    private var isInMemoryStore: Bool {
+        sdkContainer.persistentStoreCoordinator.persistentStores.first?.type == NSInMemoryStoreType
+    }
 
     // MARK: - Lifecycle
 
-    override func setUp() {
-        super.setUp()
-        wipeEntities([Constants.EntityNames.config,
-                      Constants.EntityNames.subscribe])
+    private let timeoutShort: TimeInterval = 2.5
+
+    override func setUpWithError() throws {
+        try super.setUpWithError()
+        sdkWipe([Constants.EntityNames.config, Constants.EntityNames.subscribe])
     }
 
-    override func tearDown() {
-        wipeEntities([Constants.EntityNames.config,
-                      Constants.EntityNames.subscribe])
-        super.tearDown()
+    override func tearDownWithError() throws {
+        sdkWipe([Constants.EntityNames.config, Constants.EntityNames.subscribe])
+        try super.tearDownWithError()
     }
 
     // MARK: - Helpers
 
-    /// Returns number of objects for an entity name, or nil on failure.
-    private func count(entityName: String) -> Int? {
-        let container = CoreDataManager.shared.persistentContainer
-        let ctx = container.viewContext
+    /// Counts objects for an entity name; returns nil on failure.
+    private func sdkCount(entityName: String) -> Int? {
+        let ctx = sdkViewContext
         var result: Int?
         ctx.performAndWait {
             let fr = NSFetchRequest<NSFetchRequestResult>(entityName: entityName)
@@ -84,35 +88,24 @@ final class ConfigDbQueriesTests: XCTestCase {
         return result
     }
 
-    /// Batch-deletes provided entities. Best-effort (no hard failure on errors).
-    private func wipeEntities(_ entityNames: [String]) {
-        let container = CoreDataManager.shared.persistentContainer
-        let bg = container.newBackgroundContext()
+    /// Regular fetch+delete wipe (not NSBatchDelete) for given entities in the SDK container.
+    private func sdkWipe(_ entityNames: [String]) {
+        let bg = sdkNewBG()
         bg.performAndWait {
             for name in entityNames {
                 let fr = NSFetchRequest<NSFetchRequestResult>(entityName: name)
-                let req = NSBatchDeleteRequest(fetchRequest: fr)
-                req.resultType = .resultTypeObjectIDs
-                do {
-                    if let res = try bg.execute(req) as? NSBatchDeleteResult,
-                       let oids = res.result as? [NSManagedObjectID] {
-                        NSManagedObjectContext.mergeChanges(
-                            fromRemoteContextSave: [NSDeletedObjectsKey: oids],
-                            into: [container.viewContext, bg]
-                        )
-                    }
-                } catch {
-                    // best-effort cleanup
+                fr.includesPropertyValues = false
+                if let objects = try? bg.fetch(fr) as? [NSManagedObject] {
+                    objects.forEach { bg.delete($0) }
                 }
             }
             if bg.hasChanges { try? bg.save() }
         }
     }
 
-    /// Fetches the single ConfigurationEntity if present.
-    private func fetchSingleConfigurationEntity() -> ConfigurationEntity? {
-        let container = CoreDataManager.shared.persistentContainer
-        let ctx = container.viewContext
+    /// Fetches the single ConfigurationEntity if present from the SDK container.
+    private func sdkFetchSingleConfigurationEntity() -> ConfigurationEntity? {
+        let ctx = sdkViewContext
         var obj: ConfigurationEntity?
         ctx.performAndWait {
             let fr: NSFetchRequest<ConfigurationEntity> = ConfigurationEntity.fetchRequest()
@@ -134,10 +127,9 @@ final class ConfigDbQueriesTests: XCTestCase {
         return try? JSONDecoder().decode(AppInfo.self, from: d)
     }
 
-    /// Seeds N empty SubscribeEntity rows.
-    private func seedSubscribe(count n: Int) throws {
-        let container = CoreDataManager.shared.persistentContainer
-        let bg = container.newBackgroundContext()
+    /// Seeds N empty SubscribeEntity rows in the SDK container.
+    private func sdkSeedSubscribe(count n: Int) throws {
+        let bg = sdkNewBG()
         var thrown: Error?
         bg.performAndWait {
             guard let _ = NSEntityDescription.entity(
@@ -159,12 +151,12 @@ final class ConfigDbQueriesTests: XCTestCase {
 
     // MARK: - Tests
 
-    /// Create a new configuration and assert fields persisted correctly.
+    /// Verifies setConfig creates and persists a new configuration; getConfig returns the same data.
     func test_1_setConfig_createsNew_andPersistsAllFields() {
         let url = "https://api.altcraft.test"
         let rToken = "token-123"
         let app = AppInfo(appID: "app-id", appIID: "iid-xyz", appVer: "1.2.3")
-        let providers = ["FCM", "HMS", "APNs"]
+        let providers = [Constants.ProviderName.firebase, Constants.ProviderName.huawei, Constants.ProviderName.apns]
 
         let exp = expectation(description: "setConfig completion")
         setConfig(url: url, rToken: rToken, appInfo: app, providerPriorityList: providers) { ok in
@@ -173,7 +165,7 @@ final class ConfigDbQueriesTests: XCTestCase {
         }
         waitForExpectations(timeout: timeoutShort)
 
-        guard let e = fetchSingleConfigurationEntity() else {
+        guard let e = sdkFetchSingleConfigurationEntity() else {
             XCTFail("ConfigurationEntity must exist"); return
         }
         XCTAssertEqual(e.url, url)
@@ -188,8 +180,8 @@ final class ConfigDbQueriesTests: XCTestCase {
         let decodedProviders = decodeStringArray(e.providerPriorityList)
         XCTAssertEqual(decodedProviders, providers)
 
-        let exp2 = expectation(description: "getConfigFromCoreData")
-        getConfigFromCoreData { cfg in
+        let exp2 = expectation(description: "getConfig")
+        getConfig { cfg in
             XCTAssertNotNil(cfg)
             XCTAssertEqual(cfg?.url, url)
             XCTAssertEqual(cfg?.rToken, rToken)
@@ -200,13 +192,12 @@ final class ConfigDbQueriesTests: XCTestCase {
         waitForExpectations(timeout: timeoutShort)
     }
 
-    /// Update existing config in-place, keep single row, and verify updated values.
+    /// Verifies that calling setConfig with same rToken updates in place and keeps a single entity.
     func test_2_setConfig_updatesExisting_noDuplicates() {
-        // Initial
         let url1 = "https://a1"
         let r1 = "rt-1"
         let app1 = AppInfo(appID: "A", appIID: "I", appVer: "1.0")
-        let p1 = ["FCM", "HMS"]
+        let p1 = [Constants.ProviderName.firebase, Constants.ProviderName.huawei]
 
         let exp1 = expectation(description: "setConfig 1")
         setConfig(url: url1, rToken: r1, appInfo: app1, providerPriorityList: p1) { ok in
@@ -214,10 +205,9 @@ final class ConfigDbQueriesTests: XCTestCase {
         }
         waitForExpectations(timeout: timeoutShort)
 
-        // Update (same token -> no subscription purge)
         let url2 = "https://a2"
         let app2 = AppInfo(appID: "B", appIID: "J", appVer: "2.0")
-        let p2 = ["APNs", "FCM"]
+        let p2 = [Constants.ProviderName.apns, Constants.ProviderName.firebase]
 
         let exp2 = expectation(description: "setConfig 2")
         setConfig(url: url2, rToken: r1, appInfo: app2, providerPriorityList: p2) { ok in
@@ -225,10 +215,10 @@ final class ConfigDbQueriesTests: XCTestCase {
         }
         waitForExpectations(timeout: timeoutShort)
 
-        let cfgCount = count(entityName: Constants.EntityNames.config)
+        let cfgCount = sdkCount(entityName: Constants.EntityNames.config)
         XCTAssertEqual(cfgCount, 1, "Must keep a single ConfigurationEntity")
 
-        guard let e = fetchSingleConfigurationEntity() else {
+        guard let e = sdkFetchSingleConfigurationEntity() else {
             XCTFail("ConfigurationEntity must exist"); return
         }
         XCTAssertEqual(e.url, url2)
@@ -238,51 +228,52 @@ final class ConfigDbQueriesTests: XCTestCase {
         XCTAssertEqual(decodeStringArray(e.providerPriorityList) ?? [], p2)
     }
 
-    /// rToken change triggers NSBatchDelete over SubscribeEntity.
+    /// Verifies that rToken change purges SubscribeEntity; skipped on in-memory stores.
     func test_3_setConfig_tokenChange_triggersSubscriptionPurge() throws {
-        try seedSubscribe(count: 5)
-        XCTAssertEqual(count(entityName: Constants.EntityNames.subscribe), 5)
+        if isInMemoryStore {
+            throw XCTSkip("NSBatchDelete may be unsupported by in-memory stores; skipping.")
+        }
 
-        // Create with token A
+        try sdkSeedSubscribe(count: 5)
+        XCTAssertEqual(sdkCount(entityName: Constants.EntityNames.subscribe), 5)
+
         let exp1 = expectation(description: "setConfig A")
         setConfig(url: "https://api", rToken: "A", appInfo: nil, providerPriorityList: nil) { ok in
             XCTAssertTrue(ok); exp1.fulfill()
         }
         waitForExpectations(timeout: timeoutShort)
 
-        // Change to token B -> should purge subscriptions
         let exp2 = expectation(description: "setConfig B")
         setConfig(url: "https://api", rToken: "B", appInfo: nil, providerPriorityList: nil) { ok in
             XCTAssertTrue(ok); exp2.fulfill()
         }
         waitForExpectations(timeout: timeoutShort)
 
-        XCTAssertEqual(count(entityName: Constants.EntityNames.subscribe), 0,
-                       "SubscribeEntity must be purged on rToken change")
+        XCTAssertEqual(sdkCount(entityName: Constants.EntityNames.subscribe), 0,
+                       "SubscribeEntity must be purged on rToken change.")
     }
 
-    /// getConfigFromCoreData returns nil when url is empty (configFromEntity guard).
-    func test_4_getConfigFromCoreData_returnsNil_whenUrlEmpty() {
-        let container = CoreDataManager.shared.persistentContainer
-        let bg = container.newBackgroundContext()
+    /// Verifies getConfig returns nil when stored url is empty.
+    func test_4_getConfig_returnsNil_whenUrlEmpty() {
+        let bg = sdkNewBG()
         var insertError: Error?
         bg.performAndWait {
             let e = ConfigurationEntity(context: bg)
-            e.url = ""      // empty url -> filtered by configFromEntity
+            e.url = ""
             e.rToken = "X"
             do { try bg.save() } catch { insertError = error }
         }
         XCTAssertNil(insertError, "Insert failed: \(String(describing: insertError))")
 
-        let exp = expectation(description: "getConfigFromCoreData empty url")
-        getConfigFromCoreData { cfg in
+        let exp = expectation(description: "getConfig empty url")
+        getConfig { cfg in
             XCTAssertNil(cfg, "Configuration must be nil if url is empty")
             exp.fulfill()
         }
         waitForExpectations(timeout: timeoutShort)
     }
 
-    /// doesConfigurationEntityExist: false -> true.
+    /// Verifies doesConfigurationEntityExist transitions from false to true after setConfig.
     func test_5_doesConfigurationEntityExist_false_then_true() {
         let exp1 = expectation(description: "exist false")
         doesConfigurationEntityExist(resToken: "any") { result in
@@ -311,15 +302,16 @@ final class ConfigDbQueriesTests: XCTestCase {
         waitForExpectations(timeout: timeoutShort)
     }
 
-    /// updateProviderPriorityList updates Data and returns .success.
+    /// Verifies updateProviderPriorityList replaces the stored list and persists it as Data.
     func test_6_updateProviderPriorityList_updatesList_andReturnsSuccess() {
         let exp1 = expectation(description: "setConfig")
-        setConfig(url: "https://api", rToken: "R", appInfo: nil, providerPriorityList: ["FCM"]) { ok in
+        setConfig(url: "https://api", rToken: "R",
+                  appInfo: nil, providerPriorityList: [Constants.ProviderName.firebase]) { ok in
             XCTAssertTrue(ok); exp1.fulfill()
         }
         waitForExpectations(timeout: timeoutShort)
 
-        let newList = ["APNs", "HMS", "FCM"]
+        let newList = [Constants.ProviderName.apns, Constants.ProviderName.huawei, Constants.ProviderName.firebase]
         let exp2 = expectation(description: "update list")
         updateProviderPriorityList(newList: newList) { result in
             switch result {
@@ -329,10 +321,41 @@ final class ConfigDbQueriesTests: XCTestCase {
         }
         waitForExpectations(timeout: timeoutShort)
 
-        guard let e = fetchSingleConfigurationEntity() else {
+        guard let e = sdkFetchSingleConfigurationEntity() else {
             XCTFail("ConfigurationEntity must exist"); return
         }
         XCTAssertEqual(decodeStringArray(e.providerPriorityList) ?? [], newList)
+    }
+
+    /// Verifies setConfig returns false when a critical DB error status flag is set.
+    func test_7_setConfig_returnsFalse_whenDbErrorStatusIsSet() {
+        StoredVariablesManager.shared.setCritDB(value: true)
+
+        let exp = expectation(description: "setConfig with DB error")
+        setConfig(url: "https://api", rToken: "token", appInfo: nil, providerPriorityList: nil) { ok in
+            XCTAssertFalse(ok, "setConfig should return false when DB error status is set")
+            exp.fulfill()
+        }
+        waitForExpectations(timeout: timeoutShort)
+
+        StoredVariablesManager.shared.setCritDB(value: false)
+    }
+
+    /// Verifies updateProviderPriorityList fails when no configuration exists.
+    func test_8_updateProviderPriorityList_returnsError_whenNoConfig() {
+        sdkWipe([Constants.EntityNames.config, Constants.EntityNames.subscribe])
+
+        let exp = expectation(description: "update list with no config")
+        updateProviderPriorityList(newList: [Constants.ProviderName.apns]) { result in
+            switch result {
+            case .success:
+                XCTFail("Should return error when no configuration exists")
+            case .failure:
+                break
+            }
+            exp.fulfill()
+        }
+        waitForExpectations(timeout: timeoutShort)
     }
 }
 

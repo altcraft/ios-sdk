@@ -19,10 +19,10 @@ import CoreData
 ///   - sid: The string ID of the pixel.
 ///   - eventName: Event name.
 ///   - altcraftClientID: Altcraft client identifier.
-///   - payload: Arbitrary payload as `[String: Any?]?` (serialized to JSON).
-///   - matching: Matching parameters as `[String: Any?]?` (serialized to JSON).
-///   - profileFields: Profile fields as `[String: Any?]?` (serialized to JSON).
-///   - subscription: Subscription model to attach (encoded to JSON).
+///   - payload: Arbitrary payload as `[String: Any?]?.
+///   - matching: Matching parameters as `[String: Any?]?`.
+///   - profileFields: Profile fields as `[String: Any?]?`.
+///   - subscription: Subscription model to attach.
 ///   - sendMessageId: SMID.
 ///   - matchingType: Type of matching (e.g., `"push_sub"`, `"email"`, etc.).
 ///   - utmTags: Optional UTM tags for campaign attribution (e.g. `source`, `medium`,
@@ -98,87 +98,6 @@ func getAllMobileEventsByTag(
     }
 }
 
-/// Deletes the `MobileEventEntity` with the given object ID from Core Data.
-///
-/// - Parameters:
-///   - context: The `NSManagedObjectContext` used to perform the delete operation.
-///   - objectID: The `NSManagedObjectID` of the entity to delete.
-///   - completion: A closure called with `true` on success (or if already gone / wrong type), `false` on failure.
-func deleteMobileEvent(
-    context: NSManagedObjectContext,
-    objectID: NSManagedObjectID,
-    completion: ((Bool) -> Void)? = nil
-) {
-    context.perform {
-        guard
-            let obj = try? context.existingObject(with: objectID),
-                !obj.isDeleted
-        else {
-            completion?(true); return
-        }
-    
-        context.delete(obj)
-        
-        do {
-            if context.hasChanges {
-                try context.save()
-            }
-            completion?(true)
-        } catch {
-            errorEvent(#function, error: error)
-            completion?(false)
-        }
-    }
-}
-
-/// Increments retry counter or deletes the mobile event when max retries are reached.
-///
-/// - Parameters:
-///   - context: Managed object context used to persist changes.
-///   - objectID: `NSManagedObjectID` of `MobileEventEntity` to update or delete.
-///   - completion: `true` if the entity was deleted (limit reached or missing/wrong type), `false` otherwise.
-func mobileEventLimit(
-    context: NSManagedObjectContext,
-    for objectID: NSManagedObjectID,
-    completion: @escaping (Bool) -> Void
-) {
-    context.perform {
-        guard let materialized = try? context.existingObject(with: objectID) else {
-            completion(true)
-            return
-        }
-        
-        guard let entity = materialized as? MobileEventEntity else {
-            context.delete(materialized)
-            do {
-                try context.save()
-            } catch { 
-                errorEvent(#function, error: error)
-            }
-            completion(true)
-            return
-        }
-
-        let retryCount = Int(entity.retryCount)
-        let maxRetryCount = Int(entity.maxRetryCount)
-
-        if retryCount >= maxRetryCount {
-            deleteMobileEvent(context: context, objectID: objectID) { _ in
-                completion(true)
-            }
-        } else {
-            entity.retryCount = Int16(retryCount + 1)
-            do {
-                try context.save()
-                completion(false)
-            } catch {
-                errorEvent(#function, error: error)
-                completion(false)
-            }
-        }
-    }
-}
-
 /// Clears oldest `MobileEventEntity` records when the total exceeds a threshold (push-like behavior).
 ///
 /// - Parameters:
@@ -196,12 +115,10 @@ func clearOldMobileEvents(
         defer { completion() }
 
         do {
-            // Count total records
             let countReq: NSFetchRequest<MobileEventEntity> = MobileEventEntity.fetchRequest()
             let total = try context.count(for: countReq)
             guard total > threshold else { return }
-
-            // Fetch oldest N by time
+            
             let fetchReq: NSFetchRequest<MobileEventEntity> = MobileEventEntity.fetchRequest()
             fetchReq.sortDescriptors = [NSSortDescriptor(key: "time", ascending: true)]
             fetchReq.fetchLimit = max(0, purgeCount)
@@ -209,7 +126,6 @@ func clearOldMobileEvents(
             let oldest = try context.fetch(fetchReq)
             guard !oldest.isEmpty else { return }
 
-            // Delete and persist
             oldest.forEach { context.delete($0) }
             try context.save()
 

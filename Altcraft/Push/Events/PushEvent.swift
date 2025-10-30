@@ -39,11 +39,11 @@ import CoreData
         requestRetry(request: Constants.FunctionsCode.PE, event: event)
     }
 
-    /// Creates and stores a new push event based on received payload data.
-    ///
-    /// - Parameters:
-    ///   - userInfo: The dictionary received in the push notification payload.
-    ///   - type: A string representing the event type (e.g., "delivered", "opened").
+     /// Creates and stores a new push event based on received payload data.
+     ///
+     /// - Parameters:
+     ///   - userInfo: The dictionary received in the push notification payload.
+     ///   - type: A string representing the event type (e.g., "delivered", "opened").
      func createPushEvent(userInfo: [String: Any], type: String) {
          guard let uid = userInfo[Constants.UserInfoKeys.uid] as? String else {
              errorEvent(#function, error: uidIsNil)
@@ -74,6 +74,7 @@ import CoreData
              completion?()
          }
      }
+     
      /// Handles a single subscription: decides whether to continue or retry.
      ///
      /// - Parameters:
@@ -87,10 +88,10 @@ import CoreData
      ) {
          self.sendPushEventRequest(context: context, objectID: objectId) { result in
              if result is RetryEvent {
-                 pushEventLimit(context: context, for: objectId) { limit in completion(limit ? .completed : .retry) }
+                 retryLimit(context: context, for: objectId) { limit in completion(limit ? .completed : .retry) }
                  return
              }
-             deletePushEvent(context: context, objectID: objectId) { deleted in completion(deleted ? .completed : .retry) }
+             deleteEntity(context: context, objectID: objectId) { deleted in completion(deleted ? .completed : .retry) }
          }
      }
      

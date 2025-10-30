@@ -15,7 +15,7 @@ public final class UserDefaultsSandbox {
     public init(suiteName: String = "AltcraftTests.\(UUID().uuidString)") {
         self.suiteName = suiteName
         guard let d = UserDefaults(suiteName: suiteName) else {
-            fatalError("Не удалось создать UserDefaults suite \(suiteName)")
+            fatalError("Couldn't create UserDefaults suite \(suiteName)")
         }
         self.defaults = d
         clear()

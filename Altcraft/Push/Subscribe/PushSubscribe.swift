@@ -216,10 +216,10 @@ internal class PushSubscribe: NSObject {
         
         self.sendSubscribeRequest(context: context, objectID: event) { result in
             if result is RetryEvent {
-                subscribeLimit(context: context, for: event){ limit in completion(limit ? .completed : .retry) }
+                retryLimit(context: context, for: event){ limit in completion(limit ? .completed : .retry) }
                 return
             }
-            deleteSubscriptions(context: context, objectID: event) { deleted in completion(deleted ? .completed : .retry) }
+            deleteEntity(context: context, objectID: event) { deleted in completion(deleted ? .completed : .retry) }
         }
     }
     
