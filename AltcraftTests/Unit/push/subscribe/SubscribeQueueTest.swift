@@ -26,13 +26,9 @@ import XCTest
  */
 final class SubscribeCommandQueueTests: XCTestCase {
 
-    // MARK: - Helpers
-
     private func asyncAfter(_ seconds: TimeInterval, _ block: @escaping () -> Void) {
         DispatchQueue.global().asyncAfter(deadline: .now() + seconds, execute: block)
     }
-
-    // MARK: - Tests
 
     /// test_1_FIFO_executesJobsInSubmitOrder_whenEachCallsDone
     func test_1_FIFO_executesJobsInSubmitOrder_whenEachCallsDone() {
@@ -64,7 +60,6 @@ final class SubscribeCommandQueueTests: XCTestCase {
         let exp = expectation(description: "two jobs")
         exp.expectedFulfillmentCount = 2
 
-        // First job delays calling done()
         q.submit { done in
             lock.lock(); started.append(1); lock.unlock()
             self.asyncAfter(0.15) {
@@ -73,7 +68,6 @@ final class SubscribeCommandQueueTests: XCTestCase {
             }
         }
 
-        // Second job must not start until first called done()
         q.submit { done in
             lock.lock(); started.append(2); lock.unlock()
             exp.fulfill()
@@ -94,7 +88,6 @@ final class SubscribeCommandQueueTests: XCTestCase {
 
         q.submit { done in
             started.add(1)
-            // Reset while first job is running; keep current chain
             q.reset(dropCurrent: false)
             self.asyncAfter(0.05) {
                 finished.add(1)
@@ -103,7 +96,6 @@ final class SubscribeCommandQueueTests: XCTestCase {
             }
         }
 
-        // These pending jobs should be dropped by reset
         q.submit { done in started.add(2); finished.add(2); done() }
         q.submit { done in started.add(3); finished.add(3); done() }
 
@@ -123,7 +115,6 @@ final class SubscribeCommandQueueTests: XCTestCase {
 
         q.submit { done in
             started.add(1)
-            // In epoch mode, dropCurrent: true invalidates the chain; next jobs must not run
             q.reset(dropCurrent: true)
             self.asyncAfter(0.05) {
                 finished.add(1)
@@ -132,7 +123,6 @@ final class SubscribeCommandQueueTests: XCTestCase {
             }
         }
 
-        // Pending jobs — should not run after epoch reset
         q.submit { done in started.add(2); finished.add(2); done() }
         q.submit { done in started.add(3); finished.add(3); done() }
 
@@ -141,7 +131,6 @@ final class SubscribeCommandQueueTests: XCTestCase {
         XCTAssertEqual(started as? [Int], [1], "Only the current job should start")
         XCTAssertEqual(finished as? [Int], [1], "Only the current job should finish")
 
-        // Submitting a fresh job after reset should work (new generation)
         let exp2 = expectation(description: "new generation runs")
         q.submit { done in
             started.add(4); finished.add(4)
@@ -163,7 +152,6 @@ final class SubscribeCommandQueueTests: XCTestCase {
 
         q.submit { done in
             started.add(1)
-            // Drop pending only; keep current generation
             q.reset(dropCurrent: false)
             self.asyncAfter(0.05) {
                 finished.add(1)
@@ -172,7 +160,6 @@ final class SubscribeCommandQueueTests: XCTestCase {
             }
         }
 
-        // These pending jobs are dropped by reset (generation preserved)
         q.submit { done in started.add(2); finished.add(2); done() }
         q.submit { done in started.add(3); finished.add(3); done() }
 
@@ -181,7 +168,6 @@ final class SubscribeCommandQueueTests: XCTestCase {
         XCTAssertEqual(started as? [Int], [1], "Pending jobs should be dropped")
         XCTAssertEqual(finished as? [Int], [1], "Pending jobs should be dropped")
 
-        // New submit after the first finishes should start a new chain
         let exp2 = expectation(description: "new submit after keep-current")
         q.submit { done in
             started.add(4); finished.add(4)
@@ -207,16 +193,13 @@ final class SubscribeCommandQueueTests: XCTestCase {
         for _ in 0..<5 {
             DispatchQueue.global().async {
                 q.submit { done in
-                    // Enter critical section
                     guardLock.lock()
                     if active != 0 { overlaps += 1 }
                     active += 1
                     guardLock.unlock()
 
-                    // Simulate work
                     Thread.sleep(forTimeInterval: 0.03)
 
-                    // Leave critical section
                     guardLock.lock()
                     active -= 1
                     guardLock.unlock()
@@ -231,4 +214,3 @@ final class SubscribeCommandQueueTests: XCTestCase {
         XCTAssertEqual(overlaps, 0, "Jobs must never overlap; queue must serialize execution")
     }
 }
-

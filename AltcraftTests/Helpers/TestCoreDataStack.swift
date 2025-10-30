@@ -3,69 +3,93 @@
 //  AltcraftTests
 //
 //  Created by Andrey Pogodin.
+//  © 2025 Altcraft. All rights reserved.
 //
-//  Copyright © 2025 Altcraft. All rights reserved.
 
 import CoreData
 @testable import Altcraft
 
 public final class TestCoreDataStack {
+
+    public enum Mode {
+        /// Standalone in-memory container fully isolated per test (default).
+        case inMemory(modelName: String? = nil, bundleToken: AnyClass, bundleIdentifier: String? = nil)
+        /// Proxy to SDK's real container (CoreDataManager.shared.persistentContainer).
+        case sdkPersistent
+    }
+
     public let container: NSPersistentContainer
     public let viewContext: NSManagedObjectContext
 
-    /// - Parameters:
-    ///   - modelName: Optional .xcdatamodeld name (without extension). If nil, we fallback to merged model.
-    ///   - bundleToken: Any class from the framework under test (used when bundleIdentifier is nil).
-    ///   - bundleIdentifier: Optional bundle identifier of the framework (e.g., Constants.CoreData.identifier).
-    public init(modelName: String? = nil, bundleToken: AnyClass, bundleIdentifier: String? = nil) {
-        // Resolve the framework bundle: by identifier if provided, else by class token
-        let bundle: Bundle = {
-            if let id = bundleIdentifier, let b = Bundle(identifier: id) {
-                return b
-            }
-            return Bundle(for: bundleToken)
-        }()
+    /// Primary initializer selecting a mode.
+    public init(mode: Mode) {
+        switch mode {
+        case let .inMemory(modelName, bundleToken, bundleIdentifier):
+            // Resolve the framework bundle: by identifier if provided, else by class token
+            let bundle: Bundle = {
+                if let id = bundleIdentifier, let b = Bundle(identifier: id) {
+                    return b
+                }
+                return Bundle(for: bundleToken)
+            }()
 
-        // Load model: try explicit .momd first, otherwise use merged model from the bundle
-        let model: NSManagedObjectModel = {
-            if let name = modelName,
-               let url = bundle.url(forResource: name, withExtension: "momd"),
-               let m = NSManagedObjectModel(contentsOf: url) {
-                return m
-            }
-            if let merged = NSManagedObjectModel.mergedModel(from: [bundle]) {
-                return merged
-            }
-            fatalError("Core Data model not found in framework bundle")
-        }()
+            // Load model: try explicit .momd first, otherwise merged model
+            let model: NSManagedObjectModel = {
+                if let name = modelName,
+                   let url = bundle.url(forResource: name, withExtension: "momd"),
+                   let m = NSManagedObjectModel(contentsOf: url) {
+                    return m
+                }
+                if let merged = NSManagedObjectModel.mergedModel(from: [bundle]) {
+                    return merged
+                }
+                fatalError("Core Data model not found in framework bundle")
+            }()
 
-        // Create container with the resolved model
-        container = NSPersistentContainer(name: modelName ?? "InMemory", managedObjectModel: model)
+            // Create in-memory container
+            let c = NSPersistentContainer(name: modelName ?? "InMemory", managedObjectModel: model)
+            let desc = NSPersistentStoreDescription()
+            desc.type = NSInMemoryStoreType
+            desc.shouldAddStoreAsynchronously = false
+            c.persistentStoreDescriptions = [desc]
 
-        // Use in-memory store for tests
-        let desc = NSPersistentStoreDescription()
-        desc.type = NSInMemoryStoreType
-        desc.shouldAddStoreAsynchronously = false
-        container.persistentStoreDescriptions = [desc]
+            var loadError: Error?
+            c.loadPersistentStores { _, error in loadError = error }
+            if let error = loadError { fatalError("Failed to load in-memory store: \(error)") }
 
-        var loadError: Error?
-        container.loadPersistentStores { _, error in loadError = error }
-        if let error = loadError { fatalError("Failed to load in-memory store: \(error)") }
+            c.viewContext.mergePolicy = NSMergeByPropertyObjectTrumpMergePolicy
+            c.viewContext.automaticallyMergesChangesFromParent = true
 
-        viewContext = container.viewContext
-        viewContext.mergePolicy = NSMergeByPropertyObjectTrumpMergePolicy
-        viewContext.automaticallyMergesChangesFromParent = true
+            self.container = c
+            self.viewContext = c.viewContext
+
+        case .sdkPersistent:
+            // Use the same container as production code (no prod changes required)
+            let c = CoreDataManager.shared.persistentContainer
+            c.viewContext.mergePolicy = NSMergeByPropertyObjectTrumpMergePolicy
+            c.viewContext.automaticallyMergesChangesFromParent = true
+
+            self.container = c
+            self.viewContext = c.viewContext
+        }
+    }
+
+    /// Convenience factory mirroring previous signature for minimal diffs.
+    public convenience init(modelName: String? = nil, bundleToken: AnyClass, bundleIdentifier: String? = nil) {
+        self.init(mode: .inMemory(modelName: modelName, bundleToken: bundleToken, bundleIdentifier: bundleIdentifier))
     }
 
     public func newBGContext() -> NSManagedObjectContext {
-        // Background context for concurrent operations
         let ctx = container.newBackgroundContext()
         ctx.mergePolicy = NSMergeByPropertyStoreTrumpMergePolicy
         return ctx
     }
 
+    /// Wipes in-memory store; no-op for sdkPersistent.
     public func wipe() {
-        // Remove all stores and recreate a fresh in-memory store
+        // If we are proxied to SDK persistent container, do not tear it down here.
+        guard container.persistentStoreCoordinator.persistentStores.first?.type == NSInMemoryStoreType else { return }
+
         let coordinator = container.persistentStoreCoordinator
         for store in coordinator.persistentStores {
             try? coordinator.remove(store)

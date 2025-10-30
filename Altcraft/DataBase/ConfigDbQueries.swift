@@ -32,7 +32,7 @@ func setConfig(
         return
     }
 
-    CoreDataManager.shared.persistentContainer.performBackgroundTask { context in
+    withBackgroundContext{ context in
         let fetchRequest: NSFetchRequest<ConfigurationEntity> = ConfigurationEntity.fetchRequest()
     
         do {
@@ -86,7 +86,6 @@ private func checkRTokenChange(
                 into: [context]
             )
         }
-
     } catch {
         errorEvent(#function, error: error)
     }
@@ -97,7 +96,7 @@ private func checkRTokenChange(
 /// - Parameters:
 ///   - completion: A closure that is called with a `Configuration?`.
 func getConfig(completion: @escaping (Configuration?) -> Void) {
-    CoreDataManager.shared.persistentContainer.performBackgroundTask { context in
+    withBackgroundContext{ context in
         let fetchRequest: NSFetchRequest<ConfigurationEntity> = ConfigurationEntity.fetchRequest()
         do {
             if let configuration = try context.fetch(fetchRequest).first {
@@ -119,19 +118,17 @@ func getConfig(completion: @escaping (Configuration?) -> Void) {
 ///   - completion: A closure that is called with a `Result<Bool, Error>`
 ///     indicating whether the entity exists or an error occurred during the fetch.
 func doesConfigurationEntityExist(resToken: String, completion: @escaping (Result<Bool, Error>) -> Void) {
-    CoreDataManager.shared.persistentContainer.performBackgroundTask { context in
-        context.perform {
-            let fetchRequest: NSFetchRequest<ConfigurationEntity> = ConfigurationEntity.fetchRequest()
-            do {
-                if let _ = try context.fetch(fetchRequest).first {
-                    completion(.success(true))
-                } else {
-                    completion(.success(false))
-                }
-            } catch {
-                errorEvent(#function, error: error)
-                completion(.failure(error))
+    withBackgroundContext { context in
+        let fetchRequest: NSFetchRequest<ConfigurationEntity> = ConfigurationEntity.fetchRequest()
+        do {
+            if let _ = try context.fetch(fetchRequest).first {
+                completion(.success(true))
+            } else {
+                completion(.success(false))
             }
+        } catch {
+            errorEvent(#function, error: error)
+            completion(.failure(error))
         }
     }
 }
@@ -147,7 +144,7 @@ func updateProviderPriorityList(
 ) {
     enum ConfigUpdateError: Error { case configIsNil }
 
-    CoreDataManager.shared.persistentContainer.performBackgroundTask { context in
+    withBackgroundContext{ context in
         let fetchRequest: NSFetchRequest<ConfigurationEntity> = ConfigurationEntity.fetchRequest()
 
         do {

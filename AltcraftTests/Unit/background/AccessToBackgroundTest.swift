@@ -10,23 +10,21 @@ import XCTest
 @testable import Altcraft
 
 /**
- * AccessToBackgroundTests (iOS 13 compatible)
+ * AccessToBackgroundTests
  *
- * Coverage (explicit):
- *  - test_1_accessToBackground_insertsName_once
- *  - test_2_accessToBackground_isIdempotent_onSecondCall
- *  - test_3_accessToBackground_usesExpectedTaskName
+ * Positive scenarios:
+ *  - test_1: accessToBackground first call → inserts exactly one task name into active set.
+ *  - test_2: accessToBackground repeated calls → idempotent, no duplicates in active set.
+ *  - test_3: accessToBackground task name → uses expected task name from configuration.
  *
  * Notes:
- *  - We avoid asserting system background task behavior (no swizzling of UIApplication).
- *  - Tests focus on deterministic state: the internal Set that guards re-entrance.
- *  - Calls are performed on the main queue to mirror production usage.
+ *  - Tests background task tracking and idempotent behavior.
+ *  - Ensures proper task name registration and duplicate prevention.
  */
 final class AccessToBackgroundTests: XCTestCase {
 
     override func setUp() {
         super.setUp()
-        // Ensure clean state for each test
         AccessToBackground.shared.activeBackgroundTasks.removeAll()
     }
 
@@ -35,7 +33,6 @@ final class AccessToBackgroundTests: XCTestCase {
         super.tearDown()
     }
 
-    /// First call should insert exactly one name into the active set.
     func test_1_accessToBackground_insertsName_once() {
         let bg = AccessToBackground.shared
 
@@ -46,11 +43,10 @@ final class AccessToBackgroundTests: XCTestCase {
         }
         wait(for: [exp], timeout: 1.0)
 
-        XCTAssertEqual(bg.activeBackgroundTasks.count, 1, "Exactly one background task name must be tracked")
-        XCTAssertTrue(bg.activeBackgroundTasks.contains(bg.name), "Tracked set must contain the configured task name")
+        XCTAssertEqual(bg.activeBackgroundTasks.count, 1)
+        XCTAssertTrue(bg.activeBackgroundTasks.contains(bg.name))
     }
 
-    /// Second call while active should be idempotent: no duplicates in the Set.
     func test_2_accessToBackground_isIdempotent_onSecondCall() {
         let bg = AccessToBackground.shared
 
@@ -67,11 +63,10 @@ final class AccessToBackgroundTests: XCTestCase {
         }
         wait(for: [exp], timeout: 1.0)
 
-        XCTAssertEqual(bg.activeBackgroundTasks.count, 1, "Repeated calls must not add duplicates")
+        XCTAssertEqual(bg.activeBackgroundTasks.count, 1)
         XCTAssertTrue(bg.activeBackgroundTasks.contains(bg.name))
     }
 
-    /// Verifies the configured background task name is the one registered in the Set.
     func test_3_accessToBackground_usesExpectedTaskName() {
         let bg = AccessToBackground.shared
 
@@ -82,7 +77,7 @@ final class AccessToBackgroundTests: XCTestCase {
         }
         wait(for: [exp], timeout: 1.0)
 
-        XCTAssertEqual(bg.activeBackgroundTasks.first, bg.name, "Registered task name should match Constants.bgTaskName")
+        XCTAssertEqual(bg.activeBackgroundTasks.first, bg.name)
     }
 }
 

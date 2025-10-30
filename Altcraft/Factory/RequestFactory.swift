@@ -387,5 +387,5 @@ func createMobileEventRequest(
         errorEvent(#function, error: invalidRequestUrl, value: [Constants.MapKeys.url: data.url])
         return nil
     }
-    return buildMultipartRequest(url: url, parts: data.parst, authHeader: data.authHeader)
+    return buildMultipartRequest(url: url, parts: data.parts, authHeader: data.authHeader)
 }

@@ -19,11 +19,6 @@ import UserNotifications
  *  - test_3_addAttachment_swallowErrors_andLeavesAttachmentsEmpty
  *  - test_4_extractMediaURL_returnsURL_and_nilWhenMissing_emitsError
  *  - test_5_loadAttachmentAsync_fromLocalFile_addsAttachment
- *
- * Notes:
- *  - No network: download uses a local file:// URL.
- *  - Uses SDKEvents spy to assert event emission.
- *  - We do not call didReceive(): UNUserNotificationCenter.current() crashes under unit runner.
  */
 final class AltcraftPushReceiverTests: XCTestCase {
 
@@ -42,8 +37,6 @@ final class AltcraftPushReceiverTests: XCTestCase {
             SDKEvents.shared.unsubscribe()
         }
     }
-
-    // MARK: - Helpers
 
     private func makeTempDir(_ name: String = UUID().uuidString) -> URL {
         URL(fileURLWithPath: NSTemporaryDirectory()).appendingPathComponent(name, isDirectory: true)
@@ -69,8 +62,6 @@ final class AltcraftPushReceiverTests: XCTestCase {
         content.body = "b"
         return UNNotificationRequest(identifier: UUID().uuidString, content: content, trigger: nil)
     }
-
-    // MARK: - Tests
 
     /// test_1_isAltcraftPush_detectsFlag_correctly
     func test_1_isAltcraftPush_detectsFlag_correctly() {
@@ -124,7 +115,6 @@ final class AltcraftPushReceiverTests: XCTestCase {
         c1.userInfo = [Constants.UserInfoKeys.media: fileURL.absoluteString]
         XCTAssertEqual(svc.extractMediaURL(content: c1), fileURL)
 
-        // missing/invalid
         let spy = EventSpy(); spy.start()
         defer { spy.stop() }
 
@@ -133,7 +123,6 @@ final class AltcraftPushReceiverTests: XCTestCase {
         XCTAssertNil(svc.extractMediaURL(content: c2))
         XCTAssertFalse(spy.events.isEmpty)
         XCTAssertTrue(spy.events.last is ErrorEvent)
-        // formatted as "extractMediaURL()"
         XCTAssertEqual(spy.events.last?.function, "extractMediaURL()")
     }
 
@@ -157,4 +146,3 @@ final class AltcraftPushReceiverTests: XCTestCase {
         wait(for: [exp], timeout: 3.0)
     }
 }
-

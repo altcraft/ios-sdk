@@ -21,6 +21,7 @@ let anonJWT: String? = nil
 
 ///set the JWT value for the registered user as regJWT or in the application IU interface (config)
 let regJWT: String? = nil
+
 @main
 struct IOSAPNsExampleApp: App {
     @UIApplicationDelegateAdaptor(AppDelegate.self) var delegate
@@ -37,8 +38,7 @@ struct IOSAPNsExampleApp: App {
                     if case let .mode(m)? = deeplinkManager.manage(url: url) {
                         mode = m
                     }
-                }
-                .preferredColorScheme(.light)
+                }.preferredColorScheme(.light)
         }
     }
 }
@@ -65,7 +65,7 @@ class AppDelegate: UIResponder, UIApplicationDelegate, UNUserNotificationCenterD
         AltcraftSDK.shared.notificationManager.registerForPushNotifications(for: application)
         
         initSDK(config: getConfigFromUserDefault())
-        
+    
         return true
     }
     

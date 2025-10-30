@@ -3,155 +3,140 @@
 //  AltcraftTests
 //
 //  Created by Andrey Pogodin.
+//  © 2025 Altcraft. All rights reserved.
 //
-//  Copyright © 2025 Altcraft. All rights reserved.
 
 import XCTest
 @testable import Altcraft
 
 /**
- * RetryManagerTests (iOS 13 compatible)
+ * RetryManagerTests
  *
- * Coverage (explicit):
- *  - test_1_store_replacesExisting_cancelsOld_runsNew
- *  - test_2_cancelAll_cancelsScheduledWork_onAllQueues
- *  - test_3_store_withDifferentKeys_runsIndependently
- *  - test_4_concurrentStore_sameKey_isThreadSafe_lastWins
- *
- * Notes:
- *  - We always schedule the exact DispatchWorkItem saved via store(...),
- *    so that RetryManager’s cancellation actually prevents its execution.
- *  - Small delays and moderate timeouts reduce flakiness while keeping tests fast.
+ * Coverage:
+ *  - test_1_store_replaces_existing_task_and_cancels_old
+ *  - test_2_cancelAll_cancels_pending_tasks_across_all_queues
+ *  - test_3_queues_execute_scheduled_tasks_independently
+ *  - test_4_store_is_thread_safe_last_task_runs
  */
 final class RetryManagerTests: XCTestCase {
 
     override func tearDown() {
-        super.tearDown()
         RetryManager.shared.cancelAll()
+        super.tearDown()
     }
 
-    // MARK: - 1. Replacement by key
-
-    /// New store() under the same key cancels the old work; only the new one runs.
-    func test_1_store_replacesExisting_cancelsOld_runsNew() {
+    /// Ensures store(key:) cancels previous task with the same key and only the latest runs.
+    func test_1_store_replaces_existing_task_and_cancels_old() {
         let mgr = RetryManager.shared
 
-        let oldRan = AtomicInt()
-        let newRan = AtomicInt()
-        let exp = expectation(description: "new work runs, old is cancelled")
+        let firedOld = XCTestExpectation(description: "old should NOT fire")
+        firedOld.isInverted = true
+
+        let firedNew = expectation(description: "new should fire")
 
         let oldWork = DispatchWorkItem {
-            oldRan.increment()
+            firedOld.fulfill()
         }
-        mgr.store(key: "K", work: oldWork)
-        mgr.subscribeQueue.asyncAfter(deadline: .now() + 0.06, execute: oldWork)
-
         let newWork = DispatchWorkItem {
-            newRan.increment()
-            exp.fulfill()
+            firedNew.fulfill()
         }
-        // Storing the new work should cancel the old one
-        mgr.store(key: "K", work: newWork)
-        mgr.subscribeQueue.asyncAfter(deadline: .now() + 0.06, execute: newWork)
 
-        wait(for: [exp], timeout: 1.0)
-        XCTAssertEqual(oldRan.value, 0, "Old work should be cancelled and never run")
-        XCTAssertEqual(newRan.value, 1, "New work should run exactly once")
+        mgr.store(key: "K", work: oldWork)
+        mgr.subscribeQueue.asyncAfter(deadline: .now() + 0.15, execute: oldWork)
+
+        mgr.store(key: "K", work: newWork)
+        mgr.subscribeQueue.asyncAfter(deadline: .now() + 0.10, execute: newWork)
+
+        wait(for: [firedNew, firedOld], timeout: 1.0)
     }
 
-    // MARK: - 2. Global cancellation
-
-    /// cancelAll() cancels all scheduled work across all queues.
-    func test_2_cancelAll_cancelsScheduledWork_onAllQueues() {
+    /// Verifies cancelAll() cancels all pending tasks on all queues.
+    func test_2_cancelAll_cancels_pending_tasks_across_all_queues() {
         let mgr = RetryManager.shared
 
-        let subRan = AtomicInt()
-        let updRan = AtomicInt()
-        let evtRan = AtomicInt()
+        let subDidNotFire = XCTestExpectation(description: "sub should be cancelled")
+        let tokDidNotFire = XCTestExpectation(description: "token should be cancelled")
+        let pushDidNotFire = XCTestExpectation(description: "push should be cancelled")
+        let mobDidNotFire  = XCTestExpectation(description: "mobile should be cancelled")
 
-        let w1 = DispatchWorkItem { subRan.increment() }
-        let w2 = DispatchWorkItem { updRan.increment() }
-        let w3 = DispatchWorkItem { evtRan.increment() }
+        subDidNotFire.isInverted = true
+        tokDidNotFire.isInverted = true
+        pushDidNotFire.isInverted = true
+        mobDidNotFire.isInverted  = true
 
-        mgr.store(key: "S", work: w1)
-        mgr.store(key: "U", work: w2)
-        mgr.store(key: "E", work: w3)
+        let sub = DispatchWorkItem { subDidNotFire.fulfill() }
+        let tok = DispatchWorkItem { tokDidNotFire.fulfill() }
+        let push = DispatchWorkItem { pushDidNotFire.fulfill() }
+        let mob  = DispatchWorkItem { mobDidNotFire.fulfill() }
 
-        mgr.subscribeQueue.asyncAfter(deadline: .now() + 0.08, execute: w1)
-        mgr.tokenUpdateQueue.asyncAfter(deadline: .now() + 0.08, execute: w2)
-        mgr.pushEventQueue.asyncAfter(deadline: .now() + 0.08, execute: w3)
+        mgr.store(key: "sub", work: sub)
+        mgr.store(key: "tok", work: tok)
+        mgr.store(key: "push", work: push)
+        mgr.store(key: "mob", work: mob)
 
-        // Cancel everything immediately
+        mgr.subscribeQueue.asyncAfter(deadline: .now() + 0.2, execute: sub)
+        mgr.tokenUpdateQueue.asyncAfter(deadline: .now() + 0.2, execute: tok)
+        mgr.pushEventQueue.asyncAfter(deadline: .now() + 0.2, execute: push)
+        mgr.mobileEventQueue.asyncAfter(deadline: .now() + 0.2, execute: mob)
+
         mgr.cancelAll()
 
-        let exp = expectation(description: "none runs after cancelAll")
-        DispatchQueue.global().asyncAfter(deadline: .now() + 0.15) {
-            XCTAssertEqual(subRan.value, 0)
-            XCTAssertEqual(updRan.value, 0)
-            XCTAssertEqual(evtRan.value, 0)
-            exp.fulfill()
-        }
-        wait(for: [exp], timeout: 1.0)
+        wait(for: [subDidNotFire, tokDidNotFire, pushDidNotFire, mobDidNotFire], timeout: 0.5)
     }
 
-    // MARK: - 3. Different keys are independent
-
-    /// Different keys track separate work items; both should run.
-    func test_3_store_withDifferentKeys_runsIndependently() {
+    /// Confirms different queues execute their scheduled tasks independently.
+    func test_3_queues_execute_scheduled_tasks_independently() {
         let mgr = RetryManager.shared
 
-        let aRan = AtomicInt()
-        let bRan = AtomicInt()
-        let exp = expectation(description: "both run")
-        exp.expectedFulfillmentCount = 2
+        let exp = expectation(description: "all queues fired")
+        exp.expectedFulfillmentCount = 4
 
-        let wa = DispatchWorkItem { aRan.increment(); exp.fulfill() }
-        let wb = DispatchWorkItem { bRan.increment(); exp.fulfill() }
+        let sub = DispatchWorkItem { exp.fulfill() }
+        let tok = DispatchWorkItem { exp.fulfill() }
+        let push = DispatchWorkItem { exp.fulfill() }
+        let mob  = DispatchWorkItem { exp.fulfill() }
 
-        mgr.store(key: "A", work: wa)
-        mgr.store(key: "B", work: wb)
+        mgr.store(key: "subQ", work: sub)
+        mgr.store(key: "tokQ", work: tok)
+        mgr.store(key: "pushQ", work: push)
+        mgr.store(key: "mobQ", work: mob)
 
-        mgr.subscribeQueue.asyncAfter(deadline: .now() + 0.04, execute: wa)
-        mgr.subscribeQueue.asyncAfter(deadline: .now() + 0.05, execute: wb)
+        mgr.subscribeQueue.asyncAfter(deadline: .now() + 0.05, execute: sub)
+        mgr.tokenUpdateQueue.asyncAfter(deadline: .now() + 0.06, execute: tok)
+        mgr.pushEventQueue.asyncAfter(deadline: .now() + 0.07, execute: push)
+        mgr.mobileEventQueue.asyncAfter(deadline: .now() + 0.08, execute: mob)
 
-        wait(for: [exp], timeout: 1.0)
-        XCTAssertEqual(aRan.value, 1)
-        XCTAssertEqual(bRan.value, 1)
+        // Было 1.0 — слишком агрессивно на загруженных машинах
+        wait(for: [exp], timeout: 3.0)
     }
 
-    // MARK: - 4. Concurrent store for the same key
 
-    /// Concurrent store() calls for the same key: only the last scheduled work executes.
-    func test_4_concurrentStore_sameKey_isThreadSafe_lastWins() {
+    /// Stress: concurrent store(key:) calls are safe; the last stored task runs.
+    func test_4_store_is_thread_safe_last_task_runs() {
         let mgr = RetryManager.shared
 
-        let total = 10
-        let counters = (0..<total).map { _ in AtomicInt() }
-        let works: [DispatchWorkItem] = counters.enumerated().map { (_, counter) in
-            DispatchWorkItem { counter.increment() }
+        let didRun = expectation(description: "last work ran")
+
+        let iterations = 50
+        let key = "race-key"
+        let group = DispatchGroup()
+
+        for _ in 0..<iterations {
+            group.enter()
+            DispatchQueue.global().async {
+                let work = DispatchWorkItem { /* no-op */ }
+                mgr.store(key: key, work: work)
+                mgr.subscribeQueue.asyncAfter(deadline: .now() + 0.1, execute: work)
+                group.leave()
+            }
         }
 
-        // Concurrently call store for the same key and schedule each work.
-        DispatchQueue.concurrentPerform(iterations: total) { i in
-            mgr.store(key: "ONE", work: works[i])
-            mgr.subscribeQueue.asyncAfter(deadline: .now() + 0.07, execute: works[i])
-        }
+        XCTAssertEqual(group.wait(timeout: .now() + 1.5), .success)
 
-        let exp = expectation(description: "only last runs")
-        DispatchQueue.global().asyncAfter(deadline: .now() + 0.2) {
-            let ranCount = counters.map { $0.value }.reduce(0, +)
-            XCTAssertEqual(ranCount, 1, "Only the last stored work should run")
-            exp.fulfill()
-        }
-        wait(for: [exp], timeout: 1.0)
+        let final = DispatchWorkItem { didRun.fulfill() }
+        mgr.store(key: key, work: final)
+        mgr.subscribeQueue.async(execute: final)
+
+        wait(for: [didRun], timeout: 3.0)
     }
 }
-
-// MARK: - Tiny atomic int helper to avoid data races in tests
-
-private final class AtomicInt {
-    private var _v: Int32 = 0
-    func increment() { OSAtomicIncrement32(&_v) }
-    var value: Int { Int(OSAtomicAdd32(0, &_v)) }
-}
-

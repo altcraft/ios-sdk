@@ -85,8 +85,6 @@ final class AltcraftInitTests: XCTestCase {
         return cfg
     }
 
-    // MARK: - Lifecycle
-
     override func setUp() {
         super.setUp()
         isolateUserDefaults()

@@ -3,142 +3,196 @@
 //  AltcraftTests
 //
 //  Created by Andrey Pogodin.
+//  © 2025 Altcraft. All rights reserved.
 //
-//  Copyright © 2025 Altcraft. All rights reserved.
 
 import XCTest
+import CoreData
 @testable import Altcraft
 
 /**
- * ClearCacheTests (iOS 13 compatible)
+ * ClearCacheTests (isolated but exercising SDK container paths)
  *
- * Coverage (explicit):
- *  - test_1_cancelAll_preventsScheduledWorkFromRunning
- *  - test_2_resetsUserDefaultsAndTokens_onSuccess
- *  - test_3_doesNothing_whenDbHasCriticalError
- *
- * Notes:
- *  - We point StoredVariablesManager to an isolated UserDefaults suite (UserDefaultsSandbox).
- *  - We schedule the exact DispatchWorkItem saved via RetryManager.store(...) so that
- *    RetryManager.cancelAll() actually cancels what would be executed.
+ * Coverage:
+ *  - test_1_clearCache_resets_counters_tokens_emitsEvent_and_wipesDB
+ *  - test_2_clearCache_whenDbErrorFlag_true_doesNothing_and_doesNotCallCompletion
  */
 final class ClearCacheTests: XCTestCase {
 
-    private var sandbox: UserDefaultsSandbox!
+    private let container = CoreDataManager.shared.persistentContainer
+
+    private final class EventSpy {
+        private(set) var events: [Event] = []
+        func start() { SDKEvents.shared.subscribe { [weak self] ev in self?.events.append(ev) } }
+        func stop() { SDKEvents.shared.unsubscribe() }
+        func fresh(since n: Int) -> [Event] { Array(events.dropFirst(n)) }
+    }
 
     override func setUp() {
         super.setUp()
-        sandbox = UserDefaultsSandbox()
-        // Make SDK use the sandboxed suite for token storage
-        StoredVariablesManager.shared.setGroupsName(value: sandbox.suiteName)
-        // Ensure DB is not marked as critical by default
-        StoredVariablesManager.shared.setCritDB(value: false)
+        wipeSDK([
+            Constants.EntityNames.config,
+            Constants.EntityNames.subscribe,
+            Constants.EntityNames.pushEvent,
+            Constants.EntityNames.mobileEvent
+        ])
+        
+        StoredVariablesManager.shared.setGroupsName(value: "AltcraftTests.ClearCache")
     }
 
     override func tearDown() {
-        // Clean up any scheduled retry tasks between tests
-        RetryManager.shared.cancelAll()
-        sandbox.clear()
-        sandbox = nil
+        wipeSDK([
+            Constants.EntityNames.config,
+            Constants.EntityNames.subscribe,
+            Constants.EntityNames.pushEvent,
+            Constants.EntityNames.mobileEvent
+        ])
         super.tearDown()
     }
 
-    // MARK: - 1. cancelAll stops scheduled work
-
-    /// clearCache() must call RetryManager.cancelAll(), preventing scheduled work from running.
-    func test_1_cancelAll_preventsScheduledWorkFromRunning() {
-        let ran = AtomicInt()
-
-        // Prepare a cancellable work item and schedule it with a small delay
-        let work = DispatchWorkItem { ran.increment() }
-        RetryManager.shared.store(key: "T", work: work)
-        RetryManager.shared.subscribeQueue.asyncAfter(deadline: .now() + 0.08, execute: work)
-
-        let exp = expectation(description: "clearCache completion")
-        clearCache {
-            exp.fulfill()
-        }
-        wait(for: [exp], timeout: 1.0)
-
-        // Give a little time to ensure the scheduled work would have fired if not cancelled
-        let settle = expectation(description: "settle")
-        DispatchQueue.global().asyncAfter(deadline: .now() + 0.12) { settle.fulfill() }
-        wait(for: [settle], timeout: 1.0)
-
-        XCTAssertEqual(ran.value, 0, "Scheduled work should be cancelled by clearCache()")
+    /// Runs a block on a fresh background context (SDK container).
+    private func withBG(_ block: @escaping (NSManagedObjectContext) -> Void) {
+        let ctx = container.newBackgroundContext()
+        ctx.mergePolicy = NSMergeByPropertyObjectTrumpMergePolicy
+        ctx.performAndWait { block(ctx) }
     }
 
-    // MARK: - 2. Resets persisted values and tokens
+    /// Counts rows for a given entity name in the SDK container.
+    private func count(_ entity: String) -> Int {
+        var n = 0
+        withBG { ctx in
+            let fr = NSFetchRequest<NSFetchRequestResult>(entityName: entity)
+            n = (try? ctx.count(for: fr)) ?? 0
+        }
+        return n
+    }
 
-    /// On success, clearCache() must reset retry counters and remove saved/manual tokens.
-    func test_2_resetsUserDefaultsAndTokens_onSuccess() {
-        let store = StoredVariablesManager.shared
+    /// Hard-wipes specified entities from the SDK container.
+    private func wipeSDK(_ names: [String]) {
+        withBG { ctx in
+            for name in names {
+                let fr = NSFetchRequest<NSFetchRequestResult>(entityName: name)
+                fr.includesPropertyValues = false
+                if let list = try? ctx.fetch(fr) as? [NSManagedObject] {
+                    list.forEach { ctx.delete($0) }
+                }
+            }
+            if ctx.hasChanges { try? ctx.save() }
+        }
+    }
 
-        // Seed non-default values
-        store.setSubRetryCount(value: 5)
-        store.setUpdateRetryCount(value: 7)
-        store.setPushEventRetryCount(value: 3)
+    /// Seeds one Configuration and two rows for each entity type into the SDK container.
+    private func seedAllEntities() {
+        withBG { ctx in
+            let cfg = ConfigurationEntity(context: ctx)
+            cfg.url = "https://api"
+            cfg.rToken = "r"
+            for i in 0..<2 {
+                let s = SubscribeEntity(context: ctx)
+                s.userTag = "u"
+                s.status = "subscribed"
+                s.sync = 1
+                s.time = Int64(1_700_000_000_000 + i)
+                s.retryCount = 0
+                s.maxRetryCount = 3
 
-        // Seed tokens (manual + "current")
-        store.setPushToken(provider: "apns", token: "MANUAL_TOKEN_123")
-        store.setCurrentToken(provider: "apns", token: "CURRENT_TOKEN_456")
-        TokenUpdate.shared.currentToken = TokenData(provider: "apns", token: "TMP")
+                let pe = PushEventEntity(context: ctx)
+                pe.uid = "uid-\(i)"
+                pe.type = Constants.PushEvents.delivery
+                pe.time = Int64(1_700_000_000_500 + i)
+                pe.retryCount = 0
+                pe.maxRetryCount = 3
 
-        // Sanity: values are present before clear
-        XCTAssertEqual(store.getSubRetryCount(), 5)
-        XCTAssertEqual(store.getUpdateRetryCount(), 7)
-        XCTAssertEqual(store.getPushEventRetryCount(), 3)
-        XCTAssertNotNil(store.getManualToken())
-        XCTAssertNotNil(store.getSavedToken())
-        XCTAssertNotNil(TokenUpdate.shared.currentToken)
+                let me = MobileEventEntity(context: ctx)
+                me.userTag = "u"
+                me.sid = "sid-\(i)"
+                me.eventName = "open"
+                me.time = Int64(1_700_000_001_000 + i)
+                me.timeZone = 180
+                me.retryCount = 0
+                me.maxRetryCount = 3
+            }
+            try? ctx.save()
+        }
+    }
+
+    /// Ensures clearCache wipes DB, resets counters/tokens and emits sdkCleared event.
+    func test_1_clearCache_resets_counters_tokens_emitsEvent_and_wipesDB() {
+        seedAllEntities()
+        XCTAssertEqual(count(Constants.EntityNames.config), 1)
+        XCTAssertEqual(count(Constants.EntityNames.subscribe), 2)
+        XCTAssertEqual(count(Constants.EntityNames.pushEvent), 2)
+        XCTAssertEqual(count(Constants.EntityNames.mobileEvent), 2)
+
+        subRetryCount = 10
+        updateRetryCount = 11
+        pushEventRetryCount = 12
+        mobileEventRetryCount = 13
+
+        StoredVariablesManager.shared.setPushToken(provider: "ios-apns", token: "manual-token")
+        StoredVariablesManager.shared.setCurrentToken(provider: "ios-apns", token: "saved-token")
+        TokenUpdate.shared.currentToken = TokenData(provider: "ios-apns", token: "temp-token")
+        TokenManager.shared.tokens.ts_append("t1")
+        TokenManager.shared.tokens.ts_append("t2")
+
+        let spy = EventSpy(); spy.start()
+        defer { spy.stop() }
+        let before = spy.events.count
 
         let exp = expectation(description: "clearCache completion")
-        clearCache {
-            exp.fulfill()
-        }
+        clearCache { exp.fulfill() }
         wait(for: [exp], timeout: 2.0)
 
-        // Retry counters should be reset to 0 (our implementation writes zeros explicitly)
-        XCTAssertEqual(StoredVariablesManager.shared.getSubRetryCount(), 0)
-        XCTAssertEqual(StoredVariablesManager.shared.getUpdateRetryCount(), 0)
-        XCTAssertEqual(StoredVariablesManager.shared.getPushEventRetryCount(), 0)
+        XCTAssertEqual(count(Constants.EntityNames.config), 0)
+        XCTAssertEqual(count(Constants.EntityNames.subscribe), 0)
+        XCTAssertEqual(count(Constants.EntityNames.pushEvent), 0)
+        XCTAssertEqual(count(Constants.EntityNames.mobileEvent), 0)
 
-        // Tokens should be cleared
+        XCTAssertEqual(subRetryCount, 0)
+        XCTAssertEqual(updateRetryCount, 0)
+        XCTAssertEqual(pushEventRetryCount, 0)
+        XCTAssertEqual(mobileEventRetryCount, 0)
+
         XCTAssertNil(StoredVariablesManager.shared.getManualToken())
         XCTAssertNil(StoredVariablesManager.shared.getSavedToken())
         XCTAssertNil(TokenUpdate.shared.currentToken)
+
+        XCTAssertNil(TokenManager.shared.tokens.ts_last() ?? (nil as String?))
+
+        let fresh = spy.fresh(since: before)
+        let hasClearedEvent = fresh.contains { normalizeFunc($0.function) == "clearCache" }
+        XCTAssertTrue(hasClearedEvent, "Expected sdkCleared event from clearCache()")
     }
 
-    // MARK: - 3. Critical DB flag short-circuits (no completion)
+    /// Verifies that when DB critical flag is set, clearCache does nothing and completion is not called.
+    func test_2_clearCache_whenDbErrorFlag_true_doesNothing_and_doesNotCallCompletion() {
+        StoredVariablesManager.shared.setCritDB(value: true)
 
-    /// If DB is marked critical, clearCache() should skip work and not call completion.
-    func test_3_doesNothing_whenDbHasCriticalError() {
-        let store = StoredVariablesManager.shared
-        store.setCritDB(value: true)
+        seedAllEntities()
+        subRetryCount = 3
+        TokenManager.shared.tokens.ts_append("x")
+        TokenUpdate.shared.currentToken = TokenData(provider: "ios-apns", token: "y")
 
-        // Seed a value we expect to remain unchanged
-        store.setSubRetryCount(value: 9)
-
-        // Use an inverted expectation to assert that completion is NOT called
-        let exp = expectation(description: "no completion when critical DB")
+        let exp = expectation(description: "no-callback")
         exp.isInverted = true
+        clearCache { exp.fulfill() }
+        wait(for: [exp], timeout: 0.3)
 
-        clearCache {
-            exp.fulfill()
-        }
+        XCTAssertEqual(count(Constants.EntityNames.config), 1)
+        XCTAssertEqual(subRetryCount, 3)
 
-        wait(for: [exp], timeout: 0.5)
+        let lastBeforeClear = TokenManager.shared.tokens.ts_last() ?? (nil as String?)
+        XCTAssertEqual(lastBeforeClear, "x")
+        XCTAssertEqual(TokenUpdate.shared.currentToken?.token, "y")
 
-        // Value should remain unchanged because the function returns early
-        XCTAssertEqual(store.getSubRetryCount(), 9)
+        StoredVariablesManager.shared.setCritDB(value: false)
     }
-}
 
-// MARK: - Tiny atomic helper
-
-private final class AtomicInt {
-    private var _v: Int32 = 0
-    func increment() { OSAtomicIncrement32(&_v) }
-    var value: Int { Int(OSAtomicAdd32(0, &_v)) }
+    /// Normalizes function name stored in Event.function for comparisons.
+    private func normalizeFunc(_ raw: String?) -> String {
+        guard let raw = raw else { return "" }
+        if let idx = raw.firstIndex(of: "(") { return String(raw[..<idx]) }
+        return raw.hasSuffix("()") ? String(raw.dropLast(2)) : raw
+    }
 }
 

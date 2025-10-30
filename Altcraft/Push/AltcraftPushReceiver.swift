@@ -155,7 +155,7 @@ public class AltcraftPushReceiver: NSObject {
     ///   - directory: Target directory where the attachment file will be moved.
     /// - Throws: File system or attachment creation errors.
     /// - Returns: A configured `UNNotificationAttachment` with a format-appropriate filename.
-    private func createNotificationAttachment(
+    func createNotificationAttachment(
         from tempURL: URL,
         in directory: URL
     ) throws -> UNNotificationAttachment {

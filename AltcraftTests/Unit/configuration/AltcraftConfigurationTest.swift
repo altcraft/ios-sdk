@@ -32,28 +32,21 @@ final class AltcraftConfigurationTest: XCTestCase {
     private let emptyApiUrl = ""
     private let rToken      = "r-token-123"
 
-    // AppInfo matches your struct fields (appID/appIID/appVer)
     private let appInfo = AppInfo(appID: "com.altcraft.demo",
                                   appIID: "iid-001",
                                   appVer: "1.0.0")
 
-    // Canonical provider ids expected by SDK
     private let validProviders: [String] = [
         Constants.ProviderName.apns,
         Constants.ProviderName.firebase,
         Constants.ProviderName.huawei
     ]
 
-    // Intentionally invalid providers for negative test
     private let invalidProviders = ["__UNKNOWN__", "NOT_A_PROVIDER"]
 
     private func makeBuilder() -> AltcraftConfiguration.Builder {
         AltcraftConfiguration.Builder()
     }
-
-    // ---------------------------
-    // Positive
-    // ---------------------------
 
     /// test_1: build succeeds with minimal required values (apiUrl only)
     func test_1_build_succeeds_withMinimalRequiredValues() {
@@ -106,10 +99,6 @@ final class AltcraftConfigurationTest: XCTestCase {
         XCTAssertEqual(config.getProviderPriorityList() ?? [], validProviders)
     }
 
-    // ---------------------------
-    // Negative
-    // ---------------------------
-
     /// test_4: build returns nil when apiUrl is missing
     func test_4_build_returnsNil_whenApiUrlMissing() {
         let config = makeBuilder()
@@ -142,4 +131,3 @@ final class AltcraftConfigurationTest: XCTestCase {
         XCTAssertNil(config)
     }
 }
-

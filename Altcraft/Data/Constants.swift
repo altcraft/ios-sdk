@@ -14,17 +14,17 @@ public enum Constants {
     
     /// Provider names used for identifying push notification services.
     public enum ProviderName {
-
+        
         /// The provider name for Firebase.
         public static let firebase = "ios-firebase"
-
+        
         /// The provider name for APNs.
         public static let apns = "ios-apns"
-
+        
         /// The provider name for HMS.
         public static let huawei = "ios-huawei"
     }
-
+    
     /// The category identifier for rich push notifications.
     static let categoryForRichPush = "Altcraft"
     
@@ -94,7 +94,7 @@ public enum Constants {
         /// The name assigned to the background context used by PushSubscribe.
         static let pushSubscribe = "PushSubscribeContext"
     }
-
+    
     /// Query parameters used in URL requests.
     public enum QueryItem {
         /// Push provider (ios-apns, ios-firebase, ios-huawey).
@@ -114,7 +114,7 @@ public enum Constants {
     public enum URLScheme {
         /// The `http` scheme.
         public static let http = "http"
-
+        
         /// The `https` scheme.
         public static let https = "https"
     }
@@ -139,7 +139,7 @@ public enum Constants {
         /// GET method.
         static let get = "GET"
     }
- 
+    
     ///Enum representing the keys used in JSON responses or requests.
     
     public enum JSONKeys {
@@ -199,19 +199,19 @@ public enum Constants {
         
         /// The key for category active status in JSON.
         static let catsActive = "active"
-    
+        
         
         /// The key for the old token in update JSON.
-         static let oldToken = "old_token"
-
-         /// The key for the old provider in update JSON.
-         static let oldProvider = "old_provider"
-
-         /// The key for the new token in update JSON.
-         static let newToken = "new_token"
-
-         /// The key for the new provider in update JSON.
-         static let newProvider = "new_provider"
+        static let oldToken = "old_token"
+        
+        /// The key for the old provider in update JSON.
+        static let oldProvider = "old_provider"
+        
+        /// The key for the new token in update JSON.
+        static let newToken = "new_token"
+        
+        /// The key for the new provider in update JSON.
+        static let newProvider = "new_provider"
         
         /// The key for the push event ID (smid).
         static let smid = "smid"
@@ -254,10 +254,10 @@ public enum Constants {
     internal enum UserInfoKeys {
         /// Unique message identifier.
         static let uid = "_uid"
-
+        
         /// Action buttons configuration key.
         static let buttons = "_buttons"
-
+        
         /// Rich media attachment key.
         static let media = "_media"
         
@@ -269,7 +269,7 @@ public enum Constants {
     public enum MapKeys {
         /// Push event identifier key.
         static let uid = "uid"
-
+        
         /// Push event type key.
         static let type = "type"
         
@@ -297,7 +297,7 @@ public enum Constants {
         ///Link value key.
         static let link = "link"
     }
-
+    
     /// Subscription status values.
     enum Status: String {
         /// Active subscription.
@@ -353,7 +353,7 @@ public enum Constants {
         static let UTM_SOURCE         = "cs"
         static let UTM_TEMP           = "ct"
     }
-
+    
     /// Contains the names of the entities used in Core Data.
     enum EntityNames {
         
@@ -369,7 +369,7 @@ public enum Constants {
         /// The name of the mobile event entity.
         static let mobileEvent = "MobileEventEntity"
     }
-
+    
     /// Contains the string identifiers for UI buttons and system notification actions.
     enum ButtonIdentifier {
         
@@ -408,18 +408,18 @@ public enum Constants {
     /// including database names, model identifiers, and file paths.
     enum CoreData {
         /// The bundle identifier for the Core Data framework.
-         static let identifier = "altcraft.Altcraft"
+        static let identifier = "altcraft.Altcraft"
         
         static let subdirName = "Altcraft"
         
         /// The name of the Core Data model.
-         static let modelName = "DataBase"
+        static let modelName = "DataBase"
         
         /// The name of the persistent store file.
-         static let storeFileName = "Database.sqlite"
+        static let storeFileName = "Database.sqlite"
         
         /// The name of an empty Core Data model used as a fallback.
-         static let emptyModelName = "EmptyDataBase"
+        static let emptyModelName = "EmptyDataBase"
     }
     
     /// A namespace for predefined SDK request names.
@@ -442,36 +442,36 @@ public enum Constants {
         /// Request path for mobile event.
         static let mobileEvent = "event/post"
     }
-
+    
     /// A namespace for predefined SDK success messages.
     enum SDKSuccessMessage {
         /// Message for successful completion of the subscription request.
         static let subscribeSuccess = "successful request: \(RequestName.subscribe)"
-
+        
         /// Message for successful completion of the token update request.
-            static let tokenUpdateSuccess = "successful request: \(RequestName.update)"
+        static let tokenUpdateSuccess = "successful request: \(RequestName.update)"
         
         /// Message for successful completion of the push unsuspend request.
         static let pushUnSuspendSuccess = "successful request: \(RequestName.unsuspend)"
         
         /// Message for successful completion of the token update request.
         static let statusSuccess = "successful request: \(RequestName.status)"
-
+        
         /// Message for successful delivery of the push event.
         static let pushEventDelivered = "successful request: \(RequestName.pushEvent). Type: "
         
         /// Message for successful delivery of the mobile event.
         static let mobileEventDelivered = "successful request: \(RequestName.mobileEvent). Name: "
     }
-   
+    
     /// Status request modes.
     enum StatusMode {
         /// Latest subscription overall (most recent, regardless of provider).
         static let latestSubscription = "latest_subscription"
-
+        
         /// Latest subscription for a given provider (FCM, HMS, APNs, etc.).
         static let latestForProvider = "latest_for_provider"
-
+        
         /// Subscription matching the current token and current provider.
         static let matchCurrentContext = "match_current_context"
     }

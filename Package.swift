@@ -9,8 +9,9 @@ let package = Package(
     products: [
         .library(
             name: "Altcraft",
+            type: .static,
             targets: ["Altcraft"]
-        ),
+        )
     ],
     dependencies: [],
     targets: [

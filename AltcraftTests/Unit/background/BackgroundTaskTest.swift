@@ -5,23 +5,114 @@
 //  Created by Andrey Pogodin.
 //
 //  Copyright © 2025 Altcraft. All rights reserved.
+//
 
 import XCTest
 import BackgroundTasks
 import ObjectiveC.runtime
 @testable import Altcraft
 
-// MARK: - Captured hooks
+/**
+ * BackgroundTasksTests
+ *
+ * Positive scenarios:
+ *  - test_1: registerBackgroundTask → registers with correct identifier and schedules retry after 3 hours.
+ *  - test_2: scheduleRetry → calls submit for both success and error paths.
+ *
+ * Notes:
+ *  - Tests focus on BGTaskScheduler interactions without actual background task execution.
+ *  - Uses method swizzling to capture and verify system calls.
+ *  - Verifies registration, scheduling, and error handling behavior.
+ */
+final class BackgroundTasksTests: XCTestCase {
+    
+    override func setUp() {
+        super.setUp()
+        BGHooks.reset()
+        swizzleBGTaskScheduler()
+    }
+    
+    override func tearDown() {
+        unswizzleBGTaskScheduler()
+        super.tearDown()
+    }
+    
+    func test_1_registerBackgroundTask_registers_and_schedulesRetry() {
+        let service = BackgroundTask.shared
+        
+        service.registerBackgroundTask()
+        
+        XCTAssertEqual(BGHooks.registerCallCount, 1)
+        XCTAssertEqual(BGHooks.lastRegisteredIdentifier, TestConstants.bgTaskID)
+        
+        XCTAssertEqual(BGHooks.submitCallCount, 1)
+        
+        let request = BGHooks.lastSubmittedRequest
+        XCTAssertNotNil(request)
+        XCTAssertEqual(request?.identifier, TestConstants.bgTaskID)
+        
+        verifyEarliestBeginDateIsApproximatelyThreeHours(from: request)
+    }
+    
+    func test_2_scheduleRetry_calls_submit_and_handles_errorPath() {
+        let service = BackgroundTask.shared
+        
+        BGHooks.submitShouldFail = false
+        service.scheduleRetry()
+        XCTAssertEqual(BGHooks.submitCallCount, 1)
+        
+        BGHooks.submitShouldFail = true
+        service.scheduleRetry()
+        XCTAssertEqual(BGHooks.submitCallCount, 2)
+    }
+}
+
+private extension BackgroundTasksTests {
+    func verifyEarliestBeginDateIsApproximatelyThreeHours(from request: BGAppRefreshTaskRequest?) {
+        guard let earliestBeginDate = request?.earliestBeginDate else {
+            XCTFail("Earliest begin date should not be nil")
+            return
+        }
+        
+        let expectedTimeInterval = TestConstants.threeHoursInSeconds
+        let actualTimeInterval = earliestBeginDate.timeIntervalSinceNow
+        let timeDifference = abs(actualTimeInterval - expectedTimeInterval)
+        
+        XCTAssertLessThan(timeDifference, TestConstants.toleranceInSeconds)
+    }
+}
+
+private enum TestConstants {
+    static let bgTaskID = Constants.BGTaskID
+    static let errorDomain = "tests.bg.submit"
+    static let errorCode = 42
+    static let errorDescription = "submit failed"
+    static let threeHoursInSeconds: TimeInterval = 180 * 60
+    static let toleranceInSeconds: TimeInterval = 120
+    
+    enum Selectors {
+        static let submitTaskRequest = NSSelectorFromString(
+            "submitTaskRequest:error:"
+        )
+        static let registerForTask = NSSelectorFromString(
+            "registerForTaskWithIdentifier:usingQueue:launchHandler:"
+        )
+    }
+    
+    enum ClassNames {
+        static let bgTaskScheduler = "BGTaskScheduler"
+    }
+}
 
 private enum BGHooks {
     static var registerCallCount = 0
     static var lastRegisteredIdentifier: String?
     static var lastRegisteredHandler: ((BGTask) -> Void)?
-
+    
     static var submitCallCount = 0
     static var lastSubmittedRequest: BGAppRefreshTaskRequest?
     static var submitShouldFail = false
-
+    
     static func reset() {
         registerCallCount = 0
         lastRegisteredIdentifier = nil
@@ -32,31 +123,42 @@ private enum BGHooks {
     }
 }
 
-// MARK: - Swizzled impls
+private typealias SubmitIMP = @convention(c) (
+    AnyObject,
+    Selector,
+    AnyObject,
+    UnsafeMutablePointer<NSError?>?
+) -> ObjCBool
 
-/// - (BOOL)submitTaskRequest:(BGTaskRequest *)taskRequest error:(NSError **)error;
-private typealias SubmitIMP = @convention(c) (AnyObject, Selector, AnyObject, UnsafeMutablePointer<NSError?>?) -> ObjCBool
 private let swizzledSubmit: SubmitIMP = { _, _, request, errorPtr in
     BGHooks.submitCallCount += 1
-    if let r = request as? BGAppRefreshTaskRequest {
-        BGHooks.lastSubmittedRequest = r
+    
+    if let refreshRequest = request as? BGAppRefreshTaskRequest {
+        BGHooks.lastSubmittedRequest = refreshRequest
     } else {
         BGHooks.lastSubmittedRequest = nil
     }
+    
     if BGHooks.submitShouldFail {
-        if let p = errorPtr {
-            p.pointee = NSError(domain: "tests.bg.submit", code: 42,
-                                userInfo: [NSLocalizedDescriptionKey: "submit failed"])
-        }
+        errorPtr?.pointee = NSError(
+            domain: TestConstants.errorDomain,
+            code: TestConstants.errorCode,
+            userInfo: [NSLocalizedDescriptionKey: TestConstants.errorDescription]
+        )
         return false
     }
+    
     return true
 }
 
-/// - (BOOL)registerForTaskWithIdentifier:(NSString *)identifier
-///                           usingQueue:(dispatch_queue_t)queue
-///                        launchHandler:(void (^)(BGTask *task))launchHandler;
-private typealias RegisterIMP = @convention(c) (AnyObject, Selector, NSString, DispatchQueue?, @escaping (BGTask) -> Void) -> ObjCBool
+private typealias RegisterIMP = @convention(c) (
+    AnyObject,
+    Selector,
+    NSString,
+    DispatchQueue?,
+    @escaping (BGTask) -> Void
+) -> ObjCBool
+
 private let swizzledRegister: RegisterIMP = { _, _, identifier, _, handler in
     BGHooks.registerCallCount += 1
     BGHooks.lastRegisteredIdentifier = identifier as String
@@ -64,105 +166,42 @@ private let swizzledRegister: RegisterIMP = { _, _, identifier, _, handler in
     return true
 }
 
-// MARK: - Global (fileprivate) storage for original IMPs (stubs if missing)
-
 fileprivate var submitOrigIMPGlobal: IMP?
 fileprivate var registerOrigIMPGlobal: IMP?
 
-// MARK: - Swizzle helpers
-
 private func swizzleBGTaskScheduler() {
-    guard let cls: AnyClass = NSClassFromString("BGTaskScheduler") else { return }
+    guard let schedulerClass = NSClassFromString(TestConstants.ClassNames.bgTaskScheduler) else { return }
+    
+    swizzleSubmitTaskRequest(in: schedulerClass)
+    swizzleRegisterForTask(in: schedulerClass)
+}
 
-    // submitTaskRequest:error:
-    if let m = class_getInstanceMethod(cls, NSSelectorFromString("submitTaskRequest:error:")) {
-        let newIMP = unsafeBitCast(swizzledSubmit as SubmitIMP, to: IMP.self)
-        let orig = method_setImplementation(m, newIMP)
-        submitOrigIMPGlobal = orig
-    }
+private func swizzleSubmitTaskRequest(in class: AnyClass) {
+    guard let method = class_getInstanceMethod(`class`, TestConstants.Selectors.submitTaskRequest) else { return }
+    
+    let newIMP = unsafeBitCast(swizzledSubmit as SubmitIMP, to: IMP.self)
+    let originalIMP = method_setImplementation(method, newIMP)
+    submitOrigIMPGlobal = originalIMP
+}
 
-    // registerForTaskWithIdentifier:usingQueue:launchHandler:
-    if let m = class_getInstanceMethod(cls, NSSelectorFromString("registerForTaskWithIdentifier:usingQueue:launchHandler:")) {
-        let newIMP = unsafeBitCast(swizzledRegister as RegisterIMP, to: IMP.self)
-        let orig = method_setImplementation(m, newIMP)
-        registerOrigIMPGlobal = orig
-    }
+private func swizzleRegisterForTask(in class: AnyClass) {
+    guard let method = class_getInstanceMethod(`class`, TestConstants.Selectors.registerForTask) else { return }
+    
+    let newIMP = unsafeBitCast(swizzledRegister as RegisterIMP, to: IMP.self)
+    let originalIMP = method_setImplementation(method, newIMP)
+    registerOrigIMPGlobal = originalIMP
 }
 
 private func unswizzleBGTaskScheduler() {
-    guard let cls: AnyClass = NSClassFromString("BGTaskScheduler") else { return }
-
-    if let orig = submitOrigIMPGlobal,
-       let m = class_getInstanceMethod(cls, NSSelectorFromString("submitTaskRequest:error:")) {
-        method_setImplementation(m, orig)
-    }
-
-    if let orig = registerOrigIMPGlobal,
-       let m = class_getInstanceMethod(cls, NSSelectorFromString("registerForTaskWithIdentifier:usingQueue:launchHandler:")) {
-        method_setImplementation(m, orig)
-    }
+    guard let schedulerClass = NSClassFromString(TestConstants.ClassNames.bgTaskScheduler) else { return }
+    
+    restoreOriginalImplementation(for: schedulerClass, selector: TestConstants.Selectors.submitTaskRequest, originalIMP: submitOrigIMPGlobal)
+    restoreOriginalImplementation(for: schedulerClass, selector: TestConstants.Selectors.registerForTask, originalIMP: registerOrigIMPGlobal)
 }
 
-// MARK: - Tests
-
-/**
- * BackgroundTasksTests (iOS 13+)
- *
- * Coverage:
- *  - test_1_registerBackgroundTask_registers_and_schedulesRetry
- *  - test_2_scheduleRetry_calls_submit_and_handles_errorPath (error path stubbed)
- *
- * Notes:
- *  - We don't execute the real background handler, only verify registration and scheduling.
- *  - No errorEvent hooking — we just simulate submit failure and assert the call path doesn't crash.
- */
-final class BackgroundTasksTests: XCTestCase {
-
-    override func setUp() {
-        super.setUp()
-        BGHooks.reset()
-        swizzleBGTaskScheduler()
-    }
-
-    override func tearDown() {
-        unswizzleBGTaskScheduler()
-        super.tearDown()
-    }
-
-    /// test_1_registerBackgroundTask_registers_and_schedulesRetry
-    func test_1_registerBackgroundTask_registers_and_schedulesRetry() {
-        let svc = BackgroundTask()
-        svc.registerBackgroundTask()
-
-        XCTAssertEqual(BGHooks.registerCallCount, 1, "Should register exactly once")
-        XCTAssertEqual(BGHooks.lastRegisteredIdentifier, Constants.BGTaskID)
-
-        XCTAssertEqual(BGHooks.submitCallCount, 1, "Should schedule retry right after register()")
-        let req = BGHooks.lastSubmittedRequest
-        XCTAssertNotNil(req, "Must submit BGAppRefreshTaskRequest")
-        XCTAssertEqual(req?.identifier, Constants.BGTaskID)
-
-        // earliestBeginDate ~ now + 3 hours (±2 minutes)
-        let threeHours: TimeInterval = 180 * 60
-        let tol: TimeInterval = 120
-        let delta = (req?.earliestBeginDate?.timeIntervalSinceNow ?? 0) - threeHours
-        XCTAssertLessThan(abs(delta), tol, "earliestBeginDate must be about 3 hours ahead")
-    }
-
-    /// test_2_scheduleRetry_calls_submit_and_handles_errorPath
-    func test_2_scheduleRetry_calls_submit_and_handles_errorPath() {
-        let svc = BackgroundTask()
-
-        // Success path
-        BGHooks.submitShouldFail = false
-        svc.scheduleRetry()
-        XCTAssertEqual(BGHooks.submitCallCount, 1, "Submit should be called once (success)")
-
-        // Error path (stubbed): should not crash, just another submit attempt
-        BGHooks.submitShouldFail = true
-        svc.scheduleRetry()
-        XCTAssertEqual(BGHooks.submitCallCount, 2, "Submit should be called again (failure path)")
-        // We purposely don't assert errorEvent; this is a stub.
-    }
+private func restoreOriginalImplementation(for class: AnyClass, selector: Selector, originalIMP: IMP?) {
+    guard let originalIMP = originalIMP,
+          let method = class_getInstanceMethod(`class`, selector) else { return }
+    
+    method_setImplementation(method, originalIMP)
 }
-

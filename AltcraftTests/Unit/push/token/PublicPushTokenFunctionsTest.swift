@@ -23,11 +23,6 @@ import XCTest
  *  - test_8_deleteDeviceToken_huawei_callsProviderDelete_andCompletion
  *  - test_9_deleteDeviceToken_apns_emitsErrorEvent_andCompletionCalled
  *  - test_10_deleteDeviceToken_invalid_emitsErrorEvent_andCompletionCalled
- *
- * Notes:
- *  - Uses SDKEvents spy to assert ErrorEvent emissions.
- *  - Reads/writes manual token through StoredVariablesManager helpers that production code uses.
- *  - Does not rely on Core Data or network; all provider interactions are mocked.
  */
 final class PublicPushTokenFunctionsTests: XCTestCase {
 

@@ -19,15 +19,14 @@ import XCTest
  *  - test_4: clearManualToken removes previously stored manual token.
  *  - test_5: setCurrentToken + getSavedToken return expected TokenData.
  *  - test_6: clearSavedToken removes previously stored saved token.
- *  - test_7: setSubRetryCount / getSubRetryCount return correct value.
- *  - test_8: setUpdateRetryCount / getUpdateRetryCount return correct value.
- *  - test_9: setPushEventRetryCount / getPushEventRetryCount return correct value.
- *  - test_10: TokenData JSON round-trip encodes/decodes identically.
+ *  - test_7: TokenData JSON round-trip encodes/decodes identically.
  *
  * Edge scenarios:
- *  - test_11: getSubRetryCount returns default=1 when unset.
- *  - test_12: getUpdateRetryCount returns default=1 when unset.
- *  - test_13: getPushEventRetryCount returns nil when unset.
+ *  - test_8: setPushToken with nil token clears manual token.
+ *  - test_9: setPushToken with empty token clears manual token.
+ *  - test_10: setCurrentToken with nil provider does nothing.
+ *  - test_11: setCurrentToken with empty provider does nothing.
+ *  - test_12: getGroupName logs error when group name is nil.
  */
 final class StoredVariablesManagerTests: XCTestCase {
 
@@ -42,12 +41,6 @@ final class StoredVariablesManagerTests: XCTestCase {
     private let tokenXYZ     = "xyz"
     private let tokenJSON    = "test-token-123"
 
-    private let retrySub     = 3
-    private let retryUpdate  = 5
-    private let retryPushEvt = 7
-
-    private let defaultRetry = 1
-
     // ---------- Assertion messages ----------
     private let msgEqual   = "Values must be equal"
     private let msgNonNil  = "Value must be non-nil"
@@ -56,10 +49,7 @@ final class StoredVariablesManagerTests: XCTestCase {
     // Keys we must reset in UserDefaults.standard to avoid cross-test leakage
     private let stdKeysToClear = [
         "CRIT_DB",
-        "GROUP_NAME",
-        "PUSH_SUB_LOC_RETRY",
-        "TOKEN_UPDATE_LOC_RETRY",
-        "PUSH_EVENT_LOC_RETRY"
+        "GROUP_NAME"
     ]
 
     private func clearStandardDefaults() {
@@ -88,6 +78,7 @@ final class StoredVariablesManagerTests: XCTestCase {
 
     // MARK: - Critical DB flag
 
+    /// Critical DB flag stores and retrieves true/false correctly
     func test_1_setAndGetCritDBFlag() {
         StoredVariablesManager.shared.setCritDB(value: true)
         XCTAssertTrue(StoredVariablesManager.shared.getDbErrorStatus(), msgEqual)
@@ -98,6 +89,7 @@ final class StoredVariablesManagerTests: XCTestCase {
 
     // MARK: - Group name
 
+    /// Group name stores and retrieves string correctly
     func test_2_setAndGetGroupName() {
         StoredVariablesManager.shared.setGroupsName(value: groupName)
         let result = StoredVariablesManager.shared.getGroupName()
@@ -106,6 +98,7 @@ final class StoredVariablesManagerTests: XCTestCase {
 
     // MARK: - Manual token
 
+    /// Manual token stores and retrieves TokenData correctly
     func test_3_setAndGetManualToken() {
         StoredVariablesManager.shared.setPushToken(provider: providerFCM, token: token123)
 
@@ -115,6 +108,7 @@ final class StoredVariablesManagerTests: XCTestCase {
         XCTAssertEqual(result?.token, token123, msgEqual)
     }
 
+    /// Clear manual token removes previously stored token
     func test_4_clearManualToken() {
         StoredVariablesManager.shared.setPushToken(provider: providerFCM, token: token123)
         StoredVariablesManager.shared.clearManualToken()
@@ -123,8 +117,27 @@ final class StoredVariablesManagerTests: XCTestCase {
         XCTAssertNil(result, msgNil)
     }
 
+    /// Set push token with nil token clears manual token
+    func test_8_setPushToken_withNilToken_clearsManualToken() {
+        StoredVariablesManager.shared.setPushToken(provider: providerFCM, token: token123)
+        StoredVariablesManager.shared.setPushToken(provider: providerFCM, token: nil)
+
+        let result = StoredVariablesManager.shared.getManualToken()
+        XCTAssertNil(result, msgNil)
+    }
+
+    /// Set push token with empty token clears manual token
+    func test_9_setPushToken_withEmptyToken_clearsManualToken() {
+        StoredVariablesManager.shared.setPushToken(provider: providerFCM, token: token123)
+        StoredVariablesManager.shared.setPushToken(provider: providerFCM, token: "")
+
+        let result = StoredVariablesManager.shared.getManualToken()
+        XCTAssertNil(result, msgNil)
+    }
+
     // MARK: - Current/Saved token
 
+    /// Current token stores and retrieves as saved token correctly
     func test_5_setAndGetCurrentToken_asSaved() {
         StoredVariablesManager.shared.setCurrentToken(provider: providerAPNs, token: tokenABC)
 
@@ -134,6 +147,7 @@ final class StoredVariablesManagerTests: XCTestCase {
         XCTAssertEqual(result?.token, tokenABC, msgEqual)
     }
 
+    /// Clear saved token removes previously stored token
     func test_6_clearSavedToken() {
         StoredVariablesManager.shared.setCurrentToken(provider: providerAPNs, token: tokenXYZ)
         StoredVariablesManager.shared.clearSavedToken()
@@ -142,40 +156,38 @@ final class StoredVariablesManagerTests: XCTestCase {
         XCTAssertNil(result, msgNil)
     }
 
-    // MARK: - Retry counters
+    /// Set current token with nil provider does nothing
+    func test_10_setCurrentToken_withNilProvider_doesNothing() {
+        StoredVariablesManager.shared.setCurrentToken(provider: nil, token: tokenABC)
 
-    func test_7_subRetryCount_setAndGet() {
-        StoredVariablesManager.shared.setSubRetryCount(value: retrySub)
-        XCTAssertEqual(StoredVariablesManager.shared.getSubRetryCount(), retrySub, msgEqual)
+        let result = StoredVariablesManager.shared.getSavedToken()
+        XCTAssertNil(result, msgNil)
     }
 
-    func test_8_updateRetryCount_setAndGet() {
-        StoredVariablesManager.shared.setUpdateRetryCount(value: retryUpdate)
-        XCTAssertEqual(StoredVariablesManager.shared.getUpdateRetryCount(), retryUpdate, msgEqual)
+    /// Set current token with empty provider does nothing
+    func test_11_setCurrentToken_withEmptyProvider_doesNothing() {
+        StoredVariablesManager.shared.setCurrentToken(provider: "", token: tokenABC)
+
+        let result = StoredVariablesManager.shared.getSavedToken()
+        XCTAssertNil(result, msgNil)
     }
 
-    func test_9_pushEventRetryCount_setAndGet() {
-        StoredVariablesManager.shared.setPushEventRetryCount(value: retryPushEvt)
-        XCTAssertEqual(StoredVariablesManager.shared.getPushEventRetryCount(), retryPushEvt, msgEqual)
-    }
+    // MARK: - Group name error handling
 
-    // MARK: - Defaults (must be clean at start)
-
-    func test_11_subRetryCount_defaultValue() {
-        XCTAssertEqual(StoredVariablesManager.shared.getSubRetryCount(), defaultRetry, msgEqual)
-    }
-
-    func test_12_updateRetryCount_defaultValue() {
-        XCTAssertEqual(StoredVariablesManager.shared.getUpdateRetryCount(), defaultRetry, msgEqual)
-    }
-
-    func test_13_pushEventRetryCount_defaultValue() {
-        XCTAssertNil(StoredVariablesManager.shared.getPushEventRetryCount(), msgNil)
+    /// Get group name handles nil case appropriately
+    func test_12_getGroupName_handlesNilCase() {
+        // Clear the group name first
+        UserDefaults.standard.removeObject(forKey: "GROUP_NAME")
+        
+        let result = StoredVariablesManager.shared.getGroupName()
+        XCTAssertNil(result, msgNil)
+        // Note: The actual error logging would need to be verified separately
     }
 
     // MARK: - TokenData Codable roundtrip
 
-    func test_10_tokenData_jsonRoundTrip_isStable() throws {
+    /// TokenData JSON round-trip encodes/decodes identically
+    func test_7_tokenData_jsonRoundTrip_isStable() throws {
         let original = TokenData(provider: providerFCM, token: tokenJSON)
         let data = try JSONEncoder().encode(original)
         let decoded = try JSONDecoder().decode(TokenData.self, from: data)

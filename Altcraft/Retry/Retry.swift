@@ -142,4 +142,3 @@ private func localPushEventRetry(objectID: NSManagedObjectID) {
 func delay(retryCount: Int) -> Double {
     return pow(Double(Constants.Retry.initialDelay) + 3, Double(retryCount))
 }
-

@@ -7,6 +7,7 @@
 //  Copyright © 2025 Altcraft. All rights reserved.
 
 import XCTest
+import CoreData
 @testable import Altcraft
 
 /**
@@ -17,22 +18,50 @@ import XCTest
  *  - test_2_SubscribeRequestData_isValid_success: SubscribeRequestData.isValid returns true for a fully populated request.
  *  - test_3_PushEventRequestData_isValid_allowedTypes: PushEventRequestData.isValid accepts only allowed types.
  *  - test_4_decodeJSONData_validDictionary: decodeJSONData parses a valid JSON dictionary.
+ *  - test_8_MobileEventRequestData_validData_success: MobileEventRequestData is properly constructed with valid entity data.
+ *  - test_9_PartsFactory_createMobileEventParts_allFields: PartsFactory creates all expected parts from complete entity.
  *
  * Edge scenarios:
  *  - test_5_SubscribeRequestData_isValid_missingMandatoryFields: SubscribeRequestData.isValid returns false for missing/empty required fields.
  *  - test_6_PushEventRequestData_isValid_invalidType: PushEventRequestData.isValid rejects non-allowed type values.
  *  - test_7_decodeJSONData_rootArray_returnsNil: decodeJSONData returns nil if JSON root is an array.
- *
- * Notes:
- *  - Async functions like getCommonData / getSubscribeRequestData / getUpdateRequestData /
- *    getPushEventRequestData / getUnSuspendRequestData / getProfileRequestData are not covered here,
- *    because they depend on external singletons and free functions without DI hooks.
- *    To test them, introduce protocols for dependencies (TokenManager, Config accessors, etc.)
- *    and inject test doubles in unit tests.
+ *  - test_10_MobileEventRequestData_missingRequiredFields_returnsNil: getMobileEventRequestData returns nil when required fields are missing.
+ *  - test_11_PartsFactory_createMobileEventParts_partialFields: PartsFactory handles partial data correctly.
+ *  - test_12_MobileEventRequestData_invalidObjectID_returnsNil: getMobileEventRequestData returns nil for invalid object ID.
  */
-final class RepositoryTests: XCTestCase {
-
-    // MARK: - Helpers
+final class RepositoryTests: IsolatedTestCase {
+    
+    private func createMobileEventEntity(
+        sid: String = "test-sid",
+        eventName: String = "test-event",
+        time: Int64 = 1_725_000_000,
+        timeZone: Int32 = 180,
+        altcraftClientID: String = "test-client-id",
+        matchingType: String? = "test-matching",
+        utmTags: Data? = nil,
+        payload: Data? = nil,
+        sendMessageId: String? = nil,
+        matching: Data? = nil,
+        subscription: Data? = nil,
+        profileFields: Data? = nil
+    ) -> MobileEventEntity {
+        let entity = MobileEventEntity(context: viewContext)
+        entity.sid = sid
+        entity.eventName = eventName
+        entity.time = time
+        entity.timeZone = Int16(timeZone)
+        entity.altcraftClientID = altcraftClientID
+        entity.matchingType = matchingType
+        entity.utmTags = utmTags
+        entity.payload = payload
+        entity.sendMessageId = sendMessageId
+        entity.matching = matching
+        entity.subscription = subscription
+        entity.profileFields = profileFields
+        
+        try? viewContext.save()
+        return entity
+    }
 
     /// Make a JSON Data from a dictionary.
     private func jsonData(_ object: [String: Any]) -> Data {
@@ -49,8 +78,6 @@ final class RepositoryTests: XCTestCase {
         XCTAssertEqual(result?.0, "Bearer rtoken@\(token)", "Auth header must be Bearer rtoken@<rToken>")
         XCTAssertEqual(result?.1, token, "Matching mode should equal rToken")
     }
-
-    // MARK: - SubscribeRequestData.isValid
 
     /// test_2_SubscribeRequestData_isValid_success
     func test_2_SubscribeRequestData_isValid_success() {
@@ -76,7 +103,6 @@ final class RepositoryTests: XCTestCase {
 
     /// test_5_SubscribeRequestData_isValid_missingMandatoryFields
     func test_5_SubscribeRequestData_isValid_missingMandatoryFields() {
-        // Empty requestId
         var req = SubscribeRequestData(
             url: "https://api.example.com/subscribe",
             time: 1_725_000_000,
@@ -96,7 +122,6 @@ final class RepositoryTests: XCTestCase {
         )
         XCTAssertFalse(req.isValid(), "Expected false when requestId is empty")
 
-        // Zero time
         req = SubscribeRequestData(
             url: "https://api.example.com/subscribe",
             time: 0,
@@ -116,7 +141,6 @@ final class RepositoryTests: XCTestCase {
         )
         XCTAssertFalse(req.isValid(), "Expected false when time is 0")
 
-        // Empty authHeader
         req = SubscribeRequestData(
             url: "https://api.example.com/subscribe",
             time: 1_725_000_000,
@@ -136,7 +160,6 @@ final class RepositoryTests: XCTestCase {
         )
         XCTAssertFalse(req.isValid(), "Expected false when authHeader is empty")
 
-        // Empty matchingMode
         req = SubscribeRequestData(
             url: "https://api.example.com/subscribe",
             time: 1_725_000_000,
@@ -156,7 +179,6 @@ final class RepositoryTests: XCTestCase {
         )
         XCTAssertFalse(req.isValid(), "Expected false when matchingMode is empty")
 
-        // Empty provider
         req = SubscribeRequestData(
             url: "https://api.example.com/subscribe",
             time: 1_725_000_000,
@@ -176,7 +198,6 @@ final class RepositoryTests: XCTestCase {
         )
         XCTAssertFalse(req.isValid(), "Expected false when provider is empty")
 
-        // Empty deviceToken
         req = SubscribeRequestData(
             url: "https://api.example.com/subscribe",
             time: 1_725_000_000,
@@ -217,8 +238,6 @@ final class RepositoryTests: XCTestCase {
         XCTAssertFalse(req.isValid(), "Expected false when status is empty")
     }
 
-    // MARK: - PushEventRequestData.isValid
-
     /// test_3_PushEventRequestData_isValid_allowedTypes
     func test_3_PushEventRequestData_isValid_allowedTypes() {
         // Allowed type: delivery
@@ -246,7 +265,6 @@ final class RepositoryTests: XCTestCase {
 
     /// test_6_PushEventRequestData_isValid_invalidType
     func test_6_PushEventRequestData_isValid_invalidType() {
-        // Invalid type: "clicked"
         var req = PushEventRequestData(
             url: "https://api.example.com/push",
             time: 1_725_000_000,
@@ -257,7 +275,6 @@ final class RepositoryTests: XCTestCase {
         )
         XCTAssertFalse(req.isValid(), "Expected false for non-allowed type")
 
-        // Invalid because of zero time
         req = PushEventRequestData(
             url: "https://api.example.com/push",
             time: 0,
@@ -268,7 +285,6 @@ final class RepositoryTests: XCTestCase {
         )
         XCTAssertFalse(req.isValid(), "Expected false when time is 0")
 
-        // Invalid because of empty uid
         req = PushEventRequestData(
             url: "https://api.example.com/push",
             time: 1_725_000_000,
@@ -302,8 +318,6 @@ final class RepositoryTests: XCTestCase {
         XCTAssertFalse(req.isValid(), "Expected false when matchingMode is empty")
     }
 
-    // MARK: - decodeJSONData
-
     /// test_4_decodeJSONData_validDictionary
     func test_4_decodeJSONData_validDictionary() {
         let dict = ["a": "1", "n": 10] as [String : Any]
@@ -319,5 +333,171 @@ final class RepositoryTests: XCTestCase {
         let decoded = decodeAnyMap(data)
         XCTAssertNil(decoded, "Expected nil when root JSON object is an array")
     }
-}
 
+    /// test_8_MobileEventRequestData_validData_success
+    func test_8_MobileEventRequestData_validData_success() {
+        let entity = createMobileEventEntity()
+        
+        let requestData = MobileEventRequestData(
+            url: "https://api.example.com/mobile-event",
+            sid: entity.sid!,
+            eventName: entity.eventName!,
+            parts: [],
+            authHeader: "Bearer test-auth"
+        )
+        
+        XCTAssertEqual(requestData.sid, "test-sid")
+        XCTAssertEqual(requestData.eventName, "test-event")
+        XCTAssertEqual(requestData.authHeader, "Bearer test-auth")
+        XCTAssertEqual(requestData.url, "https://api.example.com/mobile-event")
+        XCTAssertTrue(requestData.parts.isEmpty)
+    }
+
+    /// test_9_PartsFactory_createMobileEventParts_allFields
+    func test_9_PartsFactory_createMobileEventParts_allFields() {
+        let utmObject = UTM(
+            campaign: "test-campaign",
+            content: "test-content",
+            keyword: "test-keyword",
+            medium: "test-medium",
+            source: "test-source",
+            temp: "test-temp"
+        )
+        
+        let utmData = encodeUTM(utmObject)
+        
+        let payloadDict = ["key": "value"]
+        let payloadData = try? JSONSerialization.data(withJSONObject: payloadDict)
+        
+        let matchingDict = ["match": "data"]
+        let matchingData = try? JSONSerialization.data(withJSONObject: matchingDict)
+        
+        let subscriptionDict = ["sub": "data"]
+        let subscriptionData = try? JSONSerialization.data(withJSONObject: subscriptionDict)
+        
+        let profileDict = ["profile": "field"]
+        let profileData = try? JSONSerialization.data(withJSONObject: profileDict)
+        
+
+        let entity = createMobileEventEntity(
+            time: 1_725_000,
+            utmTags: utmData,
+            payload: payloadData,
+            sendMessageId: "test-smid",
+            matching: matchingData,
+            subscription: subscriptionData,
+            profileFields: profileData
+        )
+        
+        let parts = PartsFactory.createMobileEventParts(from: entity)
+        
+        print("=== DEBUG PARTS ===")
+        parts.forEach { part in
+            let dataString = String(data: part.data, encoding: .utf8) ?? "binary"
+            print("Part: \(part.name), data: '\(dataString)', size: \(part.data.count) bytes")
+        }
+        print("Total parts: \(parts.count)")
+        
+        let timeZonePart = parts.first { $0.name == Constants.MobileEvents.TIME_ZONE }
+        XCTAssertEqual(timeZonePart?.data, Data("180".utf8))
+        
+        let timePart = parts.first { $0.name == Constants.MobileEvents.TIME_MOB }
+        XCTAssertEqual(timePart?.data, Data("1725000".utf8))
+        
+        let clientIDPart = parts.first { $0.name == Constants.MobileEvents.ALTCRAFT_CLIENT_ID }
+        XCTAssertEqual(clientIDPart?.data, Data("test-client-id".utf8))
+        
+        let eventNamePart = parts.first { $0.name == Constants.MobileEvents.MOB_EVENT_NAME }
+        XCTAssertEqual(eventNamePart?.data, Data("test-event".utf8))
+
+        let matchingTypePart = parts.first { $0.name == Constants.MobileEvents.MATCHING_TYPE }
+        XCTAssertNotNil(matchingTypePart)
+        XCTAssertEqual(matchingTypePart?.data, Data("test-matching".utf8))
+        
+        let utmCampaignPart = parts.first { $0.name == Constants.MobileEvents.UTM_CAMPAIGN }
+        XCTAssertNotNil(utmCampaignPart)
+        XCTAssertEqual(utmCampaignPart?.data, Data("test-campaign".utf8))
+        
+        let utmContentPart = parts.first { $0.name == Constants.MobileEvents.UTM_CONTENT }
+        XCTAssertNotNil(utmContentPart)
+        XCTAssertEqual(utmContentPart?.data, Data("test-content".utf8))
+        
+        let utmKeywordPart = parts.first { $0.name == Constants.MobileEvents.UTM_KEYWORD }
+        XCTAssertNotNil(utmKeywordPart)
+        XCTAssertEqual(utmKeywordPart?.data, Data("test-keyword".utf8))
+        
+        let utmMediumPart = parts.first { $0.name == Constants.MobileEvents.UTM_MEDIUM }
+        XCTAssertNotNil(utmMediumPart)
+        XCTAssertEqual(utmMediumPart?.data, Data("test-medium".utf8))
+        
+        let utmSourcePart = parts.first { $0.name == Constants.MobileEvents.UTM_SOURCE }
+        XCTAssertNotNil(utmSourcePart)
+        XCTAssertEqual(utmSourcePart?.data, Data("test-source".utf8))
+        
+        let utmTempPart = parts.first { $0.name == Constants.MobileEvents.UTM_TEMP }
+        XCTAssertNotNil(utmTempPart)
+        XCTAssertEqual(utmTempPart?.data, Data("test-temp".utf8))
+
+        let jsonParts = parts.filter { $0.mime.contains("application/json") }
+        XCTAssertEqual(jsonParts.count, 5)
+        
+        XCTAssertEqual(parts.count, 16)
+    }
+    
+    /// test_10_MobileEventRequestData_missingRequiredFields_returnsNil
+    func test_10_MobileEventRequestData_missingRequiredFields_returnsNil() {
+        let expectation = self.expectation(description: "Mobile event request completion")
+        
+        // Entity with missing sid
+        let entity = createMobileEventEntity(sid: "")
+        let objectID = entity.objectID
+        
+        getMobileEventRequestData(context: viewContext, objectID: objectID) { requestData in
+            XCTAssertNil(requestData, "Expected nil when sid is empty")
+            expectation.fulfill()
+        }
+        
+        waitForExpectations(timeout: 1.0)
+    }
+
+    /// test_11_PartsFactory_createMobileEventParts_partialFields
+    func test_11_PartsFactory_createMobileEventParts_partialFields() {
+        // Entity with only required fields
+        let entity = createMobileEventEntity(
+            matchingType: nil,
+            utmTags: nil,
+            payload: nil,
+            sendMessageId: nil,
+            matching: nil,
+            subscription: nil,
+            profileFields: nil
+        )
+        
+        let parts = PartsFactory.createMobileEventParts(from: entity)
+        
+        XCTAssertEqual(parts.count, 4)
+        
+        let matchingTypePart = parts.first { $0.name == Constants.MobileEvents.MATCHING_TYPE }
+        XCTAssertNil(matchingTypePart)
+        
+        let payloadPart = parts.first { $0.name == Constants.MobileEvents.PAYLOAD }
+        XCTAssertNil(payloadPart)
+    }
+
+    /// test_12_MobileEventRequestData_invalidObjectID_returnsNil
+    func test_12_MobileEventRequestData_invalidObjectID_returnsNil() {
+        let expectation = self.expectation(description: "Mobile event request completion")
+        
+        let entity = createMobileEventEntity()
+        let invalidObjectID = entity.objectID
+        
+        let differentContext = newBGContext()
+        
+        getMobileEventRequestData(context: differentContext, objectID: invalidObjectID) { requestData in
+            XCTAssertNil(requestData, "Expected nil for invalid object ID")
+            expectation.fulfill()
+        }
+        
+        waitForExpectations(timeout: 1.0)
+    }
+}
