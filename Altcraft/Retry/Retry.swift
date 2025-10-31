@@ -9,16 +9,15 @@
 import Foundation
 import CoreData
 
-private let pushSubscribe = PushSubscribe.shared
-private let tokenUpdate   = TokenUpdate.shared
-private let pushEvent     = PushEvent.shared
-private let mobileEvent   = MobileEvent.shared
+private let pushSubscribe  = PushSubscribe.shared
+private let tokenUpdate    = TokenUpdate.shared
+private let pushEvent      = PushEvent.shared
+private let mobileEvent    = MobileEvent.shared
 private let networkMonitor = NetworkMonitor.shared
 
 /// Dispatches retry flows for different request types.
 /// - Parameters:
 ///   - request: Logical function code of the request to retry.
-///   - context: Optional Core Data context (used by push event retries only).
 ///   - event: Optional push event entity (used by push event retries only).
 func requestRetry(
     request: String,
@@ -27,20 +26,18 @@ func requestRetry(
     switch request {
     case Constants.FunctionsCode.SS:
         localPushSubscribeRetry()
-        
+
     case Constants.FunctionsCode.SU:
         localTokenUpdateRetry()
-        
+
     case Constants.FunctionsCode.PE:
         if let event = event {
-            localPushEventRetry(
-                objectID: event
-            )
+            localPushEventRetry(objectID: event)
         }
-        
+
     case Constants.FunctionsCode.ME:
         localMobileEventRetry()
-        
+
     default:
         print("unknown function")
     }
@@ -94,7 +91,7 @@ private func localMobileEventRetry() {
     )
 }
 
-/// Retries the "push/update" flow if within retry limits.
+/// Retries the token update flow if within retry limits.
 /// Uses exponential backoff and triggers `startUpdate()` when network is available.
 private func localTokenUpdateRetry() {
     let work = DispatchWorkItem {
@@ -113,11 +110,9 @@ private func localTokenUpdateRetry() {
     )
 }
 
-/// Retries the per-entity "event/push" flow if within retry limits.
-/// Uses exponential backoff and triggers `sendPushEvent(context:entity:)` when network is available.
-/// - Parameters:
-///   - context: Managed object context used to access Core Data.
-///   - event: Push event entity to retry.
+/// Retries the per-entity push event flow if within retry limits.
+/// Uses exponential backoff and triggers `sendPushEvent(objectID:)` when network is available.
+/// - Parameter objectID: The `NSManagedObjectID` of the push event to retry.
 private func localPushEventRetry(objectID: NSManagedObjectID) {
     let work = DispatchWorkItem {
         if pushEventRetryCount <= Constants.Retry.maxLocalRetryCount {

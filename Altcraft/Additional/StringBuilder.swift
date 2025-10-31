@@ -11,13 +11,15 @@ import Foundation
 /// Formats the function name by replacing any parameters with `()`.
 func formatFunctionName(_ functionName: String) -> String {
     let pattern = "\\(.*?\\)"
-    return functionName.replacingOccurrences(of: pattern, with: "()", options: .regularExpression)
+    return functionName.replacingOccurrences(
+        of: pattern, with: "()", options: .regularExpression
+    )
 }
 
 /// Constructs the full URL string for the push subscription request.
 ///
-/// - Parameter baseUrl: The base URL of the API server .
-/// - Returns: A complete subscribe URL string
+/// - Parameter apiUrl: The base URL of the API server.
+/// - Returns: A complete subscribe URL string.
 func subscribeURL(_ apiUrl: String) -> String {
     return "\(apiUrl)/subscription/push/subscribe/"
 }
@@ -33,8 +35,8 @@ func updateUrl(_ apiUrl: String) -> String {
 /// Constructs the full URL string for sending a push event.
 ///
 /// - Parameters:
-///   - baseUrl: The base API URL.
-///   - event: The `PushEventEntity` for which the event type is appended.
+///   - apiUrl: The base API URL.
+///   - event: The `PushEventEntity` whose type is appended.
 /// - Returns: A complete URL string for the push event endpoint.
 func eventPushURL(_ apiUrl: String, event: PushEventEntity) -> String {
     return "\(apiUrl)/event/push/\(event.type ?? "")"
@@ -58,18 +60,20 @@ func profileUrl(_ apiUrl: String) -> String {
 
 /// Constructs the full URL string for sending a mobile event.
 ///
-/// - Parameters:
-///   - baseUrl: The base API URL.
-///   - event: The `PushEventEntity` for which the event type is appended.
-/// - Returns: A complete URL string for the push event endpoint.
+/// - Parameter apiUrl: The base API URL.
+/// - Returns: A complete URL string for the mobile event endpoint.
 func eventMobileURL(_ apiUrl: String) -> String {
     return "\(apiUrl)/event/post"
 }
 
-/// Builds a JSON string from `JWTMatching` fields.
+/// Builds a JSON string from matching parameters.
 ///
-/// - Parameter matchingFields: The validated `JWTMatching` object.
-/// - Returns: A JSON-formatted string with `db_id`, `matching`, and `matching_value`.
+/// - Parameters:
+///   - dbId: Database identifier.
+///   - matching: Matching field name.
+///   - value: Matching value.
+/// - Returns: A JSON-formatted string with keys defined in `Constants.AuthKeys`
+///            (`dbId`, `matching`, `matchingID`).
 func matchingAsString(dbId: Int, matching: String, value: String) -> String {
     return """
     {

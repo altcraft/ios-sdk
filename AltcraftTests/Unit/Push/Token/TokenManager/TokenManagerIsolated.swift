@@ -3,26 +3,30 @@
 //  AltcraftTests
 //
 //  Created by Andrey Pogodin.
-//  Copyright © 2025 Altcraft. All rights reserved.
 //
+//  © 2025 Altcraft. All rights reserved.
 
 import Foundation
 @testable import Altcraft
 
+/// FCM provider protocol for token operations
 protocol FCMProviderLike {
     func getToken(_ completion: @escaping (String?) -> Void)
     func deleteToken(completion: @escaping (Bool) -> Void)
 }
 
+/// HMS provider protocol for token operations
 protocol HMSProviderLike {
     func getToken(_ completion: @escaping (String?) -> Void)
     func deleteToken(completion: @escaping (Bool) -> Void)
 }
 
+/// APNS provider protocol for token operations
 protocol APNSProviderLike {
     func getToken(_ completion: @escaping (String?) -> Void)
 }
 
+/// Event sink for recording test events
 final class EventSink {
     struct EventRecord: Equatable {
         let function: String
@@ -30,17 +34,23 @@ final class EventSink {
         let value: [String: String]
     }
     private(set) var events: [EventRecord] = []
+    
+    /// Records emitted event with details
     func emit(function: String, message: String, value: [String: String]) {
         events.append(.init(function: function, message: message, value: value))
     }
 }
 
+/// Manages manual token storage for testing
 final class TestStoredVariablesManager {
     private let defaults: UserDefaults
     private let manualTokenKey = "MANUAL_TOKEN"
+    
     init(defaults: UserDefaults) {
         self.defaults = defaults
     }
+    
+    /// Stores or removes manual token
     func setManualToken(_ token: TokenData?) {
         if let token = token, let data = try? JSONEncoder().encode(token) {
             defaults.set(data, forKey: manualTokenKey)
@@ -48,12 +58,15 @@ final class TestStoredVariablesManager {
             defaults.removeObject(forKey: manualTokenKey)
         }
     }
+    
+    /// Retrieves stored manual token
     func getManualToken() -> TokenData? {
         guard let data = defaults.data(forKey: manualTokenKey) else { return nil }
         return try? JSONDecoder().decode(TokenData.self, from: data)
     }
 }
 
+/// Isolated token manager for testing provider interactions
 final class TokenManager_Isolated {
     var fcmProvider: FCMProviderLike?
     var hmsProvider: HMSProviderLike?
@@ -72,34 +85,41 @@ final class TokenManager_Isolated {
         self.getConfig = getConfig
     }
 
+    /// Validates all providers in list are supported
     func allProvidersValid(_ providers: [String]?) -> Bool {
         guard let providers = providers else { return false }
         return providers.allSatisfy { validProviders.contains($0.lowercased()) }
     }
 
+    /// Deletes FCM token via provider
     func deleteFCMToken(completion: @escaping (Bool) -> Void) {
         fcmProvider?.deleteToken(completion: completion)
     }
 
+    /// Deletes HMS token via provider
     func deleteHMSToken(completion: @escaping (Bool) -> Void) {
         hmsProvider?.deleteToken(completion: completion)
     }
 
+    /// Retrieves APNS token data with retry logic
     func getAPNsTokenData(completion: @escaping (TokenData?) -> Void) {
         guard let provider = apnsProvider else { completion(nil); return }
         getNonEmptyToken(provider: Constants.ProviderName.apns, fetch: provider.getToken, completion: completion)
     }
 
+    /// Retrieves FCM token data with retry logic
     func getFCMTokenData(completion: @escaping (TokenData?) -> Void) {
         guard let provider = fcmProvider else { completion(nil); return }
         getNonEmptyToken(provider: Constants.ProviderName.firebase, fetch: provider.getToken, completion: completion)
     }
 
+    /// Retrieves HMS token data with retry logic
     func getHMSTokenData(completion: @escaping (TokenData?) -> Void) {
         guard let provider = hmsProvider else { completion(nil); return }
         getNonEmptyToken(provider: Constants.ProviderName.huawei, fetch: provider.getToken, completion: completion)
     }
 
+    /// Gets current token with manual token priority
     func getCurrentToken(completion: @escaping (TokenData?) -> Void) {
         if let manual = userDefault.getManualToken() {
             if (tokens.ts_last() ?? nil) != manual.token {
@@ -128,6 +148,7 @@ final class TokenManager_Isolated {
         }
     }
 
+    /// Sorts providers by configured priority
     func sortProvidersByPriority(
         providers: [(type: String, fetch: (@escaping (TokenData?) -> Void) -> Void)],
         priorityList: [String]
@@ -142,6 +163,7 @@ final class TokenManager_Isolated {
         return Array(sorted.prefix(priorityList.count))
     }
 
+    /// Emits token event to sink
     func tokenEvent(token: TokenData) {
         eventSink.emit(
             function: "tokenEvent()",
@@ -150,6 +172,7 @@ final class TokenManager_Isolated {
         )
     }
 
+    /// Fetches tokens sequentially until success
     func fetchTokensSequentially(
         providers: [(type: String, fetch: (@escaping (TokenData?) -> Void) -> Void)],
         currentIndex: Int = 0,
@@ -170,6 +193,7 @@ final class TokenManager_Isolated {
         }
     }
 
+    /// Gets non-empty token with retry attempts
     func getNonEmptyToken(
         provider: String,
         fetch: @escaping (@escaping (String?) -> Void) -> Void,
@@ -191,6 +215,7 @@ final class TokenManager_Isolated {
         tryFetch()
     }
 
+    /// Checks if push module has active providers
     func pushModuleIsActive(_ completion: @escaping (Bool) -> Void) {
         let queue = DispatchQueue.global(qos: .utility)
         queue.async { [self] in
@@ -217,7 +242,8 @@ final class TokenManager_Isolated {
 }
 
 private extension Array where Element == String? {
+    /// Returns last token in array
     func ts_last() -> String?? { self.last }
+    /// Appends token to array
     mutating func ts_append(_ element: String?) { self.append(element) }
 }
-

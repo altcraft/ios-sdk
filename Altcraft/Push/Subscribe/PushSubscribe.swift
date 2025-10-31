@@ -34,12 +34,13 @@ internal class PushSubscribe: NSObject {
      this call is enqueued and executed after the current one completes.
      
      - Parameters:
-      - status:The status value ("subscribed", "unsubscribed", "suspended") to associate with the subscription.
-      - sync: A sync identifier used to track the invocation or version of the operation.
-      - customFields: Optional key-value data with user-defined fields for advanced segmentation or personalization.
-      - cats: Optional map of category identifiers and boolean flags indicating selection status.
-      - replace: If `true`, existing subscription data will be replaced with the new one.
-      - skipTriggers: If `true`, automation triggers (e.g., autoresponders) will be skipped.
+       - status: The status value ("subscribed", "unsubscribed", "suspended") to associate with the subscription.
+       - sync: A sync identifier used to track the invocation or version of the operation.
+       - profileFields: Optional key–value data with profile fields to be stored with the subscription.
+       - customFields: Optional key–value data with user-defined fields for segmentation/personalization. Must contain only primitive values.
+       - cats: Optional list of categories to apply (`[CategoryData]`).
+       - replace: If `true`, existing subscription data will be replaced with the new one.
+       - skipTriggers: If `true`, automation triggers (e.g., autoresponders) will be skipped.
      */
     func pushSubscribe(
         status: String,
@@ -111,18 +112,14 @@ internal class PushSubscribe: NSObject {
         }
     }
     
-    /// Starts the full subscription processing flow using the shared Core Data context.
-    ///
-    /// This method validates whether:
-    /// - Push notifications are authorized
-    /// - The SDK is initialized
-    ///
-    /// If both conditions pass, the subscription flow proceeds.
-    /// Otherwise, a retry event is triggered and the completion is called.
+    /// Starts the full subscription processing flow using the provided Core Data context.
+    /// Waits for network connectivity, then validates push authorization and proceeds with processing.
+    /// If authorization fails or processing indicates retry, a retry event can be scheduled.
     ///
     /// - Parameters:
-    ///   - context: Optional managed object context. If not provided, a shared background context is used.
-    ///   - completion: Closure called after the operation completes.
+    ///   - context: Managed object context to use for the operation.
+    ///   - enableRetry: If `true`, schedules internal retry on failure (e.g., no permission/network).
+    ///   - completion: Closure called after the operation completes (always invoked on `SubscribeQueues.syncQueue`).
     func startSubscribe(
         context: NSManagedObjectContext,
         enableRetry: Bool = true,
@@ -195,38 +192,39 @@ internal class PushSubscribe: NSObject {
             
             index += 1
             
-            self.handleSubscription(context: context, event: subscription) { result in
+            self.handleSubscription(context: context, subscription: subscription) { result in
                 result == .completed ? processNext() : completion(true)
             }
         }
         processNext()
     }
     
-    /// Handles a single subscription: decides whether to continue or retry.
+    /// Handles a single subscription: decides whether to finish or retry.
     ///
     /// - Parameters:
     ///   - context: The managed object context for Core Data operations.
-    ///   - subscription: Subscription to process.
-    ///   - completion: Called with `.continue` to proceed or `.retry` to abort with retry.
+    ///   - subscription: Subscription to process (`NSManagedObjectID`).
+    ///   - completion: Called with `.completed` to proceed to the next item or `.retry` to abort and schedule a retry.
     private func handleSubscription(
         context: NSManagedObjectContext,
-        event: NSManagedObjectID,
+        subscription: NSManagedObjectID,
         completion: @escaping (RequestResult) -> Void
     ) {
         
-        self.sendSubscribeRequest(context: context, objectID: event) { result in
+        self.sendSubscribeRequest(context: context, objectID: subscription) { result in
             if result is RetryEvent {
-                retryLimit(context: context, for: event){ limit in completion(limit ? .completed : .retry) }
+                retryLimit(context: context, for: subscription){ limit in completion(limit ? .completed : .retry) }
                 return
             }
-            deleteEntity(context: context, objectID: event) { deleted in completion(deleted ? .completed : .retry) }
+            deleteEntity(context: context, objectID: subscription) { deleted in completion(deleted ? .completed : .retry) }
         }
     }
     
-    /// Executes the subscription flow for a single entity, including request preparation and network submission.
+    /// Executes the subscription flow for a single stored entity, including request preparation and network submission.
     ///
     /// - Parameters:
-    ///   - entity: A `SubscribeEntity` representing stored subscription details.
+    ///   - context: Core Data context used to fetch payload for the request.
+    ///   - objectID: The `NSManagedObjectID` of the stored subscription entity.
     ///   - completion: Closure called with the resulting `Event` (success, failure, or retry event).
     func sendSubscribeRequest(
         context: NSManagedObjectContext,

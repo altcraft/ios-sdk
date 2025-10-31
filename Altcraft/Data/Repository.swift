@@ -55,7 +55,7 @@ func getCommonData(completion: @escaping (CommonData?) -> Void) {
 ///
 /// - Parameters:
 ///   - context: The `NSManagedObjectContext` used to materialize and read the entity.
-///   - entityID: The `NSManagedObjectID` of the `SubscribeEntity`.
+///   - objectID: The `NSManagedObjectID` of the `SubscribeEntity`.
 ///   - completion: Closure returning a valid `SubscribeRequestData` or `nil`.
 func getSubscribeRequestData(
     context: NSManagedObjectContext,
@@ -322,10 +322,9 @@ func getProfileRequestData(completion: @escaping (ProfileRequestData?) -> Void) 
     
     /// Retrieves the preferred token to use for API requests.
     ///
-    /// - Parameters:
-    ///   - configRToken: Optional value indicating whether a remote token (`rToken`) is provided.
-    ///   - currentToken: The current device token fallback if saved one is not available.
-    /// - Returns: A `TokenData` object if available; otherwise `nil`.
+    /// - Parameter data: Aggregated `CommonData` containing config and tokens.
+    /// - Returns: A `TokenData` object if available; `savedToken` (or `currentToken` as fallback) when `rToken` is set;
+    ///            otherwise `savedToken`. Returns `nil` if none is available.
     func getToken(data: CommonData) -> TokenData? {
         if data.config.rToken != nil {
             return data.savedToken ?? data.currentToken

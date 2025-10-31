@@ -1,5 +1,5 @@
 //
-//  PublicTokenFunctions.swift
+//  PublicPushTokenFunctions.swift
 //  Altcraft
 //
 //  Created by Andrey Pogodin.
@@ -103,10 +103,11 @@ public class PublicPushTokenFunctions: NSObject {
     }
 
     /// Deletes the device token for a specified provider.
+    /// For `"apns"`, deletion is not supported and an error is logged.
     ///
     /// - Parameters:
-    ///   - provider: `"firebase"`, `"huawei"`, or `"apns"`.
-    ///   - completion: Invoked after deletion finishes.
+    ///   - provider: `"ios-firebase"`, `"ios-huawei"`, or `"ios-apns"`.
+    ///   - completion: Invoked after the provider-specific handling finishes.
     public func deleteDeviceToken(provider: String, completion: @escaping () -> Void) {
         switch provider {
         case Constants.ProviderName.firebase:
@@ -122,7 +123,8 @@ public class PublicPushTokenFunctions: NSObject {
         }
     }
 
-    /// Forces a token refresh by deleting the current token and starting the update flow.
+    /// Forces a token refresh by deleting the current token (if supported) and starting the update flow.
+    /// For the `APNs` provider, deletion/refresh is not supported; an error is logged and the flow ends.
     ///
     /// - Parameter completion: Called when the flow finishes (optional).
     public func forcedTokenUpdate(completion: (() -> Void)? = nil) {

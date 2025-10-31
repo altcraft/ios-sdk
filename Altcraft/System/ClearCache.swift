@@ -8,15 +8,14 @@
 
 import Foundation
 
-/// Clears the cache by deleting all entities from the database and resetting related flags.
+/// Completely clears the SDK cache: cancels all scheduled retries,
+/// removes local data, resets internal counters and token data,
+/// and then calls the provided completion handler.
 ///
-/// This method performs the following actions:
-/// - Cancels all scheduled retry tasks.
-/// - Deletes all entities from Core Data.
-/// - Resets the push subscription request flag and the saved subscriptions flag to `false`.
-/// - Invokes the completion handler after the cache has been fully cleared.
+/// If the database is in an invalid state, the clearing process is skipped
+/// and the completion handler is not called.
 ///
-/// - Parameter completion: A closure to be executed once the cache clearing process is complete.
+/// - Parameter completion: A closure called after the cache has been successfully cleared.
 func clearCache(completion: @escaping () -> Void) {
     
     let clearingDb = ClearingDb.shared

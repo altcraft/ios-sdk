@@ -1,5 +1,5 @@
 //
-//  NotificationServiceFunction.swift
+//  NotificationManager.swift
 //  Altcraft
 //
 //  Created by Andrey Pogodin.
@@ -61,7 +61,12 @@ public class NotificationManager: NSObject, UNUserNotificationCenterDelegate {
     /// Foreground presentation handler.
     ///
     /// Called when a notification arrives while the app is in the foreground.
-    /// Customize the presentation options as needed.
+    /// On iOS 14+, presents as `.banner`; on earlier versions uses `.alert`.
+    ///
+    /// - Parameters:
+    ///   - center: The current `UNUserNotificationCenter`.
+    ///   - notification: The incoming `UNNotification`.
+    ///   - completionHandler: Call with the desired `UNNotificationPresentationOptions`.
     public func userNotificationCenter(
         _ center: UNUserNotificationCenter,
         willPresent notification: UNNotification,
@@ -74,9 +79,15 @@ public class NotificationManager: NSObject, UNUserNotificationCenterDelegate {
         }
     }
 
-    /// User response handler (tap/action on a delivered notification).
+    //// User response handler (tap/action on a delivered notification).
     ///
-    /// Triggers a `"open"` push event and runs `pushClickAction` to process custom actions.
+    /// Triggers a `"open"` push event and runs `pushClickAction` if the payload can be parsed
+    /// as `[String: AnyObject]`. Always calls `completionHandler` at the end.
+    ///
+    /// - Parameters:
+    ///   - center: The current `UNUserNotificationCenter`.
+    ///   - response: The user's response to an arriving notification (tap or action).
+    ///   - completionHandler: Must be called when processing is finished.
     public func userNotificationCenter(
         _ center: UNUserNotificationCenter,
         didReceive response: UNNotificationResponse,

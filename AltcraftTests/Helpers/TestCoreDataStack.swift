@@ -25,7 +25,6 @@ public final class TestCoreDataStack {
     public init(mode: Mode) {
         switch mode {
         case let .inMemory(modelName, bundleToken, bundleIdentifier):
-            // Resolve the framework bundle: by identifier if provided, else by class token
             let bundle: Bundle = {
                 if let id = bundleIdentifier, let b = Bundle(identifier: id) {
                     return b
@@ -33,7 +32,6 @@ public final class TestCoreDataStack {
                 return Bundle(for: bundleToken)
             }()
 
-            // Load model: try explicit .momd first, otherwise merged model
             let model: NSManagedObjectModel = {
                 if let name = modelName,
                    let url = bundle.url(forResource: name, withExtension: "momd"),
@@ -46,7 +44,6 @@ public final class TestCoreDataStack {
                 fatalError("Core Data model not found in framework bundle")
             }()
 
-            // Create in-memory container
             let c = NSPersistentContainer(name: modelName ?? "InMemory", managedObjectModel: model)
             let desc = NSPersistentStoreDescription()
             desc.type = NSInMemoryStoreType
@@ -64,7 +61,6 @@ public final class TestCoreDataStack {
             self.viewContext = c.viewContext
 
         case .sdkPersistent:
-            // Use the same container as production code (no prod changes required)
             let c = CoreDataManager.shared.persistentContainer
             c.viewContext.mergePolicy = NSMergeByPropertyObjectTrumpMergePolicy
             c.viewContext.automaticallyMergesChangesFromParent = true
@@ -87,7 +83,6 @@ public final class TestCoreDataStack {
 
     /// Wipes in-memory store; no-op for sdkPersistent.
     public func wipe() {
-        // If we are proxied to SDK persistent container, do not tear it down here.
         guard container.persistentStoreCoordinator.persistentStores.first?.type == NSInMemoryStoreType else { return }
 
         let coordinator = container.persistentStoreCoordinator

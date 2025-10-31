@@ -41,7 +41,7 @@ let entityNotFoundByID = (409, "entity not found by ID")
 // Invalid value
 let invalidUrlValue = (471, "invalid apiUrl value - empty or null.")
 let invalidRTokenValue = (472, "invalid resourse token value - resourse token is empty.")
-let invalidPushProviders = (473, "invalid provider. Available - ios-apns, ios-firebase, android-huawei.")
+let invalidPushProviders = (473, "invalid provider. Available - ios-apns, ios-firebase, ios-huawei.")
 let nonJsonObject = (474, "non-json object has been provided")
 let fieldsIsObjects = (475, "invalid values: not all values are primitives")
 let unsupportedSubscriptionType = (476, "unsupported subscription type. Available: EmailSubscription, SmsSubscription, PushSubscription, CcDataSubscription")
@@ -56,7 +56,7 @@ let invalidButtonIdentifier = (455, "invalid button identifier. See event value"
 let outOfRangeForIdentifier = (456, "out of range for identifier. See event value")
 let unknownButtonIdentifier = (457, "unknown button identifier. See event value")
 
-/// 423–424 — Missing request payloads (no automatic retry)
+/// 422,423 — Missing request payloads (no automatic retry)
 /// These errors indicate missing request data for which the SDK does not attempt to recollect
 /// or retry.
 let unSuspendRequestDataIsNil = (422, "unsuspend request data is nil")

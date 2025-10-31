@@ -24,6 +24,4 @@ extension PushEventEntity {
 
 }
 
-extension PushEventEntity : Identifiable {
-
-}
+extension PushEventEntity : Identifiable {}

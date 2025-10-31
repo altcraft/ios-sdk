@@ -8,11 +8,10 @@
 
 import Foundation
 
- ///A singleton class responsible for managing stored variables using UserDefaults.
- ///This class provides methods to save and retrieve various application-related settings and tokens.
- 
+///A singleton class responsible for managing stored variables using UserDefaults.
+///This class provides methods to save and retrieve various application-related settings and tokens.
 public class StoredVariablesManager: NSObject {
-
+    
     /// The shared instance of `StoredVariablesManager`.
     public static let shared = StoredVariablesManager()
     
@@ -60,7 +59,7 @@ public class StoredVariablesManager: NSObject {
     ///
     /// - Parameters:
     ///   - provider: Non-optional provider string.
-    ///   - token: Optional token string. If `nil`, nothing is saved.
+    ///   - token: Optional token string. If `nil` or empty (or provider is empty), the stored manual token is cleared.
     public func setPushToken(provider: String, token: String?) {
         let defaults = UserDefaults(suiteName: getGroupName() ?? "")
         guard let token = token,

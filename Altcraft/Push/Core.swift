@@ -8,17 +8,19 @@
 
 import Foundation
 
-/// Performs a check and update for the push token, and handles any pending push/subscribe requests.
+/// Orchestrates retry-related operations for push and subscription flows.
 ///
-/// This function disables token debug logging, resets all retry counters,
-/// and initiates a token update process. If the token update is not required
-/// or completes successfully, the function proceeds to check for any pending
-/// push or subscribe requests. Simultaneously, it attempts to resend all
-/// pending push event requests if any exist.
+/// Waits for network connectivity and foreground state, then:
+/// 1) Resets all retry counters .
+/// 2) Starts mobile events processing without internal retry .
+/// 3) If the push module is active:
+///    - Enqueues subscription processing without internal retry,
+///    - Resends all pending push events,
+///    - Initiates a token update.
 ///
-/// - Parameters:
-///   - userDefault: The instance responsible for managing stored retry counters.
-///   - tokenManager: The token manager used to update the push token and disable logs.
+/// Notes:
+/// - No parameters; this function uses shared singletons.
+/// - It does **not** disable token debug logging.
 func performRetryOperations() {
     NetworkMonitor.shared.performActionWhenConnected {
         ForegroundCheck.shared.isForeground {

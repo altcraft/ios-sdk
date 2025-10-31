@@ -65,7 +65,7 @@ final class TokenManager {
         )
     }
     
-    /// Retrieves the HMS (Huawei Mobile Services) token if available and non-empty.
+    /// Retrieves the FCM (Firebase Cloud Messaging) token if available and non-empty.
     /// Tries up to 3 times with 1-second delays between attempts.
     ///
     /// - Parameter completion: Callback with `TokenData` if successful, `nil` otherwise.
@@ -165,9 +165,9 @@ final class TokenManager {
         return Array(sorted.prefix(priorityList.count))
     }
     
-    /// Sends an event when a push provider is set with its current token.
+    /// Emits an event indicating which push provider is set and which token is currently in use.
     ///
-    /// - Parameter token: The [`TokenData`] containing the assigned push token. Ignored if `nil` or already sent.
+    /// - Parameter token: The `TokenData` containing the provider and token to log.
     private func tokenEvent(token: TokenData) {
         event(
             #function,

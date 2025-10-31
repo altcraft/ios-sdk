@@ -125,6 +125,15 @@ func buildURLComponents(
     return comps
 }
 
+/// Builds the final URL for mobile event registration.
+///
+/// Appends required query parameters according to the web-event spec:
+/// - `i`: Pixel ID (SID)
+/// - `tr`: Tracker (usually `"px"`)
+/// - `t`: Event type (usually `"open"`)
+/// - `v`: Protocol version (usually `"2"`)
+///
+/// - Returns: A valid `URL` with appended query items, or `nil` if the base URL is invalid.
 func buildMobileEventURL(
     baseURLString: String,
     sid: String,
@@ -315,7 +324,6 @@ func unSuspendRequest(data: UnSuspendRequestData) -> URLRequest? {
     return createUnSuspendRequest(data: data, requestBody: body)
 }
 
-
 /// Internal helper: builds a `URLRequest` for a subscription status call
 /// based on the specified matching mode. All public APIs should call this
 /// helper and then send the request themselves.
@@ -363,17 +371,12 @@ func statusRequest(
     }
 }
 
-/// Builds a multipart `URLRequest` for sending a mobile event using the provided request data.
-/// Resolves the final endpoint via `buildMobileEventURL(...)` and then delegates
-/// to `buildMultipartRequest(url:parts:authHeader:)` to construct the body and headers.
+/// Builds a multipart `URLRequest` for sending a mobile event.
+/// Resolves the endpoint via `buildMobileEventURL(...)` (adds `i`, `tr`, `t`, `v`)
+/// and delegates to `buildMultipartRequest(url:parts:authHeader:)`.
 ///
-/// - Parameter requestData: Container with all required fields to build the request:
-///   - `url`: Base URL string (will be combined with tracker/type/version).
-///   - `sid`: Pixel ID.
-///   - `parst`: Multipart parts to encode.
-///   - `authHeader`: Authorization header value.
-/// - Returns: A configured `URLRequest` if the URL could be constructed; otherwise `nil`
-///            (and logs an error via `errorEvent`).
+/// - Parameter data: `MobileEventRequestData` containing all required fields.
+/// - Returns: Configured `URLRequest`, or `nil` if URL construction fails (error is logged).
 func createMobileEventRequest(
     data: MobileEventRequestData
 ) -> URLRequest? {

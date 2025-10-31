@@ -1,5 +1,5 @@
 //
-//  SubscribeQueue.swift
+//  SubscribeCommandQueue.swift
 //  Altcraft
 //
 //  Created by Andrey Pogodin.

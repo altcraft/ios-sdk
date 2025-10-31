@@ -41,8 +41,9 @@ final class MobileEventCommandQueue {
         }
     }
 
-    /// Clears queued jobs and optionally resets the current run state.
-    /// - Parameter dropCurrent: If `true`, cancels the current job as well.
+    /// Clears all queued jobs and optionally prevents continuation of the current one.
+    /// - Parameter dropCurrent: If `true`, stops scheduling further jobs after the current run
+    /// (does not forcibly cancel a job already in progress).
     func reset(dropCurrent: Bool = true) {
         serial.async {
             self.queue.removeAll()

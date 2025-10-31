@@ -96,7 +96,7 @@ public final class AltcraftConfiguration: NSObject {
             return self
         }
 
-        /// Sets application metadata via Objective-C DTO (`ACAppInfoObjC`).
+        /// Sets application metadata via Objective-C DTO (`AppInfoObjC`).
         ///
         /// Internally, this will be automatically converted into a Swift `AppInfo`
         /// during the `build()` call.
@@ -128,7 +128,7 @@ public final class AltcraftConfiguration: NSObject {
         /// This method performs several validation steps:
         /// 1. Checks that the API URL is provided.
         /// 2. Validates the push provider priority list (if set).
-        /// 3. Resolves application metadata (prefers Swift `AppInfo`, otherwise converts from `ACAppInfoDTO`).
+        /// 3. Resolves application metadata (prefers Swift `AppInfo`, otherwise converts from `AppInfoObjC`).
         ///
         /// - Returns: A valid `AltcraftConfiguration` or `nil` on validation failure.
         public func build() -> AltcraftConfiguration? {

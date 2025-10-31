@@ -14,7 +14,7 @@ import Network
 ///
 /// `AltcraftSDK` is the primary entry point for the Altcraft platform. It provides:
 /// - `eventSDKFunctions`: Managing and observing SDK-level events.
-/// - `pushTokenFunction`: Setting and managing push token providers (FCM, HMS, APNs).
+/// - `pushTokenFunction`: Setting and managing push token providers (APNs, FCM, HMS).
 /// - `pushSubscriptionFunctions`: Submitting and managing push subscription requests.
 /// - `pushEventFunctions`: Manual registration of push notification events.
 /// - `mobileEventFunctions`: Registration of generic mobile events (non-push), incl. payload/matching/UTM.
@@ -25,7 +25,7 @@ import Network
 @objcMembers
 public class AltcraftSDK: NSObject {
 
-    /// The singleton instance of the `Altcraft` class.
+    /// The singleton instance of the AltcraftSDK class.
     public static let shared = AltcraftSDK()
     
     /// Provides access to SDK events.
@@ -37,10 +37,10 @@ public class AltcraftSDK: NSObject {
     /// Provides access to push subscription functions.
     public let pushSubscriptionFunctions = PublicPushSubscriptionFunctions.shared
     
-    /// Provides access to the push event registration function
+    /// Provides access to the push event registration functions.
     public let pushEventFunctions = PublicPushEventFunctions.shared
     
-    /// Provides access to the mobile event registration function
+    /// Provides access to the mobile event registration function.
     public let mobileEventFunctions = PublicMobileEventFunctions.shared
 
     /// Provides access to background task registration.
@@ -52,7 +52,6 @@ public class AltcraftSDK: NSObject {
     /// Initializes the SDK with the provided configuration.
     ///
     /// This method configures the framework using the provided `AltcraftConfiguration` object.
-    /// If the configuration is `nil`, the method will return without performing any actions.
     /// - Parameters:
     ///   - configuration: An optional `AltcraftConfiguration` object containing configuration details.
     ///   - completion: Optional callback (on main queue): `true` on success, `false` on failure.

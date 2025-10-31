@@ -8,7 +8,7 @@
 
 import Foundation
 
-/// A singleton class responsible for handling  device token updates for Altcraft profiles .
+/// A singleton class responsible for handling device token updates for Altcraft profiles .
 public class TokenUpdate: NSObject {
     public static let shared = TokenUpdate()
     private let pushSubscribe = PushSubscribe.shared
@@ -20,14 +20,13 @@ public class TokenUpdate: NSObject {
     var currentToken: TokenData? = nil
     private let tokenUpdateQueue = DispatchQueue(label: Constants.Queues.tokenUpdateQueue)
   
-    /// Initiates the device push token update process for Altcraft profiles.
+    /// Initiates the device push token update flow.
     ///
-    /// Compares the saved push token with the current one. If the tokens differ,
-    /// starts the update process and saves the retry counter. Otherwise,
-    /// triggers a subscription check.
+    /// Compares the saved token with the current one obtained from `TokenManager`.
+    /// If tokens differ, requests background execution, resets the retry counter to `0`,
+    /// and starts the update process. If tokens are equal, simply completes.
     ///
-    /// - Parameters:
-    ///   - completion: Optional closure called after the operation completes.
+    /// - Parameter completion: Optional closure called after the operation completes.
     func tokenUpdate(completion: (() -> Void)? = nil) {
         tokenUpdateQueue.async {
             let savedToken = self.userDefault.getSavedToken()
@@ -80,11 +79,11 @@ public class TokenUpdate: NSObject {
         }
     }
     
-    /// Sends the device push token **update** request.
+    /// Sends the device push token update request.
     ///
     /// Builds the request using `getUpdateRequestData()` and `updateRequest(data:)`.
-    /// If data is missing or the request cannot be created, completes with a `RetryEvent`.
-    /// Otherwise, forwards the resulting `Event` from `RequestManager`.
+    /// If required data is missing or the request cannot be created, completes with a `RetryEvent`.
+    /// Otherwise forwards the resulting `Event` from `RequestManager`.
     ///
     /// - Parameter completion: Closure invoked with the resulting `Event`
     ///   (success, non-retryable error, or `RetryEvent`).

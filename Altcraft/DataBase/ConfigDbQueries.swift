@@ -111,12 +111,12 @@ func getConfig(completion: @escaping (Configuration?) -> Void) {
     }
 }
 
-/// Checks if a `ConfigurationEntity` with the specified resource token exists in the Core Data store.
+/// Checks if a `ConfigurationEntity` exists in the Core Data store.
 ///
 /// - Parameters:
-///   - resToken: The resource token to check for existence.
+///   - resToken: Unused parameter (reserved for future filtering by resource token).
 ///   - completion: A closure that is called with a `Result<Bool, Error>`
-///     indicating whether the entity exists or an error occurred during the fetch.
+///     indicating whether any configuration entity exists or an error occurred during the fetch.
 func doesConfigurationEntityExist(resToken: String, completion: @escaping (Result<Bool, Error>) -> Void) {
     withBackgroundContext { context in
         let fetchRequest: NSFetchRequest<ConfigurationEntity> = ConfigurationEntity.fetchRequest()
@@ -133,11 +133,11 @@ func doesConfigurationEntityExist(resToken: String, completion: @escaping (Resul
     }
 }
 
-/// Updates the `providerPriorityList` in Core Data and optionally executes a block with the context.
+/// Updates the `providerPriorityList` in Core Data.
 ///
 /// - Parameters:
 ///   - newList: The new list of provider priorities.
-///   - onSaved: Optional closure executed with `context` after successful save.
+///   - onSaved: Completion closure called with `.success(())` on success or `.failure(Error)` on error.
 func updateProviderPriorityList(
     newList: [String],
     onSaved: @escaping (Result<Void, Error>) -> Void

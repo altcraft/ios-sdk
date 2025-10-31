@@ -10,6 +10,4 @@ import Foundation
 import CoreData
 
 @objc(SubscribeEntity)
-public class SubscribeEntity: NSManagedObject {
-
-}
+public class SubscribeEntity: NSManagedObject {}

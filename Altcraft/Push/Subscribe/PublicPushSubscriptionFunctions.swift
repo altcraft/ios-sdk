@@ -1,5 +1,5 @@
 //
-//  PublicSubscribeFunctions.swift
+//  PublicPushSubscriptionFunctions.swift
 //  Altcraft
 //
 //  Created by Andrey Pogodin.
@@ -12,22 +12,24 @@ import Foundation
 ///
 /// Exposes native Swift methods (your existing API) **and** Objective-C wrappers
 /// that accept Foundation collections (`NSDictionary`, `NSArray`) and return
-/// Objective-C friendly DTOs where needed.
+/// Objective-C-friendly DTOs where needed.
 @objcMembers
 public class PublicPushSubscriptionFunctions: NSObject {
 
     public static let shared = PublicPushSubscriptionFunctions()
 
-    //// Performs a push **subscription** request.
-    /// This call blocks until a response is received from the server.
+    /// Performs a push **subscription** request.
+    ///
+    /// Starts the subscription request and returns immediately; the `sync` flag
+    /// is forwarded to the backend (`1`/`0`) to control server-side behavior.
     ///
     /// - Parameters:
-    ///   - sync: Whether the call is synchronous (`true`) or asynchronous (`false`). Default is `true`.
+    ///   - sync: Whether the call should be treated as synchronous (`true`) or asynchronous (`false`) on the server (default `true`).
     ///   - profileFields: Optional profile fields to include.
-    ///   - customFields: Optional custom fields to include.
-    ///   - cats: Optional category map.
-    ///   - replace: Whether to replace an existing subscription.
-    ///   - skipTriggers: Whether to skip trigger execution.
+    ///   - customFields: Optional custom fields to include. Must contain only primitive values.
+    ///   - cats: Optional list of categories (`[CategoryData]`).
+    ///   - replace: Whether to replace existing subscription data.
+    ///   - skipTriggers: Whether to skip automation triggers.
     @nonobjc
     public func pushSubscribe(
         sync: Bool = true,
@@ -48,7 +50,7 @@ public class PublicPushSubscriptionFunctions: NSObject {
         )
     }
 
-    /// ObjC wrapper: subscribe (BOOL sync; Foundation/ObjC types)
+    /// ObjC wrapper: subscribe (bridges Foundation types and `CategoryDataObjC`).
     @available(swift, obsoleted: 1)
     @objc(pushSubscribe:profileFields:customFields:cats:replace:skipTriggers:)
     public func pushSubscribe(
@@ -70,15 +72,17 @@ public class PublicPushSubscriptionFunctions: NSObject {
     }
 
     /// Performs a push **unsubscription** request.
-    /// This call blocks until a response is received from the server.
+    ///
+    /// Starts the unsubscription request and returns immediately; the `sync` flag
+    /// is forwarded to the backend (`1`/`0`) to control server-side behavior.
     ///
     /// - Parameters:
-    ///   - sync: Whether the call is synchronous (`true`) or asynchronous (`false`). Default is `true`.
+    ///   - sync: Whether the call should be treated as synchronous (`true`) or asynchronous (`false`) on the server (default `true`).
     ///   - profileFields: Optional profile fields to include.
-    ///   - customFields: Optional custom fields to include.
-    ///   - cats: Optional category map.
-    ///   - replace: Whether to replace an existing subscription.
-    ///   - skipTriggers: Whether to skip trigger execution.
+    ///   - customFields: Optional custom fields to include. Must contain only primitive values.
+    ///   - cats: Optional list of categories (`[CategoryData]`).
+    ///   - replace: Whether to replace existing subscription data.
+    ///   - skipTriggers: Whether to skip automation triggers.
     @nonobjc
     public func pushUnSubscribe(
         sync: Bool = true,
@@ -99,7 +103,7 @@ public class PublicPushSubscriptionFunctions: NSObject {
         )
     }
 
-    /// ObjC wrapper: unsubscribe
+    /// ObjC wrapper: unsubscribe (bridges Foundation types and `CategoryDataObjC`).
     @available(swift, obsoleted: 1)
     @objc(pushUnSubscribe:profileFields:customFields:cats:replace:skipTriggers:)
     public func pushUnSubscribe(
@@ -122,13 +126,16 @@ public class PublicPushSubscriptionFunctions: NSObject {
 
     /// Suspends push notifications for the current profile.
     ///
+    /// Starts the suspend request and returns immediately; the `sync` flag
+    /// is forwarded to the backend (`1`/`0`) to control server-side behavior.
+    ///
     /// - Parameters:
-    ///   - sync: Whether the call is synchronous (`true`) or asynchronous (`false`). Default is `true`.
+    ///   - sync: Whether the call should be treated as synchronous (`true`) or asynchronous (`false`) on the server (default `true`).
     ///   - profileFields: Optional profile fields to include.
-    ///   - customFields: Optional custom fields to include.
-    ///   - cats: Optional category map.
-    ///   - replace: Whether to replace an existing subscription.
-    ///   - skipTriggers: Whether to skip trigger execution.
+    ///   - customFields: Optional custom fields to include. Must contain only primitive values.
+    ///   - cats: Optional list of categories (`[CategoryData]`).
+    ///   - replace: Whether to replace existing subscription data.
+    ///   - skipTriggers: Whether to skip automation triggers.
     @nonobjc
     public func pushSuspend(
         sync: Bool = true,
@@ -149,7 +156,7 @@ public class PublicPushSubscriptionFunctions: NSObject {
         )
     }
 
-    /// ObjC wrapper: suspend
+    /// ObjC wrapper: suspend (bridges Foundation types and `CategoryDataObjC`).
     @available(swift, obsoleted: 1)
     @objc(pushSuspend:profileFields:customFields:cats:replace:skipTriggers:)
     public func pushSuspend(
@@ -200,7 +207,7 @@ public class PublicPushSubscriptionFunctions: NSObject {
         }
     }
 
-    // ObjC wrapper: unsuspend (ResponseWithHttpObjC)
+    /// ObjC wrapper: unsuspend (bridges to `ResponseWithHttpObjC`).
     @available(swift, obsoleted: 1)
     @objc(unSuspendPushSubscriptionWithCompletion:)
     public func unSuspendPushSubscription(_ completion: @escaping (ResponseWithHttpObjC?) -> Void) {
@@ -210,11 +217,10 @@ public class PublicPushSubscriptionFunctions: NSObject {
     }
 
     /// Returns the status of the latest subscription in profile.
-    /// Equivalent to Kotlin's getStatusOfLatestSubscription().
+    /// Equivalent to Kotlin's `getStatusOfLatestSubscription()`.
     ///
-    /// - Parameters:
-    ///   - completion: Callback invoked with `ResponseWithHttp` (contains HTTP status and parsed `Response`)
-    ///                 or `nil` if validation fails or the request could not be created/sent.
+    /// - Parameter completion: Callback invoked with `ResponseWithHttp` (contains HTTP status and parsed `Response`)
+    ///                         or `nil` if validation fails or the request could not be created/sent.
     @nonobjc
     public func getStatusOfLatestSubscription(completion: @escaping (ResponseWithHttp?) -> Void) {
         statusRequest(mode: Constants.StatusMode.latestSubscription) { request in
@@ -232,7 +238,7 @@ public class PublicPushSubscriptionFunctions: NSObject {
         }
     }
 
-    // ObjC wrapper: latest status
+    /// ObjC wrapper: latest status.
     @available(swift, obsoleted: 1)
     @objc(getStatusOfLatestSubscriptionWithCompletion:)
     public func getStatusOfLatestSubscription(_ completion: @escaping (ResponseWithHttpObjC?) -> Void) {
@@ -242,11 +248,10 @@ public class PublicPushSubscriptionFunctions: NSObject {
     }
 
     /// Returns the status of a subscription matching the current push token and provider.
-    /// Equivalent to Kotlin's getStatusForCurrentSubscription().
+    /// Equivalent to Kotlin's `getStatusForCurrentSubscription()`.
     ///
-    /// - Parameters:
-    ///   - completion: Callback invoked with `ResponseWithHttp` (contains HTTP status and parsed `Response`)
-    ///                 or `nil` if validation fails or the request could not be created/sent.
+    /// - Parameter completion: Callback invoked with `ResponseWithHttp` (contains HTTP status and parsed `Response`)
+    ///                         or `nil` if validation fails or the request could not be created/sent.
     @nonobjc
     public func getStatusForCurrentSubscription(completion: @escaping (ResponseWithHttp?) -> Void) {
         statusRequest(mode: Constants.StatusMode.matchCurrentContext) { request in
@@ -264,7 +269,7 @@ public class PublicPushSubscriptionFunctions: NSObject {
         }
     }
 
-    // ObjC wrapper: current status
+    /// ObjC wrapper: current status.
     @available(swift, obsoleted: 1)
     @objc(getStatusForCurrentSubscriptionWithCompletion:)
     public func getStatusForCurrentSubscription(_ completion: @escaping (ResponseWithHttpObjC?) -> Void) {
@@ -276,10 +281,10 @@ public class PublicPushSubscriptionFunctions: NSObject {
     /// Returns the status of the latest subscription for a push provider.
     /// If `provider` is specified, queries the latest subscription for that provider.
     /// If `nil`, uses the current push provider.
-    /// Equivalent to Kotlin's getStatusOfLatestSubscriptionForProvider().
+    /// Equivalent to Kotlin's `getStatusOfLatestSubscriptionForProvider()`.
     ///
     /// - Parameters:
-    ///   - provider: Optional push provider identifier (`"ios-apns"`, `"ios-firebase"`, `"ios-huawei"`). If `nil`, the current provider is used.
+    ///   - provider: Optional push provider identifier (`"apns"`, `"firebase"`, `"huawei"`). If `nil`, the current provider is used.
     ///   - completion: Callback invoked with `ResponseWithHttp` (contains HTTP status and parsed `Response`)
     ///                 or `nil` if validation fails or the request could not be created/sent.
     @nonobjc
@@ -308,7 +313,7 @@ public class PublicPushSubscriptionFunctions: NSObject {
         }
     }
 
-    // ObjC wrapper: latest status for provider
+    /// ObjC wrapper: latest status for provider.
     @available(swift, obsoleted: 1)
     @objc(getStatusOfLatestSubscriptionForProvider:completion:)
     public func getStatusOfLatestSubscriptionForProvider(
@@ -320,7 +325,6 @@ public class PublicPushSubscriptionFunctions: NSObject {
         }
     }
 
-    
     /// Creates an `ActionFieldBuilder` for the specified profile field key.
     ///
     /// - Parameter key: The profile field key.

@@ -11,7 +11,7 @@ import CoreData
 
 // MARK: - Internal Structs
 
-/// Structure for storing Alcraft configuration data.
+/// Structure for storing Altcraft configuration data.
 struct Configuration {
     let url: String
     let rToken: String?
@@ -86,7 +86,7 @@ struct SubscribeRequestData {
     /// The URL of the subscription API endpoint.
     let url: String
 
-    /// The timestamp of the request in ISO format.
+    /// Timestamp in epoch milliseconds (Int64).
     let time: Int64
 
     /// The resource token for authentication (optional).
@@ -95,10 +95,10 @@ struct SubscribeRequestData {
     /// A unique identifier for the request.
     let requestId: String
 
-    /// The authorization header for the request (optional).
+    /// The authorization header for the request.
     let authHeader: String
 
-    /// The matching mode used for subscription identification (optional).
+    /// The matching mode used for subscription identification.
     let matchingMode: String
 
     /// The provider name (e.g., "ios-apns", "ios-firebase").
@@ -110,13 +110,13 @@ struct SubscribeRequestData {
     /// The subscription status.
     let status: String
 
-    /// An optional synchronization flag.
+    /// An  synchronization flag.
     let sync: Int16
     
-    /// A dictionary of profile  fields related to the subscription.
+    /// A dictionary of profile  fields related to the subscription (optional).
     let profileFields: [String: Any]?
 
-    /// A dictionary of additional fields related to the subscription.
+    /// A dictionary of additional fields related to the subscription  (optional).
     let customFields: [String: Any]
 
     /// A dictionary of category preferences for the subscription (optional).
@@ -212,7 +212,7 @@ struct ProfileRequestData {
 /// - Parameters:
 ///   - url: The full API endpoint for the mobile event.
 ///   - sid: The string ID of the pixel (Altcraft client ID).
-///   - name: The event name.
+///   - eventName: The event name.
 ///   - parts: The event parts.
 ///   - authHeader: The authorization header (e.g. `"Bearer <token>"`).
 struct MobileEventRequestData {

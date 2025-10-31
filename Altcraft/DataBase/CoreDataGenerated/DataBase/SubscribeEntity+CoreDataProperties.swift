@@ -31,6 +31,4 @@ extension SubscribeEntity {
 
 }
 
-extension SubscribeEntity : Identifiable {
-
-}
+extension SubscribeEntity : Identifiable {}

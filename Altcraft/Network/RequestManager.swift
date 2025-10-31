@@ -1,5 +1,5 @@
 //
-//  NetworkManager.swift
+//  RequestManager.swift
 //  Altcraft
 //
 //  Created by Andrey Pogodin.
@@ -12,10 +12,10 @@ import Foundation
 /// and handling redirects with header preservation.
 final class RequestManager: NSObject {
     
-    /// The shared singleton instance of `NetworkManager`.
+    /// The shared singleton instance of `RequestManager`.
     static let shared = RequestManager()
     
-    /// A lazily-initialized URLSession with `NetworkManager` as its delegate.
+    /// A lazily-initialized URLSession with `RequestManager` as its delegate.
     private lazy var session: URLSession = {
         let configuration = URLSessionConfiguration.default
         return URLSession(configuration: configuration, delegate: self, delegateQueue: nil)
@@ -60,10 +60,23 @@ final class RequestManager: NSObject {
         }.resume()
     }
     
-    /// Processes a synchronous subscription response.
+    /// Processes an HTTP response and maps it to an `Event`.
+    ///
+    /// Applies common response parsing and builds success/error/retry events
+    /// according to the status code.
+    ///
+    /// Mapping:
+    /// - 2xx → success `Event`
+    /// - 5xx → retry `Event`
+    /// - otherwise → error `Event`
+    ///
     /// - Parameters:
     ///   - response: The HTTP response from the request.
-    ///   - data: The response data.
+    ///   - data: The raw response body, if any.
+    ///   - requestName: Logical name of the request (for error mapping and logging).
+    ///   - uid: Unique event identifier (optional).
+    ///   - type: Push event type (optional, used for push events).
+    ///   - name: Mobile event name (optional, used for mobile events).
     /// - Returns: An `Event` representing the result.
     func responseProcessing(
         response: HTTPURLResponse,

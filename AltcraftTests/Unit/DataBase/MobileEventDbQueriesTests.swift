@@ -4,7 +4,6 @@
 //
 //  Created by Andrey Pogodin.
 //  © 2025 Altcraft. All rights reserved.
-//
 
 import XCTest
 import CoreData
@@ -14,16 +13,11 @@ import CoreData
  * MobileEventDbQueriesTests
  *
  * Positive scenarios:
- *  - test_1_addMobileEventEntity_persistsCore_andOptionals:
- *      addMobileEventEntity saves required fields and encodes optional maps; returns .success.
- *  - test_2_getAllMobileEventsByTag_filtersAndSortsByTimeAsc:
- *      getAllMobileEventsByTag returns only matching userTag and is sorted by increasing time.
- *  - test_3_getAllMobileEventsByTag_returnsEmpty_forUnknownTag:
- *      getAllMobileEventsByTag returns an empty list when no records match the tag.
- *  - test_4_clearOldMobileEvents_noop_belowThreshold:
- *      clearOldMobileEvents keeps all rows when total <= threshold.
- *  - test_5_clearOldMobileEvents_deletesOldest_whenOverThreshold:
- *      clearOldMobileEvents deletes the oldest N rows when total exceeds threshold.
+ *  - test_1: addMobileEventEntity saves required fields and encodes optional maps; returns .success.
+ *  - test_2: getAllMobileEventsByTag returns only matching userTag and is sorted by increasing time.
+ *  - test_3: getAllMobileEventsByTag returns an empty list when no records match the tag.
+ *  - test_4: clearOldMobileEvents keeps all rows when total <= threshold.
+ *  - test_5: clearOldMobileEvents deletes the oldest N rows when total exceeds threshold.
  */
 
 final class MobileEventDbQueriesTests: IsolatedTestCase {
@@ -53,7 +47,6 @@ final class MobileEventDbQueriesTests: IsolatedTestCase {
         try super.tearDownWithError()
     }
 
-    /// Removes all rows for provided entities in the SDK container.
     private func sdkWipe(_ entityNames: [String]) {
         let bg = sdkNewBG()
         bg.performAndWait {
@@ -68,7 +61,6 @@ final class MobileEventDbQueriesTests: IsolatedTestCase {
         }
     }
 
-    /// Counts rows for an entity; returns 0 on failure.
     private func sdkCount(_ entityName: String) -> Int {
         let ctx = sdkViewContext
         var result = 0
@@ -80,7 +72,6 @@ final class MobileEventDbQueriesTests: IsolatedTestCase {
         return result
     }
 
-    /// Fetches all MobileEventEntity rows for a tag ordered by time asc.
     private func fetchAllMobileByTagAsc(_ tag: String) -> [MobileEventEntity] {
         let ctx = sdkViewContext
         var list: [MobileEventEntity] = []
@@ -93,7 +84,6 @@ final class MobileEventDbQueriesTests: IsolatedTestCase {
         return list
     }
 
-    /// Materializes managed object by ID as MobileEventEntity.
     private func fetchMobile(by id: NSManagedObjectID) -> MobileEventEntity? {
         let ctx = sdkViewContext
         var obj: MobileEventEntity?
@@ -105,13 +95,11 @@ final class MobileEventDbQueriesTests: IsolatedTestCase {
         return obj
     }
 
-    /// Decodes JSON Data into [String: Any] via JSONSerialization.
     private func decodeAnyMap(_ data: Data?) -> [String: Any]? {
         guard let d = data else { return nil }
         return (try? JSONSerialization.jsonObject(with: d, options: [])) as? [String: Any]
     }
 
-    /// Seeds N MobileEventEntity with a tag and then normalizes their time to base+(idx).
     private func seedMobileEvents(tag: String, count n: Int, base: Int64 = 1_000_000) {
         let group = DispatchGroup()
         for i in 0..<n {
@@ -146,7 +134,7 @@ final class MobileEventDbQueriesTests: IsolatedTestCase {
         }
     }
 
-    /// addMobileEventEntity saves required fields and encodes maps.
+    /// test_1: addMobileEventEntity saves required fields and encodes optional maps; returns .success
     func test_1_addMobileEventEntity_persistsCore_andOptionals() {
         let tag = "user-1"
         let payload: [String: Any?] = ["p1": "v1", "n": 42]
@@ -199,7 +187,7 @@ final class MobileEventDbQueriesTests: IsolatedTestCase {
         XCTAssertEqual(decProfile?["name"] as? String, "John")
     }
 
-    /// getAllMobileEventsByTag returns only matching tag and sorted ascending by time.
+    /// test_2: getAllMobileEventsByTag returns only matching userTag and is sorted by increasing time
     func test_2_getAllMobileEventsByTag_filtersAndSortsByTimeAsc() {
         seedMobileEvents(tag: "A", count: 3, base: 10_000)
         seedMobileEvents(tag: "B", count: 2, base: 20_000)
@@ -216,7 +204,7 @@ final class MobileEventDbQueriesTests: IsolatedTestCase {
         waitForExpectations(timeout: timeoutShort)
     }
 
-    /// Returns empty result when tag has no records.
+    /// test_3: getAllMobileEventsByTag returns an empty list when no records match the tag
     func test_3_getAllMobileEventsByTag_returnsEmpty_forUnknownTag() {
         seedMobileEvents(tag: "known", count: 2, base: 1_000)
         let bg = sdkNewBG()
@@ -228,7 +216,7 @@ final class MobileEventDbQueriesTests: IsolatedTestCase {
         waitForExpectations(timeout: timeoutShort)
     }
 
-    /// clearOldMobileEvents keeps all rows when total <= threshold.
+    /// test_4: clearOldMobileEvents keeps all rows when total <= threshold
     func test_4_clearOldMobileEvents_noop_belowThreshold() {
         seedMobileEvents(tag: "keep", count: 5, base: 100)
         XCTAssertEqual(sdkCount(Constants.EntityNames.mobileEvent), 5)
@@ -245,7 +233,7 @@ final class MobileEventDbQueriesTests: IsolatedTestCase {
         XCTAssertEqual(remaining, [100, 101, 102, 103, 104])
     }
 
-    /// clearOldMobileEvents deletes the oldest N rows when total exceeds threshold.
+    /// test_5: clearOldMobileEvents deletes the oldest N rows when total exceeds threshold
     func test_5_clearOldMobileEvents_deletesOldest_whenOverThreshold() {
         seedMobileEvents(tag: "purge", count: 7, base: 500)
         XCTAssertEqual(sdkCount(Constants.EntityNames.mobileEvent), 7)
