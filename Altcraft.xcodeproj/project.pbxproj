@@ -55,6 +55,7 @@
 		55302C922EA11A1A003A1A4C /* AltcraftObjCTypes.swift in Sources */ = {isa = PBXBuildFile; fileRef = 55302C912EA11A1A003A1A4C /* AltcraftObjCTypes.swift */; };
 		553B085D2E5DD49C004526D6 /* SubscribeQueue.swift in Sources */ = {isa = PBXBuildFile; fileRef = 553B085C2E5DD49C004526D6 /* SubscribeQueue.swift */; };
 		55527FB12D314BCE00919755 /* StringBuilder.swift in Sources */ = {isa = PBXBuildFile; fileRef = 55527FB02D314BCE00919755 /* StringBuilder.swift */; };
+		55654E772EB55922000BF004 /* CoreDataMigrationTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 55654E762EB55922000BF004 /* CoreDataMigrationTests.swift */; };
 		556FC7392E30D2D2000584AA /* Init.swift in Sources */ = {isa = PBXBuildFile; fileRef = 556FC7382E30D2D2000584AA /* Init.swift */; };
 		556FC73B2E30EE99000584AA /* Core.swift in Sources */ = {isa = PBXBuildFile; fileRef = 556FC73A2E30EE99000584AA /* Core.swift */; };
 		557556D32CE2566900F6B50C /* NetworkMonitor.swift in Sources */ = {isa = PBXBuildFile; fileRef = 557556D22CE2566900F6B50C /* NetworkMonitor.swift */; };
@@ -192,6 +193,7 @@
 		55302C912EA11A1A003A1A4C /* AltcraftObjCTypes.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AltcraftObjCTypes.swift; sourceTree = "<group>"; };
 		553B085C2E5DD49C004526D6 /* SubscribeQueue.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SubscribeQueue.swift; sourceTree = "<group>"; };
 		55527FB02D314BCE00919755 /* StringBuilder.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StringBuilder.swift; sourceTree = "<group>"; };
+		55654E762EB55922000BF004 /* CoreDataMigrationTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CoreDataMigrationTests.swift; sourceTree = "<group>"; };
 		556FC7382E30D2D2000584AA /* Init.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Init.swift; sourceTree = "<group>"; };
 		556FC73A2E30EE99000584AA /* Core.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Core.swift; sourceTree = "<group>"; };
 		557556D22CE2566900F6B50C /* NetworkMonitor.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NetworkMonitor.swift; sourceTree = "<group>"; };
@@ -722,6 +724,7 @@
 				552BCF862E7D6DDF008A9116 /* PushEventDbQueriesTests.swift */,
 				55EE32BD2EAF5D8E003B84C9 /* MobileEventDbQueriesTests.swift */,
 				55EE32C12EB0BFED003B84C9 /* CommonsDbQueriesTests.swift */,
+				55654E762EB55922000BF004 /* CoreDataMigrationTests.swift */,
 			);
 			path = DataBase;
 			sourceTree = "<group>";
@@ -895,6 +898,7 @@
 				55A672C42EAA4F9600BFDBAD /* IsolatedTestCase.swift in Sources */,
 				55B3149F2E7C564400A3F9E4 /* ActionFieldBuilderTests.swift in Sources */,
 				55A672D02EAA71D000BFDBAD /* UserDefaultsIsolation.swift in Sources */,
+				55654E772EB55922000BF004 /* CoreDataMigrationTests.swift in Sources */,
 				552BCF8E2E7D7A4D008A9116 /* SDKEventsTests.swift in Sources */,
 				55B314A52E7C588100A3F9E4 /* AuthManagerTests.swift in Sources */,
 				55B3149D2E7C542900A3F9E4 /* MapBuilderTests.swift in Sources */,
