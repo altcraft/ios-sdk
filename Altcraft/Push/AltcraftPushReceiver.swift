@@ -1,5 +1,5 @@
 //
-//  AltcraftNotificationService.swift
+//  AltcraftPushReceiver.swift
 //  Altcraft
 //
 //  Created by Andrey Pogodin.
@@ -11,7 +11,7 @@ import UIKit
 import UserNotifications
 import UserNotificationsUI
 
-/// `AltcraftNotificationService` class responsible for displaying rich push notifications.
+/// `AltcraftPushReceiver` class responsible for displaying rich push notifications.
 @objcMembers
 public class AltcraftPushReceiver: NSObject {
     

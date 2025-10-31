@@ -65,7 +65,7 @@ public enum Constants {
         /// Queue label for sequential creation of mobile event entities.
         static let mobileEventEntityQueue = "com.altcraft.mobileEvent.entityQueue"
         
-        /// Queue label for starting subscription processing with epoch reset support.
+        /// Queue label for starting mobile event processing with epoch reset support.
         static let mobileEventStartQueue  = "com.altcraft.mobileEvent.startQueue"
         
         /// Queue label for synchronizing internal state and flags.
@@ -106,7 +106,7 @@ public enum Constants {
         /// Sync flag for subscription.
         static let sync = "sync"
         
-        /// Device token value.
+        /// push token value.
         static let subscriptionId = "subscription_id"
     }
     
@@ -188,10 +188,10 @@ public enum Constants {
         /// The key for skip triggers flag in JSON.
         static let skipTriggers = "skip_triggers"
         
-        /// The key for сategory ID in JSON.
+        /// The key for category name (api name)  in JSON.
         static let catsName = "name"
         
-        /// The key for сategory name in JSON.
+        /// The key for category title in JSON.
         static let catsTitle = "title"
         
         ///A flag key indicating that the category is locked for modification.
@@ -318,10 +318,10 @@ public enum Constants {
         /// The function code for the update process.
         static let SU = "startUpdate()"
         
-        /// The function code for the hubLink  process.
+        /// The function code for the push event process.
         static let PE = "sendPushEvent()"
         
-        /// The function code for the hubLink  process.
+        /// The function code for the mobile event process.
         static let ME = "sendMobileEvent()"
     }
     
@@ -454,7 +454,7 @@ public enum Constants {
         /// Message for successful completion of the push unsuspend request.
         static let pushUnSuspendSuccess = "successful request: \(RequestName.unsuspend)"
         
-        /// Message for successful completion of the token update request.
+        /// Message for successful completion of the subscription status request.
         static let statusSuccess = "successful request: \(RequestName.status)"
         
         /// Message for successful delivery of the push event.

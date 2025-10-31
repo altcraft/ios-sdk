@@ -14,7 +14,7 @@ public class PublicMobileEventFunctions: NSObject {
     
     public static let shared = PublicMobileEventFunctions()
     
-    //// Sends a mobile event to the server.
+    /// Sends a mobile event to the server.
     /// This function prepares and triggers the delivery of a mobile event composed of
     /// mandatory identifiers and optional metadata. It mirrors the Android public API
     /// for consistency across platforms.

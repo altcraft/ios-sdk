@@ -9,15 +9,14 @@
 import Foundation
 import CoreData
 
-/// Creates and saves a new `PushEventEntity` into the Core Data context, returning its `NSManagedObjectID`.
+/// Creates and saves a new `PushEventEntity` into the Core Data store, returning its `NSManagedObjectID`.
 ///
 /// Initializes a new push event with the given `uid` and `type`, sets the timestamp and retry counters,
-/// saves it to Core Data, and returns the created object's ID.
+/// saves it to Core Data on a background context, and returns the created object's ID.
 ///
 /// - Parameters:
-///   - context: The `NSManagedObjectContext` used to create and save the entity.
 ///   - uid: The unique identifier of the push event.
-///   - type: The type of the push event (e.g., "delivered", "opened").
+///   - type: The type of the push event (e.g., "delivery", "open").
 ///   - completion: A closure called with the created entity's `NSManagedObjectID` or `nil` if saving failed.
 func addPushEventEntity(
     uid: String,

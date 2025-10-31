@@ -6,13 +6,12 @@
 //
 //  Copyright © 2025 Altcraft. All rights reserved.
 
-
 import SwiftUI
 import Combine
 import Altcraft
 
 @MainActor
-// Class to manage the subscription status with persistence using UserDefaults
+/// Class to manage the subscription status with persistence using UserDefaults
 class SubscribeStatusManager: ObservableObject {
     @Published var status: String
     
@@ -27,7 +26,7 @@ class SubscribeStatusManager: ObservableObject {
         self.status = AppConstants.SubscriptionStatus.unsubscribed
     }
     
-    // Update the status based on the provided event
+    /// Update the status based on the provided event
     func updateStatus(with event: Event) {
         let eventCode = event.eventCode ?? 0
         let eventValue = event.value?["response_with_http_code"] as? ResponseWithHttp
@@ -38,9 +37,15 @@ class SubscribeStatusManager: ObservableObject {
             AppConstants.SubscriptionStatus.unsubscribed
             UserDefaults.standard.set(status, forKey: "subscribeStatus")
         }
+        
+        if eventCode == 433 &&
+           (event.message?.range(of: "profile not found", options: [.caseInsensitive]) != nil) {
+            self.status = AppConstants.SubscriptionStatus.unsubscribed
+            UserDefaults.standard.set(status, forKey: "subscribeStatus")
+        }
     }
 }
 
 @MainActor
-// Global singleton for accessing the StatusManager
+/// Global singleton for accessing the StatusManager
 class GlobalStatusManager { static let shared = SubscribeStatusManager() }

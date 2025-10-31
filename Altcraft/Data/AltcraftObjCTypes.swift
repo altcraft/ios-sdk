@@ -35,10 +35,10 @@ public final class AppInfoObjC: NSObject {
 /// it can be consumed directly from Objective-C code.
 ///
 /// ```objc
-/// ACTCategoryData *news = [[ACTCategoryData alloc] initWithName:@"news"
-///                                                         title:@"News"
-///                                                        steady:YES
-///                                                        active:YES];
+/// CategoryDataObjC *news = [[CategoryDataObjC alloc] initWithName:@"news"
+///                                                           title:@"News"
+///                                                          steady:YES
+///                                                          active:YES];
 /// ```
 @objcMembers
 public final class CategoryDataObjC: NSObject {
@@ -70,7 +70,7 @@ public final class CategoryDataObjC: NSObject {
     }
 
     /// ObjC -> Swift converter for arrays of categories.
-    /// Converts `[ACTCategoryData]` into `[CategoryData]`.
+    /// Converts `[CategoryDataObjC]` into `[CategoryData]`.
     internal static func toSwiftArray(_ arr: [CategoryDataObjC]?) -> [CategoryData]? {
         guard let arr, !arr.isEmpty else { return [] }
         return arr.map {

@@ -125,7 +125,7 @@ class AppDelegate: UIResponder, UIApplicationDelegate, UNUserNotificationCenterD
  *   • (Optional) Notification Service Extension → for rich push (media, buttons)
  *
  * - Provider resources (Bundle files):
- *   • **Firebase**: add **GoogleService-Info.plist** to the main app target.
+ *   • **Firebase**: add **GoogleService-Info.plist** to the main app target (required when using the "ios-firebase" provider).
  *   • **Huawei**: add **AGConnect-Info.plist** to the main app target (required when using the "ios-huawei" provider).
  *
  * - Provider priority:

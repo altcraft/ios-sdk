@@ -9,7 +9,7 @@
 import Foundation
 
 /// A singleton manager that provides dedicated queues and cancellable work items
-/// for retry operations (subscribe, token update, and push event).
+/// for retry operations (subscribe, token update, push event, and mobile event).
 /// Allows cancellation of all scheduled retries at once.
 final class RetryManager {
     static let shared = RetryManager()
@@ -24,7 +24,7 @@ final class RetryManager {
     /// Serial queue for push event retries.
     let pushEventQueue = DispatchQueue(label: Constants.Queues.retryPushEventQueue, qos: .utility)
     
-    /// Serial queue for push event retries.
+    /// Serial queue for mobile event retries.
     let mobileEventQueue = DispatchQueue(label: Constants.Queues.retryMobileEventQueue, qos: .utility)
 
     /// Active retry tasks, stored by key.
@@ -32,6 +32,13 @@ final class RetryManager {
     private let sync = DispatchQueue(label: Constants.Queues.retryManagerSync)
 
     /// Stores a retry task for later cancellation.
+    ///
+    /// If a task with the same `key` already exists, it will be cancelled
+    /// and replaced with the new one.
+    ///
+    /// - Parameters:
+    ///   - key: Unique identifier of the retry task.
+    ///   - work: The `DispatchWorkItem` to schedule/cancel later.
     func store(key: String, work: DispatchWorkItem) {
         sync.sync {
             tasks[key]?.cancel()
@@ -39,7 +46,7 @@ final class RetryManager {
         }
     }
 
-    /// Cancels all scheduled retry tasks across all queues.
+    /// Cancels all scheduled retry tasks across all queues and clears the registry.
     func cancelAll() {
         sync.sync {
             for (_, work) in tasks {

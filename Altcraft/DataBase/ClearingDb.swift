@@ -61,7 +61,7 @@ class ClearingDb: NSObject {
     
     /// Deletes all entities of predefined types from the SDK Core Data store.
     ///
-    /// This method calls `deleteAllEntities(entityName:completion:)` for each predefined entity type
+    /// This method calls `deleteEntity(entityName:completion:)` for each predefined entity type
     /// and aggregates the success of each operation. The completion handler is called with a `Bool`
     /// indicating whether all delete operations were successful.
     ///

@@ -23,6 +23,4 @@ extension ConfigurationEntity {
 
 }
 
-extension ConfigurationEntity : Identifiable {
-
-}
+extension ConfigurationEntity : Identifiable {}

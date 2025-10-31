@@ -30,7 +30,7 @@ func getUserTag(completion: @escaping (String?) -> Void) {
 /// - Parameters:
 ///   - dbId: Database ID used for matching.
 ///   - matching: Matching method (e.g. "push_sub").
-///   - matchingValue: Concatenated string of matching identifiers.
+///   - value: Concatenated string of matching identifiers.
 /// - Returns: Hex-encoded SHA-256 hash string.
 private func extractJWTDataHash(dbId: Int, matching: String, value: String) -> String {
     let jsonString = matchingAsString(dbId: dbId, matching: matching, value: value)
@@ -144,7 +144,7 @@ private func validateMatchingFields(
 ///
 /// - Parameters:
 ///   - rToken: The resource token used if JWT is unavailable. This can be `nil` or a valid string.
-/// - Returns: A tuple containing the authentication header (Bearer token) and matching token (`matchingMode`),
+/// - Returns: A tuple containing the authentication header (Bearer token) and matching type (`matching`),
 ///  or `nil` if both are unavailable.
 func getAuthData(rToken: String?) -> (String, String)? {
     if let rToken = rToken, !rToken.isEmpty {
@@ -155,7 +155,3 @@ func getAuthData(rToken: String?) -> (String, String)? {
         }else { return nil }
     }
 }
-
-
-
-    

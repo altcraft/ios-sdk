@@ -206,7 +206,6 @@ final class AltcraftObjCTypesTests: XCTestCase {
 
     /// test_8_SubscriptionConversions_allTypes
     func test_8_SubscriptionConversions_allTypes() {
-        // Test EmailSubscription
         let emailSubObjC = EmailSubscriptionObjC(
             resourceId: NSNumber(value: 123),
             email: "test@example.com",

@@ -12,20 +12,25 @@ import ObjectiveC.runtime
 private var _udIsolationEnabled: Bool = false
 private var _udCurrentSuite: UserDefaults? = nil
 
+/// Redirects `UserDefaults.standard` to a provided suite during tests.
 enum UserDefaultsIsolation {
+    /// Enable isolation with a specific `UserDefaults` suite.
     static func enable(with defaults: UserDefaults) {
         _udCurrentSuite = defaults
         _udIsolationEnabled = true
         _ = Swizzler.shared
     }
 
+    /// Disable isolation and restore default behavior.
     static func disable() {
         _udIsolationEnabled = false
         _udCurrentSuite = nil
     }
 }
 
+/// Performs one-time swizzling of `UserDefaults.standard`.
 private final class Swizzler {
+    /// Singleton that triggers swizzling on first access.
     static let shared: Swizzler = {
         let s = Swizzler()
         s.swizzleStandardUserDefaults()
@@ -34,6 +39,7 @@ private final class Swizzler {
 
     private var originalImp: IMP?
 
+    /// Swap `standardUserDefaults` with `alt_standardUserDefaults`.
     private func swizzleStandardUserDefaults() {
         let cls: AnyClass = UserDefaults.self
         guard let meta = object_getClass(cls) else { return }
@@ -51,6 +57,7 @@ private final class Swizzler {
 }
 
 extension UserDefaults {
+    /// Replacement for `UserDefaults.standard` used when isolation is enabled.
     @objc class func alt_standardUserDefaults() -> UserDefaults {
         if _udIsolationEnabled, let d = _udCurrentSuite {
             return d
@@ -58,4 +65,3 @@ extension UserDefaults {
         return self.alt_standardUserDefaults()
     }
 }
-

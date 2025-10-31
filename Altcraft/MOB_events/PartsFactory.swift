@@ -66,7 +66,7 @@ private typealias ME = Constants.MobileEvents
 
 enum PartsFactory {
     
-    /// Builds multipart/form-data parts from `MobileEventData`.
+    /// Builds multipart/form-data parts from `MobileEventEntity` (Core Data).
     ///
     /// Required text fields:
     /// - `tz` (timezone offset minutes)
@@ -85,24 +85,21 @@ enum PartsFactory {
     /// - `sn` (subscription)
     /// - `pf` (profile fields)
     ///
-    /// - Parameter event: Source DTO.
+    /// - Parameter event: Source Core Data entity.
     /// - Returns: Immutable array of multipart parts.
     static func createMobileEventParts(from event: MobileEventEntity) -> [Part] {
         var parts: [Part] = []
         
-        // Base fields (text)
         parts.append(makeTextPart(ME.TIME_ZONE, String(event.timeZone)))
-        let tSec = epochSeconds(fromMillis: event.time) // ms -> sec
+        let tSec = epochSeconds(fromMillis: event.time)
         parts.append(makeTextPart(ME.TIME_MOB, String(tSec)))
         parts.append(makeTextPart(ME.ALTCRAFT_CLIENT_ID, event.altcraftClientID ?? ""))
         parts.append(makeTextPart(ME.MOB_EVENT_NAME, event.eventName ?? ""))
         
-        // matchingType (text)
         if let mt = event.matchingType, !mt.isEmpty {
             parts.append(makeTextPart(ME.MATCHING_TYPE, mt))
         }
         
-        // UTM (text fields) — из Binary Data (JSON UTM) в entity/DTO
         if let utm = decodeUTM(event.utmTags) {
             if let v = utm.campaign, !v.isEmpty { parts.append(makeTextPart(ME.UTM_CAMPAIGN, v)) }
             if let v = utm.content,  !v.isEmpty { parts.append(makeTextPart(ME.UTM_CONTENT,  v)) }
@@ -112,13 +109,11 @@ enum PartsFactory {
             if let v = utm.temp,     !v.isEmpty { parts.append(makeTextPart(ME.UTM_TEMP,     v)) }
         }
         
-        // Optional JSON blobs (already encoded as Data in MobileEventData)
         if let p = makeJsonPart(ME.PAYLOAD, event.payload) {
             parts.append(p)
         }
         
         if let smid = event.sendMessageId, !smid.isEmpty {
-            // Send SMID as JSON string: "value"
             if let data = "\"\(smid)\"".data(using: .utf8),
                let p = makeJsonPart(ME.SMID_MOB, data) {
                 parts.append(p)

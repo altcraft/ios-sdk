@@ -10,6 +10,10 @@ import Foundation
 import UIKit
 
 /// Handles actions related to clicking on push notifications.
+///
+/// - Parameters:
+///   - userInfo: The original push notification payload (`userInfo`).
+///   - identifier: The action identifier received from `UNUserNotificationCenter`.
 public func pushClickAction(userInfo: [String: Any], identifier: String) {
     guard let buttonsAsString = userInfo[Constants.UserInfoKeys.buttons] as? String,
           let buttonsData = buttonsAsString.data(using: .utf8) else {
@@ -26,17 +30,15 @@ public func pushClickAction(userInfo: [String: Any], identifier: String) {
     handleButtonAction(identifier: identifier, buttons: buttons, userInfo: userInfo)
 }
 
-/// Determines which push notification button was pressed based on the action identifier,
-/// and handles opening the appropriate link or deep link.
+/// Handles a push notification tap or button press and opens the linked URL if available.
 ///
-/// If the `identifier` equals `"com.apple.UNNotificationDefaultActionIdentifier"`,
-/// it means the user tapped the notification body. In that case, a default link or deep link
-/// will be opened if available. If no links are defined, the app will navigate to the default view.
+/// For `Constants.ButtonIdentifier.defaultNotificationAction` (tap on notification body),
+/// tries to open `clickUrl`. If no link is provided, does nothing — the system already opens the app.
 ///
 /// - Parameters:
-///   - identifier: A string representing the identifier of the triggered action.
-///   - buttons: An array of dictionaries containing metadata about the buttons.
-///   - userInfo: A dictionary containing the original push notification payload.
+///   - identifier: Action identifier.
+///   - buttons: Button metadata (may include links).
+///   - userInfo: Original notification payload.
 private func handleButtonAction(
     identifier: String,
     buttons: [[String: String]],

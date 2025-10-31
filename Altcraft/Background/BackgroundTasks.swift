@@ -59,6 +59,7 @@ public class BackgroundTask: NSObject {
     /// Handles the actual background execution.
     ///
     /// Do not expose this to ObjC, because it contains Swift-only types (`BGAppRefreshTask`).
+    /// - Parameter task: The `BGAppRefreshTask` provided by the system for app refresh work.
     func backgroundHandler(task: BGAppRefreshTask) {
         scheduleRetry()
         

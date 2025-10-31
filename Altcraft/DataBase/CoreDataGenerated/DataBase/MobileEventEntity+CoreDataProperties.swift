@@ -34,6 +34,4 @@ extension MobileEventEntity {
 
 }
 
-extension MobileEventEntity : Identifiable {
-
-}
+extension MobileEventEntity : Identifiable {}

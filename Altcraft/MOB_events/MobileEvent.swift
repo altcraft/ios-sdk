@@ -25,25 +25,24 @@ class MobileEvent: NSObject {
         case retry
     }
 
-    /// Sends a mobile event to the server (iOS stub).
+    /// Sends a mobile event to the server.
     ///
-    /// Prepares and triggers delivery of a mobile event composed of
-    /// mandatory identifiers and optional metadata. This stub only declares
-    /// the API surface; implement networking/queueing later.
+    /// Enqueues creation of a mobile event entity and triggers processing.
+    /// Validates input, persists event with metadata, and starts delivery flow.
     ///
     /// - Parameters:
-    ///   - context: Application context holder (e.g. `UIApplication.shared` or custom app object).
     ///   - sid: The string ID of the pixel.
-    ///   - altcraftClientID: Altcraft client identifier.
     ///   - eventName: Event name.
     ///   - sendMessageId: Send Message ID (SMID).
     ///   - payloadFields: Arbitrary event payload; will be serialized to JSON.
     ///   - matching: Optional matching pair (key, value) to be serialized to JSON.
     ///   - profileFields: Optional profile fields; will be serialized to JSON.
-    ///   - subscription: Subscription to attach to the profile (`EmailSubscription` / `SmsSubscription` / `PushSubscription` / `CcDataSubscription`).
-    ///   - matchingType: Type of matching (e.g., `"push_sub"`, `"email"`, etc.).
-    ///   - utmTags: Optional UTM tags for campaign attribution (e.g. `source`, `medium`,`campaign`, `term`, `content`)
-    ///    If provided, they are encoded and persisted with the event for downstream analytics.
+    ///   - subscription: Subscription to attach to the profile (
+    ///   `EmailSubscription` / `SmsSubscription` / `PushSubscription` / `CcDataSubscription`
+    ///   ).
+    ///   - altcraftClientID: Altcraft client identifier.
+    ///   - matchingType: Type of matching (e.g., "push_sub", "email", etc.).
+    ///   - utmTags: Optional UTM tags for campaign attribution (source, medium, campaign, term, content).
     func sendMobileEvent(
         sid: String,
         eventName: String,
@@ -121,13 +120,14 @@ class MobileEvent: NSObject {
         }
     }
     
-    /// Starts full mobile event processing flow using the shared Core Data context.
+    /// Starts full mobile event processing flow using the provided Core Data context.
     ///
     /// Unlike push subscriptions, this method does not require notification authorization.
-    /// It only validates network connectivity and processes all pending events.
+    /// It validates network connectivity and processes all pending events.
     ///
     /// - Parameters:
-    ///   - context: Optional Core Data context; if `nil`, the shared background context is used.
+    ///   - context: Core Data context used for fetch/update/delete operations.
+    ///   - enableRetry: If `true`, schedules internal retry on failure.
     ///   - completion: Closure called after processing completes (success or retry scheduled).
     func startEventsSend(
         context: NSManagedObjectContext,
@@ -203,7 +203,7 @@ class MobileEvent: NSObject {
     /// - Parameters:
     ///   - context: Core Data context to update retry counters or delete on success.
     ///   - event: `NSManagedObjectID` of `MobileEventEntity` to be sent.
-    ///   - completion: Closure called with `.continue` to proceed with next item,
+    ///   - completion: Closure called with `.completed` to proceed with next item,
     ///                 or `.retry` to stop the flow and schedule a retry.
     private func handleEvent(
         context: NSManagedObjectContext,

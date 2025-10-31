@@ -11,24 +11,30 @@ import ObjectiveC.runtime
 
 private var _cdIsolationEnabled: Bool = false
 
+/// Redirects Core Data stores to in-memory during tests.
 enum CoreDataIsolation {
+    /// Enable in-memory store swizzling.
     static func enable() {
         _cdIsolationEnabled = true
         _ = NSPersistentStoreCoordinator_Swizzle.shared
     }
 
+    /// Disable swizzling and restore default behavior.
     static func disable() {
         _cdIsolationEnabled = false
     }
 }
 
+/// One-time swizzle for `addPersistentStore(...)`.
 private final class NSPersistentStoreCoordinator_Swizzle {
+    /// Triggers swizzling on first access.
     static let shared: NSPersistentStoreCoordinator_Swizzle = {
         let s = NSPersistentStoreCoordinator_Swizzle()
         s.swizzleAddPersistentStore()
         return s
     }()
 
+    /// Swap original `addPersistentStore` with our alternative.
     private func swizzleAddPersistentStore() {
         let cls: AnyClass = NSPersistentStoreCoordinator.self
 
@@ -45,6 +51,7 @@ private final class NSPersistentStoreCoordinator_Swizzle {
 }
 
 extension NSPersistentStoreCoordinator {
+    /// Force `NSInMemoryStoreType` when isolation is enabled; otherwise call the original method.
     @objc func alt_addPersistentStore(
         ofType storeType: String,
         configurationName: String?,
@@ -69,3 +76,4 @@ extension NSPersistentStoreCoordinator {
         )
     }
 }
+

@@ -109,8 +109,8 @@ func decodeAnyMap(_ data: Data?) -> [String: Any]? {
     }
 }
 
-/// Serializes the `customFields` dictionary into `Data?`.
-/// - Parameter customFields: The dictionary to serialize.
+/// Serializes a `[String: Any?]` dictionary into `Data?`.
+/// - Parameter map: The dictionary to serialize.
 /// - Returns: A `Data?` object representing the serialized dictionary, or `nil` if serialization fails.
 func encodeAnyMap(_ map: [String: Any?]?) -> Data? {
     guard let map = map else { return nil }
@@ -129,11 +129,11 @@ func encodeAnyMap(_ map: [String: Any?]?) -> Data? {
     }
 }
 
-/// Creates a Configuration instance from a ConfigurationEntity object.
+/// Creates a `Configuration` instance from a `ConfigurationEntity` object.
 ///
 /// - Parameters:
-///   - configuration: The ConfigurationEntity object to create the Configuration from.
-/// - Returns: A Configuration instance if valid, or nil if invalid (i.e., empty url or provider).
+///   - configuration: The `ConfigurationEntity` to convert.
+/// - Returns: A `Configuration` instance if valid, or `nil` if invalid (e.g., empty URL).
 func configFromEntity(configuration: ConfigurationEntity) -> Configuration? {
     guard let url = configuration.url, !url.isEmpty else {
         return nil

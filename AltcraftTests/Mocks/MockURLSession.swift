@@ -42,8 +42,8 @@ extension URLSession: URLSessioning {
 
 public final class MockURLSession: URLSessioning {
     public enum ResultCase {
-        case success(Data)    // data to “download”
-        case failure(Error)   // simulated error
+        case success(Data)
+        case failure(Error)
     }
 
     private let result: ResultCase

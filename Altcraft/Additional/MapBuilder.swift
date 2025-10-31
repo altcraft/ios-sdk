@@ -11,11 +11,11 @@ import Foundation
 /// Creates a map containing event details based on the provided parameters.
 ///
 /// - Parameters:
+///   - code: The HTTP status code (optional).
+///   - response: The response object containing API result (optional).
 ///   - uid: The event ID (optional).
 ///   - type: The push event type (optional).
 ///   - name: The mobile event name (optional).
-///   - code: The HTTP status code (optional).
-///   - response: The response object containing API result (optional).
 /// - Returns: A map with keys such as "uid", "type", "name", and "responseWithHttp" as needed.
 func mapValue(
     code: Int? = nil,
