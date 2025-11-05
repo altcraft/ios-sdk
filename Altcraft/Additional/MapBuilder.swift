@@ -31,21 +31,7 @@ func mapValue(
     if let name = name { eventMap[Constants.MapKeys.name] = name }
     
     eventMap[Constants.MapKeys.responseWithHttp] = ResponseWithHttp(
-        httpCode: code,
-        response: response
+        httpCode: code, response: response
     )
-
     return eventMap
-}
-
-/// Merges multiple dictionaries of type `[String: Any?]` into a single dictionary.
-///
-/// In case of key conflicts, the value from the later dictionary in the list overrides the previous one.
-///
-/// - Parameter entries: A variadic list of dictionaries to merge.
-/// - Returns: A single merged dictionary containing all key-value pairs.
-public func mergeFields(_ entries: [String: Any?]...) -> [String: Any?] {
-    entries.reduce(into: [:]) { result, next in
-        result.merge(next) { _, new in new }
-    }
 }

@@ -11,7 +11,7 @@ import UserNotifications
 
 class NotificationService: UNNotificationServiceExtension {
     /// - important! Set app groups identifier.
-    var appGroupID =  "your.app.group.id"
+    var appGroupID =  "your.altcraft.group.id"
     let jwtProvider = JWTProvider()
 
     override func didReceive(_ request: UNNotificationRequest, withContentHandler contentHandler: @escaping (UNNotificationContent) -> Void) {

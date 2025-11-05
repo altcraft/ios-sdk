@@ -7,8 +7,6 @@
 //  Copyright © 2025 Altcraft. All rights reserved.
 
 import Foundation
-import UIKit
-import Network
 
 /// A singleton class that initializes and exposes public modules of the Altcraft SDK.
 ///

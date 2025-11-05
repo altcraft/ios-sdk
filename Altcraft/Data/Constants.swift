@@ -31,7 +31,7 @@ public enum Constants {
     static let categoryForRichPush = "Altcraft"
     
     /// The name of the background task for access control.
-    
+
     static let bgTaskName = "AccessToBackgroundTask"
     
     /// The name of the periodic background task for system control.
@@ -98,7 +98,7 @@ public enum Constants {
     }
     
     /// Query parameters used in URL requests.
-    public enum QueryItem {
+    enum QueryItem {
         /// Push provider (ios-apns, ios-firebase, ios-huawey).
         static let provider = "provider"
         
@@ -113,7 +113,7 @@ public enum Constants {
     }
     
     /// Common URL schemes used when constructing endpoints.
-    public enum URLScheme {
+    enum URLScheme {
         /// The `http` scheme.
         public static let http = "http"
         
@@ -122,7 +122,7 @@ public enum Constants {
     }
     
     /// Common HTTP header field names.
-    public enum HTTPHeader {
+    enum HTTPHeader {
         /// Header for content type (e.g., application/json).
         static let contentType = "Content-Type"
         
@@ -134,7 +134,7 @@ public enum Constants {
     }
     
     /// HTTP method names.
-    public enum HTTPMethod {
+    enum HTTPMethod {
         /// POST method.
         static let post = "POST"
         
@@ -144,7 +144,7 @@ public enum Constants {
     
     ///Enum representing the keys used in JSON responses or requests.
     
-    public enum JSONKeys {
+    enum JSONKeys {
         /// The key for the profile ID in JSON.
         static let profileId = "profile_id"
         
@@ -220,7 +220,7 @@ public enum Constants {
     }
     
     /// Keys used in JWT payload and matching claim processing.
-    internal enum AuthKeys {
+    enum AuthKeys {
         /// JWT payload key that contains the raw "matching" claim (JSON string).
         static let matching = "matching"
         
@@ -253,7 +253,7 @@ public enum Constants {
     }
     
     /// Keys used to extract custom values from `userInfo` payload.
-    internal enum UserInfoKeys {
+    enum UserInfoKeys {
         /// Unique message identifier.
         static let uid = "_uid"
         
@@ -268,7 +268,7 @@ public enum Constants {
     }
     
     /// Keys used in constructing event and request value maps.
-    public enum MapKeys {
+    enum MapKeys {
         /// Push event identifier key.
         static let uid = "uid"
         
