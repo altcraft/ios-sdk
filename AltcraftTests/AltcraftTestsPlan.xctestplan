@@ -1,0 +1,30 @@
+{
+  "configurations" : [
+    {
+      "id" : "E8EED9DE-2D8F-4DC5-9D67-3A71BBAA7F73",
+      "name" : "Configuration 1",
+      "options" : {
+        "environmentVariableEntries" : [
+          {
+            "key" : "SDK_DISABLE_REAL_NETWORK",
+            "value" : "1"
+          }
+        ],
+        "testTimeoutsEnabled" : true
+      }
+    }
+  ],
+  "defaultOptions" : {
+
+  },
+  "testTargets" : [
+    {
+      "target" : {
+        "containerPath" : "container:Altcraft.xcodeproj",
+        "identifier" : "5509561E2E7AB38B000BFBA8",
+        "name" : "AltcraftTests"
+      }
+    }
+  ],
+  "version" : 1
+}

@@ -11,6 +11,7 @@ import Foundation
 /// A  class responsible for initializing the Altcraft SDK.
 ///
 /// This class is used internally and accessed via the `shared` singleton.
+@available(iOSApplicationExtension, unavailable)
 class AltcraftInit: NSObject {
     
     /// A shared singleton instance of `AltcraftInit`

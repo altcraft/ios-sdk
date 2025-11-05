@@ -15,7 +15,7 @@ class MobileEvent: NSObject {
     let userDefault = StoredVariablesManager.shared
     
     private func retry() {
-        requestRetry(request: Constants.FunctionsCode.ME)
+        localMobileEventRetry()
         MobileEventQueues.startQueue.reset(dropCurrent: true)
     }
     

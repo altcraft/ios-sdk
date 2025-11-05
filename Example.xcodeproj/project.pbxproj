@@ -10,12 +10,8 @@
 		5509FAA02D6C677700B1DE03 /* SubscribeStatusManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5509FA9F2D6C677700B1DE03 /* SubscribeStatusManager.swift */; };
 		5516B35A2D9C3AA7001FAF66 /* JWTProvider.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5516B3592D9C3AA7001FAF66 /* JWTProvider.swift */; };
 		55302BBE2E9D4356003A1A4C /* PushServiceTest.swift in Sources */ = {isa = PBXBuildFile; fileRef = 551440DA2E8E88F300BD0451 /* PushServiceTest.swift */; };
-		55302CB02EA1349B003A1A4C /* Altcraft.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 55302CAD2EA13466003A1A4C /* Altcraft.framework */; };
-		55302CB12EA1349B003A1A4C /* Altcraft.framework in Embed Frameworks */ = {isa = PBXBuildFile; fileRef = 55302CAD2EA13466003A1A4C /* Altcraft.framework */; settings = {ATTRIBUTES = (CodeSignOnCopy, RemoveHeadersOnCopy, ); }; };
-		55302CB22EA134A4003A1A4C /* Altcraft.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 55302CAD2EA13466003A1A4C /* Altcraft.framework */; };
-		55302CB32EA134A4003A1A4C /* Altcraft.framework in Embed Frameworks */ = {isa = PBXBuildFile; fileRef = 55302CAD2EA13466003A1A4C /* Altcraft.framework */; settings = {ATTRIBUTES = (CodeSignOnCopy, RemoveHeadersOnCopy, ); }; };
-		55302CBC2EA2395C003A1A4C /* FirebaseMessaging in Frameworks */ = {isa = PBXBuildFile; productRef = 55302CBB2EA2395C003A1A4C /* FirebaseMessaging */; };
 		5557A9232DF026B700BEF354 /* SDKFunctions.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5557A9222DF026B700BEF354 /* SDKFunctions.swift */; };
+		55654E862EB63299000BF004 /* FirebaseMessaging in Frameworks */ = {isa = PBXBuildFile; productRef = 55654E852EB63299000BF004 /* FirebaseMessaging */; };
 		556FC6FF2E27BE55000584AA /* BoxModeManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 556FC6FE2E27BE55000584AA /* BoxModeManager.swift */; };
 		556FC7012E27C15A000584AA /* AppConstants.swift in Sources */ = {isa = PBXBuildFile; fileRef = 556FC7002E27C15A000584AA /* AppConstants.swift */; };
 		556FC7032E27F5B6000584AA /* ProfileDataManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 556FC7022E27F5B6000584AA /* ProfileDataManager.swift */; };
@@ -33,6 +29,10 @@
 		556FC7252E2AB1FC000584AA /* PushService.appex in Embed Foundation Extensions */ = {isa = PBXBuildFile; fileRef = 556FC71E2E2AB1FC000584AA /* PushService.appex */; settings = {ATTRIBUTES = (RemoveHeadersOnCopy, ); }; };
 		556FC72B2E2AB2AD000584AA /* JWTProvider.swift in Sources */ = {isa = PBXBuildFile; fileRef = 556FC72A2E2AB2AD000584AA /* JWTProvider.swift */; };
 		556FC7332E2E8109000584AA /* NotificationDataManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 556FC7322E2E8109000584AA /* NotificationDataManager.swift */; };
+		5573285D2EBB398F003B4E10 /* Altcraft.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 55302CAD2EA13466003A1A4C /* Altcraft.framework */; };
+		5573285E2EBB398F003B4E10 /* Altcraft.framework in Embed Frameworks */ = {isa = PBXBuildFile; fileRef = 55302CAD2EA13466003A1A4C /* Altcraft.framework */; settings = {ATTRIBUTES = (CodeSignOnCopy, RemoveHeadersOnCopy, ); }; };
+		557328602EBB3994003B4E10 /* Altcraft.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 55302CAD2EA13466003A1A4C /* Altcraft.framework */; };
+		557328612EBB3994003B4E10 /* Altcraft.framework in Embed Frameworks */ = {isa = PBXBuildFile; fileRef = 55302CAD2EA13466003A1A4C /* Altcraft.framework */; settings = {ATTRIBUTES = (CodeSignOnCopy, RemoveHeadersOnCopy, ); }; };
 		558C47EF2C9DA6120006750E /* NavigatorView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 558C47EE2C9DA6120006750E /* NavigatorView.swift */; };
 		558C47F12C9DA6ED0006750E /* ExampleView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 558C47F02C9DA6ED0006750E /* ExampleView.swift */; };
 		558C47F32C9DB2D50006750E /* LogsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 558C47F22C9DB2D50006750E /* LogsView.swift */; };
@@ -53,16 +53,16 @@
 		559F2CFB2E21443400C5B7EE /* EventComponents.swift in Sources */ = {isa = PBXBuildFile; fileRef = 559F2CFA2E21443400C5B7EE /* EventComponents.swift */; };
 		559F2CFD2E214D7100C5B7EE /* Switch.swift in Sources */ = {isa = PBXBuildFile; fileRef = 559F2CFC2E214D7100C5B7EE /* Switch.swift */; };
 		559F2D002E24F50700C5B7EE /* Header.swift in Sources */ = {isa = PBXBuildFile; fileRef = 559F2CFF2E24F50700C5B7EE /* Header.swift */; };
-		559F2D312E250EF800C5B7EE /* AGConnectCore.xcframework in Frameworks */ = {isa = PBXBuildFile; fileRef = 55E566452D107BE400FA2B07 /* AGConnectCore.xcframework */; };
-		559F2D332E250EF800C5B7EE /* AGConnectCredential.xcframework in Frameworks */ = {isa = PBXBuildFile; fileRef = 55E566482D107BE900FA2B07 /* AGConnectCredential.xcframework */; };
-		559F2D352E250EF800C5B7EE /* HiAnalytics.xcframework in Frameworks */ = {isa = PBXBuildFile; fileRef = 55E5664B2D107BEE00FA2B07 /* HiAnalytics.xcframework */; };
-		559F2D372E250EF800C5B7EE /* HMFoundation.xcframework in Frameworks */ = {isa = PBXBuildFile; fileRef = 55E5664E2D107C0B00FA2B07 /* HMFoundation.xcframework */; };
 		559F2D522E2522E700C5B7EE /* FCMProvider.swift in Sources */ = {isa = PBXBuildFile; fileRef = 559F2D512E2522E700C5B7EE /* FCMProvider.swift */; };
 		559F2D542E25232E00C5B7EE /* HMSProvider.swift in Sources */ = {isa = PBXBuildFile; fileRef = 559F2D532E25232E00C5B7EE /* HMSProvider.swift */; };
 		559F2D562E25284B00C5B7EE /* APNSProvider.swift in Sources */ = {isa = PBXBuildFile; fileRef = 559F2D552E25284B00C5B7EE /* APNSProvider.swift */; };
+		55A41CEF2EBB484A002DF416 /* AGConnectCore.xcframework in Frameworks */ = {isa = PBXBuildFile; fileRef = 55E566452D107BE400FA2B07 /* AGConnectCore.xcframework */; };
+		55A41CF12EBB4853002DF416 /* AGConnectCredential.xcframework in Frameworks */ = {isa = PBXBuildFile; fileRef = 55E566482D107BE900FA2B07 /* AGConnectCredential.xcframework */; };
+		55A41CF32EBB4863002DF416 /* HMFoundation.xcframework in Frameworks */ = {isa = PBXBuildFile; fileRef = 55E5664E2D107C0B00FA2B07 /* HMFoundation.xcframework */; };
+		55A41CF52EBB4879002DF416 /* HiAnalytics.xcframework in Frameworks */ = {isa = PBXBuildFile; fileRef = 55E5664B2D107BEE00FA2B07 /* HiAnalytics.xcframework */; };
 		55E566552D108A5100FA2B07 /* libz.tbd in Frameworks */ = {isa = PBXBuildFile; fileRef = 55E566542D108A4800FA2B07 /* libz.tbd */; };
 		55E566562D108A6500FA2B07 /* libc++.tbd in Frameworks */ = {isa = PBXBuildFile; fileRef = 55E566422D107BD100FA2B07 /* libc++.tbd */; };
-		7B0051A8AB7AC55CA360DAEF /* Pods_IOSAPNsExample.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 0287FADB74248695A501B1F1 /* Pods_IOSAPNsExample.framework */; };
+		8E3E2B3A979E1F327C3CEF9F /* Pods_Example.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 7F922E0B53F9131D91C6FD0B /* Pods_Example.framework */; };
 		C9A038FC517787B7E74A5C4A /* Pods_PushService.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 4AA2DDD1707D6A449043469A /* Pods_PushService.framework */; };
 /* End PBXBuildFile section */
 
@@ -91,13 +91,24 @@
 /* End PBXContainerItemProxy section */
 
 /* Begin PBXCopyFilesBuildPhase section */
-		55302C6C2E9FE366003A1A4C /* Embed Frameworks */ = {
+		5573285F2EBB398F003B4E10 /* Embed Frameworks */ = {
 			isa = PBXCopyFilesBuildPhase;
 			buildActionMask = 2147483647;
 			dstPath = "";
 			dstSubfolderSpec = 10;
 			files = (
-				55302CB32EA134A4003A1A4C /* Altcraft.framework in Embed Frameworks */,
+				5573285E2EBB398F003B4E10 /* Altcraft.framework in Embed Frameworks */,
+			);
+			name = "Embed Frameworks";
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		557328622EBB3994003B4E10 /* Embed Frameworks */ = {
+			isa = PBXCopyFilesBuildPhase;
+			buildActionMask = 2147483647;
+			dstPath = "";
+			dstSubfolderSpec = 10;
+			files = (
+				557328612EBB3994003B4E10 /* Altcraft.framework in Embed Frameworks */,
 			);
 			name = "Embed Frameworks";
 			runOnlyForDeploymentPostprocessing = 0;
@@ -113,23 +124,11 @@
 			name = "Embed Foundation Extensions";
 			runOnlyForDeploymentPostprocessing = 0;
 		};
-		55EA85E92E68503D001CC5A5 /* Embed Frameworks */ = {
-			isa = PBXCopyFilesBuildPhase;
-			buildActionMask = 2147483647;
-			dstPath = "";
-			dstSubfolderSpec = 10;
-			files = (
-				55302CB12EA1349B003A1A4C /* Altcraft.framework in Embed Frameworks */,
-			);
-			name = "Embed Frameworks";
-			runOnlyForDeploymentPostprocessing = 0;
-		};
 /* End PBXCopyFilesBuildPhase section */
 
 /* Begin PBXFileReference section */
-		0287FADB74248695A501B1F1 /* Pods_IOSAPNsExample.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; includeInIndex = 0; path = Pods_IOSAPNsExample.framework; sourceTree = BUILT_PRODUCTS_DIR; };
 		02F07B5176EFAF454E573BEB /* Pods-PushService.release.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-PushService.release.xcconfig"; path = "Target Support Files/Pods-PushService/Pods-PushService.release.xcconfig"; sourceTree = "<group>"; };
-		251B6B3BE0F6EB09636507CA /* Pods-IOSAPNsExample.release.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-IOSAPNsExample.release.xcconfig"; path = "Target Support Files/Pods-IOSAPNsExample/Pods-IOSAPNsExample.release.xcconfig"; sourceTree = "<group>"; };
+		46E657A8BE14BB1EBE18A4B4 /* Pods-Example.release.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-Example.release.xcconfig"; path = "Target Support Files/Pods-Example/Pods-Example.release.xcconfig"; sourceTree = "<group>"; };
 		4AA2DDD1707D6A449043469A /* Pods_PushService.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; includeInIndex = 0; path = Pods_PushService.framework; sourceTree = BUILT_PRODUCTS_DIR; };
 		5509FA9F2D6C677700B1DE03 /* SubscribeStatusManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SubscribeStatusManager.swift; sourceTree = "<group>"; };
 		551440DA2E8E88F300BD0451 /* PushServiceTest.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PushServiceTest.swift; sourceTree = "<group>"; };
@@ -190,7 +189,8 @@
 		55E566542D108A4800FA2B07 /* libz.tbd */ = {isa = PBXFileReference; lastKnownFileType = "sourcecode.text-based-dylib-definition"; name = libz.tbd; path = Platforms/iPhoneOS.platform/Developer/SDKs/iPhoneOS17.4.sdk/usr/lib/libz.tbd; sourceTree = DEVELOPER_DIR; };
 		55E566572D10A9B000FA2B07 /* libapple_nghttp2.tbd */ = {isa = PBXFileReference; lastKnownFileType = "sourcecode.text-based-dylib-definition"; name = libapple_nghttp2.tbd; path = Platforms/iPhoneOS.platform/Developer/SDKs/iPhoneOS17.4.sdk/usr/lib/libapple_nghttp2.tbd; sourceTree = DEVELOPER_DIR; };
 		55E566632D19723700FA2B07 /* CocoaLumberjack.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; path = CocoaLumberjack.framework; sourceTree = BUILT_PRODUCTS_DIR; };
-		80CC2BBA9FED67D12568F79B /* Pods-IOSAPNsExample.debug.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-IOSAPNsExample.debug.xcconfig"; path = "Target Support Files/Pods-IOSAPNsExample/Pods-IOSAPNsExample.debug.xcconfig"; sourceTree = "<group>"; };
+		63E74DF452CF87FE3198EB08 /* Pods-Example.debug.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-Example.debug.xcconfig"; path = "Target Support Files/Pods-Example/Pods-Example.debug.xcconfig"; sourceTree = "<group>"; };
+		7F922E0B53F9131D91C6FD0B /* Pods_Example.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; includeInIndex = 0; path = Pods_Example.framework; sourceTree = BUILT_PRODUCTS_DIR; };
 		89712A9CD728D7842DC6613B /* Pods-PushService.debug.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-PushService.debug.xcconfig"; path = "Target Support Files/Pods-PushService/Pods-PushService.debug.xcconfig"; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
@@ -199,8 +199,8 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				55302CB22EA134A4003A1A4C /* Altcraft.framework in Frameworks */,
 				C9A038FC517787B7E74A5C4A /* Pods_PushService.framework in Frameworks */,
+				557328602EBB3994003B4E10 /* Altcraft.framework in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -208,15 +208,15 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				55302CBC2EA2395C003A1A4C /* FirebaseMessaging in Frameworks */,
-				559F2D352E250EF800C5B7EE /* HiAnalytics.xcframework in Frameworks */,
+				55A41CF12EBB4853002DF416 /* AGConnectCredential.xcframework in Frameworks */,
+				55654E862EB63299000BF004 /* FirebaseMessaging in Frameworks */,
+				5573285D2EBB398F003B4E10 /* Altcraft.framework in Frameworks */,
+				55A41CF32EBB4863002DF416 /* HMFoundation.xcframework in Frameworks */,
 				55E566562D108A6500FA2B07 /* libc++.tbd in Frameworks */,
-				55302CB02EA1349B003A1A4C /* Altcraft.framework in Frameworks */,
+				55A41CF52EBB4879002DF416 /* HiAnalytics.xcframework in Frameworks */,
+				55A41CEF2EBB484A002DF416 /* AGConnectCore.xcframework in Frameworks */,
 				55E566552D108A5100FA2B07 /* libz.tbd in Frameworks */,
-				559F2D372E250EF800C5B7EE /* HMFoundation.xcframework in Frameworks */,
-				559F2D312E250EF800C5B7EE /* AGConnectCore.xcframework in Frameworks */,
-				7B0051A8AB7AC55CA360DAEF /* Pods_IOSAPNsExample.framework in Frameworks */,
-				559F2D332E250EF800C5B7EE /* AGConnectCredential.xcframework in Frameworks */,
+				8E3E2B3A979E1F327C3CEF9F /* Pods_Example.framework in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -226,10 +226,10 @@
 		387A0AD0F598BE51690CBDB7 /* Pods */ = {
 			isa = PBXGroup;
 			children = (
-				80CC2BBA9FED67D12568F79B /* Pods-IOSAPNsExample.debug.xcconfig */,
-				251B6B3BE0F6EB09636507CA /* Pods-IOSAPNsExample.release.xcconfig */,
 				89712A9CD728D7842DC6613B /* Pods-PushService.debug.xcconfig */,
 				02F07B5176EFAF454E573BEB /* Pods-PushService.release.xcconfig */,
+				63E74DF452CF87FE3198EB08 /* Pods-Example.debug.xcconfig */,
+				46E657A8BE14BB1EBE18A4B4 /* Pods-Example.release.xcconfig */,
 			);
 			path = Pods;
 			sourceTree = "<group>";
@@ -337,8 +337,8 @@
 				55E566482D107BE900FA2B07 /* AGConnectCredential.xcframework */,
 				55E566452D107BE400FA2B07 /* AGConnectCore.xcframework */,
 				55E566422D107BD100FA2B07 /* libc++.tbd */,
-				0287FADB74248695A501B1F1 /* Pods_IOSAPNsExample.framework */,
 				4AA2DDD1707D6A449043469A /* Pods_PushService.framework */,
+				7F922E0B53F9131D91C6FD0B /* Pods_Example.framework */,
 			);
 			name = Frameworks;
 			sourceTree = "<group>";
@@ -450,7 +450,7 @@
 				556FC71A2E2AB1FC000584AA /* Sources */,
 				556FC71B2E2AB1FC000584AA /* Frameworks */,
 				556FC71C2E2AB1FC000584AA /* Resources */,
-				55302C6C2E9FE366003A1A4C /* Embed Frameworks */,
+				557328622EBB3994003B4E10 /* Embed Frameworks */,
 			);
 			buildRules = (
 			);
@@ -470,8 +470,8 @@
 				558C70192C9C29D10062F600 /* Frameworks */,
 				558C701A2C9C29D10062F600 /* Resources */,
 				558C476F2C9C3CE10006750E /* Embed Foundation Extensions */,
-				8617309B2BA99D3CAA84BD9F /* [CP] Copy Pods Resources */,
-				55EA85E92E68503D001CC5A5 /* Embed Frameworks */,
+				5573285F2EBB398F003B4E10 /* Embed Frameworks */,
+				2349CBE4D8EC8EE549D3D92E /* [CP] Copy Pods Resources */,
 			);
 			buildRules = (
 			);
@@ -480,7 +480,7 @@
 			);
 			name = Example;
 			packageProductDependencies = (
-				55302CBB2EA2395C003A1A4C /* FirebaseMessaging */,
+				55654E852EB63299000BF004 /* FirebaseMessaging */,
 			);
 			productName = IOSAPNsExample;
 			productReference = 558C701C2C9C29D10062F600 /* Example.app */;
@@ -515,6 +515,7 @@
 			mainGroup = 558C70132C9C29D10062F600;
 			packageReferences = (
 				55302CBA2EA2395C003A1A4C /* XCRemoteSwiftPackageReference "firebase-ios-sdk" */,
+				55654E782EB62B41000BF004 /* XCRemoteSwiftPackageReference "ios-sdk" */,
 			);
 			productRefGroup = 558C701D2C9C29D10062F600 /* Products */;
 			projectDirPath = "";
@@ -569,6 +570,23 @@
 /* End PBXResourcesBuildPhase section */
 
 /* Begin PBXShellScriptBuildPhase section */
+		2349CBE4D8EC8EE549D3D92E /* [CP] Copy Pods Resources */ = {
+			isa = PBXShellScriptBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			inputFileListPaths = (
+				"${PODS_ROOT}/Target Support Files/Pods-Example/Pods-Example-resources-${CONFIGURATION}-input-files.xcfilelist",
+			);
+			name = "[CP] Copy Pods Resources";
+			outputFileListPaths = (
+				"${PODS_ROOT}/Target Support Files/Pods-Example/Pods-Example-resources-${CONFIGURATION}-output-files.xcfilelist",
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+			shellPath = /bin/sh;
+			shellScript = "\"${PODS_ROOT}/Target Support Files/Pods-Example/Pods-Example-resources.sh\"\n";
+			showEnvVarsInLog = 0;
+		};
 		63C5F1137E4A9CE6FD48A8BD /* [CP] Check Pods Manifest.lock */ = {
 			isa = PBXShellScriptBuildPhase;
 			buildActionMask = 2147483647;
@@ -591,23 +609,6 @@
 			shellScript = "diff \"${PODS_PODFILE_DIR_PATH}/Podfile.lock\" \"${PODS_ROOT}/Manifest.lock\" > /dev/null\nif [ $? != 0 ] ; then\n    # print error to STDERR\n    echo \"error: The sandbox is not in sync with the Podfile.lock. Run 'pod install' or update your CocoaPods installation.\" >&2\n    exit 1\nfi\n# This output is used by Xcode 'outputs' to avoid re-running this script phase.\necho \"SUCCESS\" > \"${SCRIPT_OUTPUT_FILE_0}\"\n";
 			showEnvVarsInLog = 0;
 		};
-		8617309B2BA99D3CAA84BD9F /* [CP] Copy Pods Resources */ = {
-			isa = PBXShellScriptBuildPhase;
-			buildActionMask = 2147483647;
-			files = (
-			);
-			inputFileListPaths = (
-				"${PODS_ROOT}/Target Support Files/Pods-IOSAPNsExample/Pods-IOSAPNsExample-resources-${CONFIGURATION}-input-files.xcfilelist",
-			);
-			name = "[CP] Copy Pods Resources";
-			outputFileListPaths = (
-				"${PODS_ROOT}/Target Support Files/Pods-IOSAPNsExample/Pods-IOSAPNsExample-resources-${CONFIGURATION}-output-files.xcfilelist",
-			);
-			runOnlyForDeploymentPostprocessing = 0;
-			shellPath = /bin/sh;
-			shellScript = "\"${PODS_ROOT}/Target Support Files/Pods-IOSAPNsExample/Pods-IOSAPNsExample-resources.sh\"\n";
-			showEnvVarsInLog = 0;
-		};
 		A4F0665D6936902C22A1EC54 /* [CP] Check Pods Manifest.lock */ = {
 			isa = PBXShellScriptBuildPhase;
 			buildActionMask = 2147483647;
@@ -623,7 +624,7 @@
 			outputFileListPaths = (
 			);
 			outputPaths = (
-				"$(DERIVED_FILE_DIR)/Pods-IOSAPNsExample-checkManifestLockResult.txt",
+				"$(DERIVED_FILE_DIR)/Pods-Example-checkManifestLockResult.txt",
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 			shellPath = /bin/sh;
@@ -890,7 +891,7 @@
 		};
 		558C70422C9C29D30062F600 /* Debug */ = {
 			isa = XCBuildConfiguration;
-			baseConfigurationReference = 80CC2BBA9FED67D12568F79B /* Pods-IOSAPNsExample.debug.xcconfig */;
+			baseConfigurationReference = 63E74DF452CF87FE3198EB08 /* Pods-Example.debug.xcconfig */;
 			buildSettings = {
 				ALWAYS_EMBED_SWIFT_STANDARD_LIBRARIES = YES;
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
@@ -935,7 +936,7 @@
 		};
 		558C70432C9C29D30062F600 /* Release */ = {
 			isa = XCBuildConfiguration;
-			baseConfigurationReference = 251B6B3BE0F6EB09636507CA /* Pods-IOSAPNsExample.release.xcconfig */;
+			baseConfigurationReference = 46E657A8BE14BB1EBE18A4B4 /* Pods-Example.release.xcconfig */;
 			buildSettings = {
 				ALWAYS_EMBED_SWIFT_STANDARD_LIBRARIES = YES;
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
@@ -1019,12 +1020,19 @@
 				minimumVersion = 10.17.0;
 			};
 		};
+		55654E782EB62B41000BF004 /* XCRemoteSwiftPackageReference "ios-sdk" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/altcraft/ios-sdk";
+			requirement = {
+				kind = upToNextMajorVersion;
+				minimumVersion = 0.0.7;
+			};
+		};
 /* End XCRemoteSwiftPackageReference section */
 
 /* Begin XCSwiftPackageProductDependency section */
-		55302CBB2EA2395C003A1A4C /* FirebaseMessaging */ = {
+		55654E852EB63299000BF004 /* FirebaseMessaging */ = {
 			isa = XCSwiftPackageProductDependency;
-			package = 55302CBA2EA2395C003A1A4C /* XCRemoteSwiftPackageReference "firebase-ios-sdk" */;
 			productName = FirebaseMessaging;
 		};
 /* End XCSwiftPackageProductDependency section */

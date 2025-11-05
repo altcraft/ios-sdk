@@ -10,4 +10,4 @@ import Foundation
 import CoreData
 
 @objc(MobileEventEntity)
-public class MobileEventEntity: NSManagedObject {}
+class MobileEventEntity: NSManagedObject {}

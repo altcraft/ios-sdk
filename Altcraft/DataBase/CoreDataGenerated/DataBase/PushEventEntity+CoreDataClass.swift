@@ -10,4 +10,4 @@ import Foundation
 import CoreData
 
 @objc(PushEventEntity)
-public class PushEventEntity: NSManagedObject {}
+class PushEventEntity: NSManagedObject {}

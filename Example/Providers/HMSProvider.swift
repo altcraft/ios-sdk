@@ -21,6 +21,7 @@ class HMSProvider: HMSInterface {
 
         let token = HmsInstanceId.getInstance().getToken(apnsToken)
         completion(token)
+        return completion(nil)
     }
     
     

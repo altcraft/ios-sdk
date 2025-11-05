@@ -7,10 +7,12 @@
 //  Copyright © 2025 Altcraft. All rights reserved.
 
 import UIKit
+import Foundation
 
 /// A tiny helper that fires a single callback when the app is in the foreground.
 /// Works on iOS 12+; scene-aware on iOS 13+. Calls the handler on the main queue.
-public final class ForegroundCheck {
+@available(iOSApplicationExtension, unavailable)
+final class ForegroundCheck {
 
     /// Shared singleton instance.
     public static let shared = ForegroundCheck()
@@ -20,10 +22,7 @@ public final class ForegroundCheck {
     /// Invokes `handler` exactly once when the app becomes foreground/active.
     /// If the app is already in the foreground, the handler is invoked immediately.
     /// - Parameter handler: Closure to run once the app is in the foreground.
-    public func isForeground(_ handler: @escaping () -> Void) {
-        #if APP_EXTENSION
-        return
-        #else
+    func isForeground(_ handler: @escaping () -> Void) {
         let call = { DispatchQueue.main.async { handler() } }
 
         if Thread.isMainThread {
@@ -54,15 +53,11 @@ public final class ForegroundCheck {
                 object: nil, queue: .main
             ) { _ in fire() })
         }
-        #endif
     }
 
     /// Returns `true` if the app is currently in the foreground, otherwise `false`.
     /// Safe to call from any thread and in background tasks.
-    public func isForegroundNow() -> Bool {
-        #if APP_EXTENSION
-        return false
-        #else
+    func isForegroundNow() -> Bool {
         if Thread.isMainThread {
             return Self.isForegroundMain()
         } else {
@@ -72,7 +67,6 @@ public final class ForegroundCheck {
             }
             return fg
         }
-        #endif
     }
 
     /// Main-thread only: foreground check for iOS 12 and 13+ with scenes.

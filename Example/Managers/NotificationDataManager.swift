@@ -8,6 +8,7 @@
 
 import Foundation
 import SwiftUI
+import Altcraft
 
 struct NotificationPayload: Codable {
     let title: String
@@ -137,8 +138,9 @@ extension NotificationDataManager {
 
         let buttonsArray = buttons.map { ["label": $0] }
 
+        // Use the same key AltcraftNSE/AltcraftPushReceiver expects: "_ac_push"
         var userInfo: [String: Any] = [
-            "_as_push": "Altcraft",
+            "_ac_push": "Altcraft",
             NotificationDataManager.buttons: jsonString(from: buttonsArray)
         ]
 
@@ -154,9 +156,8 @@ extension NotificationDataManager {
             trigger: UNTimeIntervalNotificationTrigger(timeInterval: 1, repeats: false)
         )
 
-        // Обработка пуша
-        let service = AltcraftPushReceiver()
-        service.didReceive(request) { modifiedContent in
+        // Handle via AltcraftNSE facade (Notification Service Extension flow)
+        AltcraftNSE.shared.handleNotificationRequest(request: request) { modifiedContent in
             let finalRequest = UNNotificationRequest(
                 identifier: request.identifier,
                 content: modifiedContent,
@@ -164,7 +165,9 @@ extension NotificationDataManager {
             )
             sendFinalNotification(from: finalRequest)
         }
-         func sendFinalNotification(from request: UNNotificationRequest) {
+
+        // Schedules the final (possibly modified) notification
+        func sendFinalNotification(from request: UNNotificationRequest) {
             UNUserNotificationCenter.current().add(request) { error in
                 if let error = error {
                     print("Failed to schedule local push: \(error.localizedDescription)")
@@ -172,7 +175,6 @@ extension NotificationDataManager {
             }
         }
     }
-
     private func jsonString(from object: Any) -> String {
         guard let data = try? JSONSerialization.data(withJSONObject: object, options: []),
               let string = String(data: data, encoding: .utf8) else {

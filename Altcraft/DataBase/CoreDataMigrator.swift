@@ -1,14 +1,14 @@
 import Foundation
 import CoreData
 
-public enum HeavyMigrationError: Error {
+enum HeavyMigrationError: Error {
     case modelNotFound(String)
     case storeNotFound(URL)
     case sourceModelResolveFailed
     case mappingModelNotFound(from: String, to: String)
 }
 
-public struct ModelStep {
+struct ModelStep {
     public let name: String
     public let url: URL
     public let model: NSManagedObjectModel

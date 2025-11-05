@@ -13,7 +13,7 @@ import UserNotificationsUI
 
 /// `AltcraftPushReceiver` class responsible for displaying rich push notifications.
 @objcMembers
-public class AltcraftPushReceiver: NSObject {
+class AltcraftPushReceiver: NSObject {
     
     private var contentHandler: ((UNNotificationContent) -> Void)?
     private var bestAttemptContent: UNMutableNotificationContent?
@@ -23,7 +23,7 @@ public class AltcraftPushReceiver: NSObject {
     ///
     /// - Parameter request: The `UNNotificationRequest` to check.
     /// - Returns: `true` if the notification is an Altcraft push notification; otherwise, `false`.
-    public func isAltcraftPush(_ request: UNNotificationRequest) -> Bool {
+    func isAltcraftPush(_ request: UNNotificationRequest) -> Bool {
         (request.content.userInfo as? [String: Any])?["_ac_push"] != nil
     }
     
@@ -31,7 +31,7 @@ public class AltcraftPushReceiver: NSObject {
     /// - Parameters:
     ///   - request: The notification request containing content
     ///   - contentHandler: Completion handler to call with modified content
-    public func didReceive(
+    func didReceive(
         _ request: UNNotificationRequest,
         withContentHandler contentHandler: @escaping (UNNotificationContent) -> Void
     ) {
@@ -109,7 +109,7 @@ public class AltcraftPushReceiver: NSObject {
     
     /// Called when the service extension is about to time out
     /// Delivers the best attempt content available
-    public func serviceExtensionTimeWillExpire() {
+    func serviceExtensionTimeWillExpire() {
         contentHandler?(bestAttemptContent ?? UNMutableNotificationContent())
     }
     

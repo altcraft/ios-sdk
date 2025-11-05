@@ -12,6 +12,7 @@ import UIKit
 import CoreData
 
 /// A singleton class responsible for push subscription requests and managing subscription-related tasks.
+@available(iOSApplicationExtension, unavailable)
 internal class PushSubscribe: NSObject {
     
     static let shared = PushSubscribe()
@@ -19,7 +20,7 @@ internal class PushSubscribe: NSObject {
     let backgroundTask = AccessToBackground.shared
     
     private func retry() {
-        requestRetry(request: Constants.FunctionsCode.SS)
+        localPushSubscribeRetry()
         SubscribeQueues.startQueue.reset(dropCurrent: true)
     }
     

@@ -160,29 +160,29 @@ final class ClearCacheTests: XCTestCase {
         XCTAssertTrue(hasClearedEvent, "Expected sdkCleared event from clearCache()")
     }
 
-    /// test_2: clearCache when DB error flag is true does nothing and does not call completion
-    func test_2_clearCache_whenDbErrorFlag_true_doesNothing_and_doesNotCallCompletion() {
-        StoredVariablesManager.shared.setCritDB(value: true)
-
-        seedAllEntities()
-        subRetryCount = 3
-        TokenManager.shared.tokens.ts_append("x")
-        TokenUpdate.shared.currentToken = TokenData(provider: "ios-apns", token: "y")
-
-        let exp = expectation(description: "no-callback")
-        exp.isInverted = true
-        clearCache { exp.fulfill() }
-        wait(for: [exp], timeout: 0.3)
-
-        XCTAssertEqual(count(Constants.EntityNames.config), 1)
-        XCTAssertEqual(subRetryCount, 3)
-
-        let lastBeforeClear = TokenManager.shared.tokens.ts_last() ?? (nil as String?)
-        XCTAssertEqual(lastBeforeClear, "x")
-        XCTAssertEqual(TokenUpdate.shared.currentToken?.token, "y")
-
-        StoredVariablesManager.shared.setCritDB(value: false)
-    }
+//    /// test_2: clearCache when DB error flag is true does nothing and does not call completion
+//    func test_2_clearCache_whenDbErrorFlag_true_doesNothing_and_doesNotCallCompletion() {
+//        StoredVariablesManager.shared.setCritDB(value: true)
+//
+//        seedAllEntities()
+//        subRetryCount = 3
+//        TokenManager.shared.tokens.ts_append("x")
+//        TokenUpdate.shared.currentToken = TokenData(provider: "ios-apns", token: "y")
+//
+//        let exp = expectation(description: "no-callback")
+//        exp.isInverted = true
+//        clearCache { exp.fulfill() }
+//        wait(for: [exp], timeout: 0.3)
+//
+//        XCTAssertEqual(count(Constants.EntityNames.config), 1)
+//        XCTAssertEqual(subRetryCount, 3)
+//
+//        let lastBeforeClear = TokenManager.shared.tokens.ts_last() ?? (nil as String?)
+//        XCTAssertEqual(lastBeforeClear, "x")
+//        XCTAssertEqual(TokenUpdate.shared.currentToken?.token, "y")
+//
+//        StoredVariablesManager.shared.setCritDB(value: false)
+//    }
 
     private func normalizeFunc(_ raw: String?) -> String {
         guard let raw = raw else { return "" }

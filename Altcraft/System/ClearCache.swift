@@ -16,6 +16,7 @@ import Foundation
 /// and the completion handler is not called.
 ///
 /// - Parameter completion: A closure called after the cache has been successfully cleared.
+@available(iOSApplicationExtension, unavailable)
 func clearCache(completion: @escaping () -> Void) {
     
     let clearingDb = ClearingDb.shared

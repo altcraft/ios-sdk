@@ -10,22 +10,23 @@ import Altcraft
 import UserNotifications
 
 class NotificationService: UNNotificationServiceExtension {
-    var service = AltcraftPushReceiver()
-    
     /// - important! Set app groups identifier.
-    var appGroupID = "your.app.group.id"
+    var appGroupID =  "your.app.group.id"
     let jwtProvider = JWTProvider()
 
-    
     override func didReceive(_ request: UNNotificationRequest, withContentHandler contentHandler: @escaping (UNNotificationContent) -> Void) {
-        AltcraftSDK.shared.setAppGroup(groupName: appGroupID)
-        AltcraftSDK.shared.setJWTProvider(provider: jwtProvider)
+        AltcraftNSE.shared.setAppGroup(groupName: appGroupID)
+        AltcraftNSE.shared.setJWTProvider(provider: jwtProvider)
         
-        if service.isAltcraftPush(request) {
-            self.service.didReceive(request, withContentHandler: contentHandler)
+        contentHandler(request.content)
+        
+        if AltcraftNSE.shared.isAltcraftPush(request) {
+            AltcraftNSE.shared.handleNotificationRequest(request: request, contentHandler: contentHandler)
         } else {
             contentHandler(request.content)
         }
     }
-    override func serviceExtensionTimeWillExpire() { service.serviceExtensionTimeWillExpire() }
+    override func serviceExtensionTimeWillExpire() {
+        AltcraftNSE.shared.serviceExtensionTimeWillExpire()
+    }
 }

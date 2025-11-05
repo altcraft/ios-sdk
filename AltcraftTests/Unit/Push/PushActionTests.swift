@@ -5,6 +5,7 @@
 //  Created by Andrey Pogodin.
 //
 //  © 2025 Altcraft. All rights reserved.
+//
 
 import XCTest
 @testable import Altcraft
@@ -31,7 +32,10 @@ final class PushActionTests: XCTestCase {
     func test_1_missingButtons_emitsError_from_pushClickAction() {
         let spy = EventSpy(); spy.start(); defer { spy.stop() }
 
-        pushClickAction(userInfo: [:], identifier: Constants.ButtonIdentifier.defaultNotificationAction)
+        PushAction.shared.pushClickAction(
+            userInfo: [:],
+            identifier: Constants.ButtonIdentifier.defaultNotificationAction
+        )
 
         XCTAssertFalse(spy.events.isEmpty)
         let last = spy.events.last
@@ -43,8 +47,14 @@ final class PushActionTests: XCTestCase {
     func test_2_invalidButtonsJSON_emitsError_from_pushClickAction() {
         let spy = EventSpy(); spy.start(); defer { spy.stop() }
 
-        let payload: [String: Any] = [Constants.UserInfoKeys.buttons: "{ not-json }"]
-        pushClickAction(userInfo: payload, identifier: Constants.ButtonIdentifier.defaultNotificationAction)
+        let payload: [String: Any] = [
+            Constants.UserInfoKeys.buttons: "{ not-json }"
+        ]
+
+        PushAction.shared.pushClickAction(
+            userInfo: payload,
+            identifier: Constants.ButtonIdentifier.defaultNotificationAction
+        )
 
         XCTAssertFalse(spy.events.isEmpty)
         let last = spy.events.last
@@ -61,7 +71,10 @@ final class PushActionTests: XCTestCase {
             Constants.UserInfoKeys.clickUrl: "myapp://deeplink/path"
         ]
 
-        pushClickAction(userInfo: payload, identifier: Constants.ButtonIdentifier.defaultNotificationAction)
+        PushAction.shared.pushClickAction(
+            userInfo: payload,
+            identifier: Constants.ButtonIdentifier.defaultNotificationAction
+        )
 
         let anyPushActionErrors = spy.events.contains {
             $0.function == "pushClickAction()" && ($0 is ErrorEvent)
@@ -73,12 +86,18 @@ final class PushActionTests: XCTestCase {
     func test_4_buttonIndex_outOfRange_emitsError_from_handleButtonAction() throws {
         let spy = EventSpy(); spy.start(); defer { spy.stop() }
 
-        let buttonsJSON = try JSONEncoder().encode([["label": "Only", "link": "https://example.com"]])
+        let buttonsJSON = try JSONEncoder().encode([
+            ["label": "Only", "link": "https://example.com"]
+        ])
+
         let payload: [String: Any] = [
             Constants.UserInfoKeys.buttons: String(data: buttonsJSON, encoding: .utf8) ?? "[]"
         ]
 
-        pushClickAction(userInfo: payload, identifier: Constants.ButtonIdentifier.buttonThree)
+        PushAction.shared.pushClickAction(
+            userInfo: payload,
+            identifier: Constants.ButtonIdentifier.buttonThree
+        )
 
         XCTAssertFalse(spy.events.isEmpty)
         let last = spy.events.last
@@ -94,14 +113,19 @@ final class PushActionTests: XCTestCase {
             ["label": "First",  "link": "myapp://first"],
             ["label": "Second", "link": "myapp://second"]
         ])
+
         let payload: [String: Any] = [
             Constants.UserInfoKeys.buttons: String(data: buttonsJSON, encoding: .utf8) ?? "[]"
         ]
 
-        pushClickAction(userInfo: payload, identifier: Constants.ButtonIdentifier.buttonTwo)
+        PushAction.shared.pushClickAction(
+            userInfo: payload,
+            identifier: Constants.ButtonIdentifier.buttonTwo
+        )
 
         let anyErrors = spy.events.contains {
-            ($0.function == "pushClickAction()" || $0.function == "handleButtonAction()") && ($0 is ErrorEvent)
+            ($0.function == "pushClickAction()" || $0.function == "handleButtonAction()")
+            && ($0 is ErrorEvent)
         }
         XCTAssertFalse(anyErrors)
     }

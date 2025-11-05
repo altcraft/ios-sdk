@@ -36,7 +36,7 @@ import CoreData
     ///
     /// - Parameter event: The `NSManagedObjectID` of the push event to retry.
     private func retry(event: NSManagedObjectID) {
-        requestRetry(request: Constants.FunctionsCode.PE, event: event)
+        localPushEventRetry(objectID: event)
     }
 
     /// Creates and stores a new push event based on received payload data.

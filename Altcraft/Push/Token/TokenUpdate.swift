@@ -9,14 +9,14 @@
 import Foundation
 
 /// A singleton class responsible for handling device token updates for Altcraft profiles .
+@available(iOSApplicationExtension, unavailable)
 public class TokenUpdate: NSObject {
     public static let shared = TokenUpdate()
     private let pushSubscribe = PushSubscribe.shared
     private let tokenManager = TokenManager.shared
     let backgroundTask = AccessToBackground.shared
     let userDefault = StoredVariablesManager.shared
-    let funcName = Constants.FunctionsCode.SU
-    let retry = {requestRetry(request: Constants.FunctionsCode.SU)}
+    private func retry() { localTokenUpdateRetry() }
     var currentToken: TokenData? = nil
     private let tokenUpdateQueue = DispatchQueue(label: Constants.Queues.tokenUpdateQueue)
   

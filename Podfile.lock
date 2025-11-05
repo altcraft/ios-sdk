@@ -1,11 +1,11 @@
 PODS:
-  - AGConnectCore (1.9.0.302):
+  - AGConnectCore (1.9.3.300):
     - HMFoundation (~> 1.4)
-  - AGConnectCredential (1.9.0.302):
+  - AGConnectCredential (1.9.3.300):
     - AGConnectCore (~> 1.4)
   - HiAnalytics (6.10.0.311):
     - AGConnectCredential
-  - HMFoundation (1.9.0.302)
+  - HMFoundation (1.9.3.300)
   - HmsPushSDK (5.0.5.309):
     - HiAnalytics
 
@@ -21,12 +21,12 @@ SPEC REPOS:
     - HmsPushSDK
 
 SPEC CHECKSUMS:
-  AGConnectCore: 8080cbbee27357ab3d9d97b13d5e3be117eeba35
-  AGConnectCredential: 962f8a4abc33f3ae7b69bcf00f709b2a74096a1d
+  AGConnectCore: c27ebd37c99416070c8b724a3b19758bbbc14c81
+  AGConnectCredential: 6a7cef0727278a7d5e41e1d0163986782d4e1b9a
   HiAnalytics: 07a774c560885f699db1d25af9e0cfc3fcf315e3
-  HMFoundation: 07a5cc092dc728e13400df5d24648f03ded00a95
+  HMFoundation: 0de865b8b37ec896a679efd6da548340b3c30a11
   HmsPushSDK: 5557607599cb37f7dd9528c17c97def4e63f544d
 
-PODFILE CHECKSUM: eb70a48fd7a5bf34dff8cef643f82710d70f1bc5
+PODFILE CHECKSUM: 834ac713eed7ed27e9571e8bb1fd7ac88c53caad
 
 COCOAPODS: 1.16.0

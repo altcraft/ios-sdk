@@ -11,6 +11,7 @@ import Foundation
 /// Public interface for setting push token providers (FCM, HMS, APNs)
 /// and working with tokens from Swift/Objective-C.
 @objcMembers
+@available(iOSApplicationExtension, unavailable)
 public class PublicPushTokenFunctions: NSObject {
 
     public static let shared = PublicPushTokenFunctions()
