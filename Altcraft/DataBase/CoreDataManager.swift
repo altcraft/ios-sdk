@@ -10,19 +10,19 @@ import CoreData
  provided, the SQLite store will be placed in the shared container; otherwise,
  it falls back to the app’s document directory.
  */
-public final class CoreDataManager {
+final class CoreDataManager {
 
     /// The shared instance of `CoreDataManager`.
     public static let shared = CoreDataManager()
 
     /// The persistent container for Core Data, which holds the managed object
     /// context and the persistent store coordinator.
-    public let persistentContainer: NSPersistentContainer
+    let persistentContainer: NSPersistentContainer
 
     /// Initializes the `CoreDataManager` and sets up the Core Data stack.
     ///
     /// - Parameter appGroup: Optional App Group ID. If nil, `StoredVariablesManager.shared.getGroupName()` is used.
-    public init(appGroup: String? = nil) {
+    init(appGroup: String? = nil) {
 
         let modelName     = Constants.CoreData.modelName
         let storeFileName = Constants.CoreData.storeFileName

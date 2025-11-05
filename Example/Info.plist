@@ -23,6 +23,10 @@
 	<false/>
 	<key>FirebaseAutomaticScreenReportingEnabled</key>
 	<false/>
+	<key>INIntentsSupported</key>
+	<array>
+		<string>Intent</string>
+	</array>
 	<key>NSAllowsCellularAccess</key>
 	<true/>
 	<key>NSAppTransportSecurity</key>

@@ -16,7 +16,7 @@ class FCMProvider: FCMInterface {
     
         ///apns token retrieved from userDefault
         let apnsToken = getAPNsTokenDataFromUserDefaults()
-        
+       
         ///set the apns token for fcm before requesting the fcm token
         Messaging.messaging().apnsToken = apnsToken
     

@@ -9,7 +9,7 @@
 
 import SwiftUI
 import Altcraft
-import HmsPushSdk
+//import HmsPushSdk
 import FirebaseCore
 import FirebaseMessaging
 
@@ -63,7 +63,7 @@ class AppDelegate: UIResponder, UIApplicationDelegate, UNUserNotificationCenterD
         AltcraftSDK.shared.pushTokenFunction.setHMSTokenProvider(HMSProvider())
         AltcraftSDK.shared.pushTokenFunction.setAPNSTokenProvider(APNSProvider())
         AltcraftSDK.shared.notificationManager.registerForPushNotifications(for: application)
-        
+    
         initSDK(config: getConfigFromUserDefault())
     
         return true

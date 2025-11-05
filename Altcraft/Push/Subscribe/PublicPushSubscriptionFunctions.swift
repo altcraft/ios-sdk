@@ -14,6 +14,7 @@ import Foundation
 /// that accept Foundation collections (`NSDictionary`, `NSArray`) and return
 /// Objective-C-friendly DTOs where needed.
 @objcMembers
+@available(iOSApplicationExtension, unavailable)
 public class PublicPushSubscriptionFunctions: NSObject {
 
     public static let shared = PublicPushSubscriptionFunctions()

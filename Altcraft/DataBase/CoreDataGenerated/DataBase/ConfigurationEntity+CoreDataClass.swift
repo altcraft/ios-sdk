@@ -10,6 +10,6 @@ import Foundation
 import CoreData
 
 @objc(ConfigurationEntity)
-public class ConfigurationEntity: NSManagedObject {
+class ConfigurationEntity: NSManagedObject {
 
 }

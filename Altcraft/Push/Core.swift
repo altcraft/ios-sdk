@@ -21,6 +21,7 @@ import Foundation
 /// Notes:
 /// - No parameters; this function uses shared singletons.
 /// - It does **not** disable token debug logging.
+@available(iOSApplicationExtension, unavailable)
 func performRetryOperations() {
     NetworkMonitor.shared.performActionWhenConnected {
         ForegroundCheck.shared.isForeground {

@@ -14,7 +14,7 @@ import UserNotifications
 public class PublicPushEventFunctions: NSObject {
     
     public static let shared = PublicPushEventFunctions()
-    private var service = AltcraftPushReceiver()
+    private var receiver = AltcraftPushReceiver()
     private let pushEvent = PushEvent.shared
     
     /// Reports that an Altcraft push notification was delivered to the device.
@@ -22,7 +22,7 @@ public class PublicPushEventFunctions: NSObject {
     /// - Parameters:
     ///   - request: UNNotificationRequest from didReceive
     public func deliveryEvent(from request: UNNotificationRequest) {
-        guard service.isAltcraftPush(request) else { return }
+        guard receiver.isAltcraftPush(request) else { return }
         
         guard let userInfo = request.content.userInfo as? [String: Any] else {
             errorEvent(#function, error: errorHandleUserInfo)
@@ -37,7 +37,7 @@ public class PublicPushEventFunctions: NSObject {
     /// - Parameters:
     ///   - request: UNNotificationRequest from didReceive
     public func openEvent(from request: UNNotificationRequest) {
-        guard service.isAltcraftPush(request) else { return }
+        guard receiver.isAltcraftPush(request) else { return }
         
         guard let userInfo = request.content.userInfo as? [String: Any] else {
             errorEvent(#function, error: errorHandleUserInfo)

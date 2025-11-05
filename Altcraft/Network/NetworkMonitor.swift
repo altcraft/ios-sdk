@@ -7,6 +7,7 @@
 //  Copyright © 2025 Altcraft. All rights reserved.
 
 import Network
+import Foundation
 
 /// A singleton class responsible for monitoring the network connection status and performing actions once the device is connected.
 ///

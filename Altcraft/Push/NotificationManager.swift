@@ -16,6 +16,7 @@ import UIKit
 /// - Use `[NotificationManager shared]` (or `[NotificationManager sharedInstance]`) to access the singleton.
 /// - Methods are exposed to Objective-C via `@objcMembers`.
 @objcMembers
+@available(iOSApplicationExtension, unavailable)
 public class NotificationManager: NSObject, UNUserNotificationCenterDelegate {
     
     /// Shared singleton instance.
@@ -27,6 +28,7 @@ public class NotificationManager: NSObject, UNUserNotificationCenterDelegate {
     public class func sharedInstance() -> NotificationManager { NotificationManager.shared }
     
     private let pushEvent = PushEvent.shared
+    private let pushAction = PushAction.shared
 
     /// Registers the app for push notifications.
     ///
@@ -95,7 +97,7 @@ public class NotificationManager: NSObject, UNUserNotificationCenterDelegate {
     ) {
         if let userInfo = response.notification.request.content.userInfo as? [String: AnyObject] {
             pushEvent.createPushEvent(userInfo: userInfo, type: Constants.PushEvents.open)
-            pushClickAction(userInfo: userInfo, identifier: response.actionIdentifier)
+            pushAction.pushClickAction(userInfo: userInfo, identifier: response.actionIdentifier)
         }
         completionHandler()
     }

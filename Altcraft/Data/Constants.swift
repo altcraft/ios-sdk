@@ -6,6 +6,8 @@
 //
 //  Copyright © 2025 Altcraft. All rights reserved.
 
+import Foundation
+
 /// A collection of constant values used throughout the application.
 ///
 /// The `Constants` enum contains various static properties and nested enums that define constant values
@@ -308,21 +310,6 @@ public enum Constants {
         
         /// Subscription is temporarily suspended.
         case suspend = "suspended"
-    }
-    
-    /// Enum representing function codes for different processes.
-    enum FunctionsCode {
-        /// The function code for the subscribe process.
-        static let SS = "startSubscribe()"
-        
-        /// The function code for the update process.
-        static let SU = "startUpdate()"
-        
-        /// The function code for the push event process.
-        static let PE = "sendPushEvent()"
-        
-        /// The function code for the mobile event process.
-        static let ME = "sendMobileEvent()"
     }
     
     /// Defines event types for the push_event request.

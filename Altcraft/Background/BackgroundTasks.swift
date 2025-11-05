@@ -16,6 +16,7 @@ import BackgroundTasks
 /// - Requires iOS 13+ and Background Modes capability.
 /// - Add your refresh identifier into Info.plist under `Permitted background task scheduler identifiers`.
 @objcMembers
+@available(iOSApplicationExtension, unavailable)
 public class BackgroundTask: NSObject {
 
     /// Background refresh identifier (must match Info.plist).

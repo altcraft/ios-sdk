@@ -12,6 +12,7 @@ import UIKit
 
 /// A singleton class that manages starting and ending background tasks,
 /// ensuring certain operations can continue running while the app is in the background.
+@available(iOSApplicationExtension, unavailable)
 class AccessToBackground: NSObject {
    /// The shared singleton instance of `AccessToBackground`.
    public static let shared = AccessToBackground()

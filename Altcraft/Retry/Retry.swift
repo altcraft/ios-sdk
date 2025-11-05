@@ -9,39 +9,15 @@
 import Foundation
 import CoreData
 
+@available(iOSApplicationExtension, unavailable)
 private let pushSubscribe  = PushSubscribe.shared
+@available(iOSApplicationExtension, unavailable)
 private let tokenUpdate    = TokenUpdate.shared
-private let pushEvent      = PushEvent.shared
 private let mobileEvent    = MobileEvent.shared
+private let pushEvent      = PushEvent.shared
 private let networkMonitor = NetworkMonitor.shared
 
-/// Dispatches retry flows for different request types.
-/// - Parameters:
-///   - request: Logical function code of the request to retry.
-///   - event: Optional push event entity (used by push event retries only).
-func requestRetry(
-    request: String,
-    event: NSManagedObjectID? = nil
-) {
-    switch request {
-    case Constants.FunctionsCode.SS:
-        localPushSubscribeRetry()
 
-    case Constants.FunctionsCode.SU:
-        localTokenUpdateRetry()
-
-    case Constants.FunctionsCode.PE:
-        if let event = event {
-            localPushEventRetry(objectID: event)
-        }
-
-    case Constants.FunctionsCode.ME:
-        localMobileEventRetry()
-
-    default:
-        print("unknown function")
-    }
-}
 
 var subRetryCount = 0
 var updateRetryCount = 0
@@ -53,7 +29,8 @@ var mobileEventRetryCount = 0
 /// once network becomes available, triggers `PushSubscribe.enqueueStart()`.
 /// Note: the retry counter is incremented only after the run is scheduled and the
 /// network is confirmed available.
-private func localPushSubscribeRetry() {
+@available(iOSApplicationExtension, unavailable)
+func localPushSubscribeRetry() {
     let work = DispatchWorkItem {
         if subRetryCount <= Constants.Retry.maxLocalRetryCount {
             networkMonitor.performActionWhenConnected {
@@ -74,7 +51,7 @@ private func localPushSubscribeRetry() {
 /// Uses exponential backoff via `delay(retryCount:)` and, when the network is available,
 /// triggers `MobileEvent.enqueueStart()`. This is an aggregate run: it fetches and
 /// processes all pending mobile events, not a per-entity retry.
-private func localMobileEventRetry() {
+func localMobileEventRetry() {
     let work = DispatchWorkItem {
         if mobileEventRetryCount <= Constants.Retry.maxLocalRetryCount {
             networkMonitor.performActionWhenConnected {
@@ -93,7 +70,8 @@ private func localMobileEventRetry() {
 
 /// Retries the token update flow if within retry limits.
 /// Uses exponential backoff and triggers `startUpdate()` when network is available.
-private func localTokenUpdateRetry() {
+@available(iOSApplicationExtension, unavailable)
+func localTokenUpdateRetry() {
     let work = DispatchWorkItem {
         if updateRetryCount <= Constants.Retry.maxLocalRetryCount {
             networkMonitor.performActionWhenConnected {
@@ -113,7 +91,7 @@ private func localTokenUpdateRetry() {
 /// Retries the per-entity push event flow if within retry limits.
 /// Uses exponential backoff and triggers `sendPushEvent(objectID:)` when network is available.
 /// - Parameter objectID: The `NSManagedObjectID` of the push event to retry.
-private func localPushEventRetry(objectID: NSManagedObjectID) {
+func localPushEventRetry(objectID: NSManagedObjectID) {
     let work = DispatchWorkItem {
         if pushEventRetryCount <= Constants.Retry.maxLocalRetryCount {
             networkMonitor.performActionWhenConnected {
