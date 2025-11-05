@@ -23,6 +23,7 @@ import Network
 ///
 /// It also exposes configuration and cleanup APIs for initializing and resetting the SDK.
 @objcMembers
+@available(iOSApplicationExtension, unavailable)
 public class AltcraftSDK: NSObject {
 
     /// The singleton instance of the AltcraftSDK class.
