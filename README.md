@@ -16,7 +16,7 @@ The SDK automates push notification delivery, event submission, request retries,
 ## Features
 
 * [x] Works with anonymous and registered users; supports multiple profiles on one device (JWT).
-* [x] Push subscription management: `pushSubscribe()`, `pushSuspend()`, `pushUnSubscribe()`.
+* [x] Push subscription management: push subscribe, push suspend, push unsubscribe.
 * [x] Automatic display of push notifications configured in the platform.
 * [x] Automatic push token update when it changes.
 * [x] Automatic transmission of notification delivery and open events.
@@ -24,8 +24,8 @@ The SDK automates push notification delivery, event submission, request retries,
 * [x] Automatic retry of failed requests.
 * [x] Support for push providers: APNS, Firebase, Huawei.
 * [x] Secure requests using JWT and flexible identifier matching.
-* [x] Support for `rToken` for simple subscription scenarios.
-* [x] SDK data cleanup (`clear()`) and background task termination.
+* [x] Support for rToken for simple subscription scenarios.
+* [x] SDK data cleanup (clear()) and background tasks termination.
 
 ---
 

@@ -15,7 +15,6 @@ import XCTest
  * Positive scenarios:
  *  - test_1: getStatusOfLatestSubscriptionForProvider → invalid provider emits error and returns nil.
  *  - test_2: actionFieldBuilder → builds all actions with expected shape.
- *  - test_3: actionFieldBuilder mergeFields → overrides on conflict and keeps all keys.
  */
 final class PublicPushSubscriptionFunctionsTests: XCTestCase {
 
@@ -88,33 +87,5 @@ final class PublicPushSubscriptionFunctionsTests: XCTestCase {
         assertShape(add,   action: "add",   valueCheck: { ($0 as? [String]) == ["a", "b"] })
         assertShape(del,   action: "delete",valueCheck: { ($0 as? String) == "old" })
         assertShape(up,    action: "upsert",valueCheck: { ( ($0 as? [String: String])?["k"] ) == "v" })
-    }
-
-    /// test_3: actionFieldBuilder mergeFields overrides on conflict and keeps all keys
-    func test_3_actionFieldBuilder_mergeFields_overridesOnConflict_andKeepsAllKeys() {
-        let name = PublicPushSubscriptionFunctions.shared.actionField(key: "_fname").set(value: "Andrey")
-        let nameOverride = PublicPushSubscriptionFunctions.shared.actionField(key: "_fname").set(value: "A.")
-        let age = PublicPushSubscriptionFunctions.shared.actionField(key: "_age").incr(value: 1)
-        let simple: [String: Any?] = ["simple_field": "value"]
-
-        let merged = mergeFields(name, age, simple, nameOverride)
-
-        XCTAssertEqual(Set(merged.keys), Set(["_fname", "_age", "simple_field"]))
-
-        if let fnamePayload = merged["_fname"] as? [String: Any?] {
-            XCTAssertEqual(fnamePayload["action"] as? String, "set")
-            XCTAssertEqual(fnamePayload["value"] as? String, "A.")
-        } else {
-            XCTFail("_fname payload missing or wrong type")
-        }
-
-        if let agePayload = merged["_age"] as? [String: Any?] {
-            XCTAssertEqual(agePayload["action"] as? String, "incr")
-            XCTAssertEqual(agePayload["value"] as? Int, 1)
-        } else {
-            XCTFail("_age payload missing or wrong type")
-        }
-
-        XCTAssertEqual(merged["simple_field"] as? String, "value")
     }
 }

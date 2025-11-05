@@ -9,12 +9,11 @@
 
 import SwiftUI
 import Altcraft
-//import HmsPushSdk
 import FirebaseCore
 import FirebaseMessaging
 
 ///set AppGroups identifier
-let appGroupID = "your.app.group.id"
+let appGroupID = "your.altcraft.group.id"
 
 ///set the JWT value for the anonymous user as anonJWT or in the application IU interface (config)
 let anonJWT: String? = nil
