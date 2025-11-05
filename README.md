@@ -4,10 +4,9 @@
 
 [![Swift](https://img.shields.io/badge/Swift-5.10%2B-blue?style=flat-square)](https://swift.org/)
 [![Platforms](https://img.shields.io/badge/Platforms-iOS-green?style=flat-square)](https://developer.apple.com/ios/)
-[![CocoaPods Compatible](https://img.shields.io/cocoapods/v/Altcraft.svg?style=flat-square)](https://cocoapods.org/pods/Altcraft)
-[![Push Providers](https://img.shields.io/badge/Push-APNs_Firebase_Huawei-orange?style=flat-square)](#)
+[![Push Providers](https://img.shields.io/badge/Push-APNs_Firebase_Huawei-green?style=flat-square)](#)
 [![Swift Package Manager](https://img.shields.io/badge/Swift_Package_Manager-compatible-orange?style=flat-square)](https://img.shields.io/badge/Swift_Package_Manager-compatible-orange?style=flat-square)
-
+[![CocoaPods Compatible](https://img.shields.io/cocoapods/v/Altcraft.svg?style=flat-square)](https://cocoapods.org/pods/Altcraft)
 
 Altcraft iOS SDK is a library for managing push notifications, user profiles, and interacting with the **Altcraft Marketing platform**. The SDK automates push notification delivery, event submission, request retries, and supports flexible workflows with JWT or role-based tokens.
 
