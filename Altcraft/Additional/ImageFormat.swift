@@ -12,7 +12,7 @@ import SwiftUI
 
 /// Lightweight detector for common image formats.
 /// Returns a guessed file extension and (when available) a UTI hint for UNNotificationAttachment.
-enum ImageFormat: String {
+public enum ImageFormat: String {
     case png, jpg, gif, webp, bmp, tiff, heic
 
     /// Lowercase file extension matching the detected format (e.g. "png").

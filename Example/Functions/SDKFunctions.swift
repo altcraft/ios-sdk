@@ -1,6 +1,6 @@
 //
 //  SDKFunctions.swift
-//  IOSAPNsExample
+//  Example
 //
 //  Created by Andrey Pogodin.
 //
@@ -8,7 +8,6 @@
 
 import Foundation
 import Altcraft
-
 
 func initSDK(config: AppConfig?) {
     guard let config = config else { return }
@@ -30,11 +29,7 @@ func initSDK(config: AppConfig?) {
 }
 
 func switchToAPNS() {
-    let providers = [
-        Constants.ProviderName.apns,
-        Constants.ProviderName.firebase,
-        Constants.ProviderName.huawei
-    ]
+    let providers = [Constants.ProviderName.apns]
     
     if let config = getConfigFromUserDefault() {
         let config = AppConfig(
@@ -51,11 +46,7 @@ func switchToAPNS() {
 }
 
 func switchToFCM() {
-    let providers = [
-        Constants.ProviderName.firebase,
-        Constants.ProviderName.apns,
-        Constants.ProviderName.huawei
-    ]
+    let providers = [Constants.ProviderName.firebase]
     
     if let config = getConfigFromUserDefault() {
         let config = AppConfig(
@@ -72,11 +63,7 @@ func switchToFCM() {
 }
 
 func switchToHMS() {
-    let providers = [
-        Constants.ProviderName.huawei,
-        Constants.ProviderName.apns,
-        Constants.ProviderName.firebase
-    ]
+    let providers = [Constants.ProviderName.huawei]
     
     if let config = getConfigFromUserDefault() {
         let config = AppConfig(

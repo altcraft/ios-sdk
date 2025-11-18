@@ -1,7 +1,6 @@
 //
 //  EventManager.swift
-//
-//  IOSAPNsExample
+//  Example
 //
 //  Created by Andrey Pogodin.
 //

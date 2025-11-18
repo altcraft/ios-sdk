@@ -1,6 +1,6 @@
 //
 //  HMSProvider.swift
-//  IOSAPNsExample
+//  Example
 //
 //  Created by Andrey Pogodin.
 //
@@ -21,7 +21,6 @@ class HMSProvider: HMSInterface {
 
         let token = HmsInstanceId.getInstance().getToken(apnsToken)
         completion(token)
-        return completion(nil)
     }
     
     

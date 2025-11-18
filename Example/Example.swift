@@ -1,7 +1,6 @@
 //
 //  IOSAPNsExampleApp.swift
-//
-//  IOSAPNsExample
+//  Example
 //
 //  Created by Andrey Pogodin.
 //
@@ -13,7 +12,7 @@ import FirebaseCore
 import FirebaseMessaging
 
 ///set AppGroups identifier
-let appGroupID = "your.altcraft.group.id"
+let appGroupID = "group.your.id"
 
 ///set the JWT value for the anonymous user as anonJWT or in the application IU interface (config)
 let anonJWT: String? = nil
@@ -80,7 +79,7 @@ class AppDelegate: UIResponder, UIApplicationDelegate, UNUserNotificationCenterD
 
 /**
  * Altcraft SDK setup on iOS
- *'
+ *
  * You can configure Altcraft SDK via your app UI (Config screen) or initialize it programmatically.
  *
  * Example (programmatic init in AppDelegate):

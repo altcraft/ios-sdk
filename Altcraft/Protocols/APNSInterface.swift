@@ -8,7 +8,7 @@
 
 import Foundation
 
-/// Interface for APNs (Apple Push Notification Service) operations.
+/// Protocol for APNs (Apple Push Notification Service) operations.
 ///
 /// Provides method to get the APNs token.
 @objc

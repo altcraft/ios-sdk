@@ -1,6 +1,6 @@
 //
 //  InfoComponents.swift
-//  IOSAPNsExample
+//  Example
 //
 //  Created by Andrey Pogodin.
 //
@@ -107,7 +107,7 @@ struct ModuleCard: View {
                     Spacer().frame(height: 20)
 
                     HStack {
-                        Text(status == false ? "on" : "off")
+                        Text(status == true ? "on" : "off")
                             .font(.system(size: 9, weight: .bold))
                             .foregroundColor(.black)
                         

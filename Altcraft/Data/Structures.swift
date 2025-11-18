@@ -29,19 +29,10 @@ struct JWTData {
     let matching: String
 }
 
-/// Contains the data needed to create all types of SDK requests.
-///
-/// - `config`: The configuration entity containing SDK settings.
-/// - `currentToken`: The current device push token.
-/// - `savedToken`: The previously saved push token retrieved from `UserDefaults` as the current one.
-/// - `authHeader`: The authentication header required for making secure API requests.
-/// - `matchingMode`: The mode used for matching authentication details.
-struct CommonData {
-    let config: Configuration
-    let currentToken: TokenData?
-    let savedToken: TokenData?
-    let authHeader: String
-    let matchingMode: String
+/// Holds the common data required to construct SDK network requests.
+struct RequestData {
+    let config: Configuration?
+    let auth: (String, String)?
 }
 
 /// Contains the data required to perform a `push/subscribe` request.
@@ -353,6 +344,7 @@ public struct CategoryData: Codable {
     }
 }
 
+/// Enum representing any JSON value (string, number, bool, object, array, or null).
 public enum JSONValue: Codable, CustomStringConvertible {
     case string(String)
     case number(Double)

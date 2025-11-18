@@ -92,7 +92,6 @@ public class PublicPushTokenFunctions: NSObject {
             errorEvent(#function, error: invalidPushProviders)
             return
         }
-
         updateProviderPriorityList(newList: list) { result in
             switch result {
             case .success():
@@ -131,7 +130,7 @@ public class PublicPushTokenFunctions: NSObject {
     public func forcedTokenUpdate(completion: (() -> Void)? = nil) {
         tokenManager.getCurrentToken { tokenData in
             guard let tokenData = tokenData else {
-                errorEvent(#function, error: currentTokenIsNil)
+                errorEvent(#function, error: pushTokenIsNil)
                 completion?()
                 return
             }

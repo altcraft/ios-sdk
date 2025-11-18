@@ -4,19 +4,19 @@
 
 [![Swift](https://img.shields.io/badge/Swift-5.10%2B-blue?style=flat-square)](https://swift.org/)
 [![Platforms](https://img.shields.io/badge/Platforms-iOS-green?style=flat-square)](https://developer.apple.com/ios/)
-[![Push Providers](https://img.shields.io/badge/Push-APNs_Firebase_Huawei-orange?style=flat-square)](#)
+[![Push Providers](https://img.shields.io/badge/Push-APNs_Firebase_Huawei-green?style=flat-square)](#)
 [![Swift Package Manager](https://img.shields.io/badge/Swift_Package_Manager-compatible-orange?style=flat-square)](https://img.shields.io/badge/Swift_Package_Manager-compatible-orange?style=flat-square)
+[![CocoaPods Compatible](https://img.shields.io/cocoapods/v/Altcraft.svg?style=flat-square)](https://cocoapods.org/pods/Altcraft)
 
-
-Altcraft iOS SDK is a library for managing push notifications, user profiles, and interacting with the **Altcraft Marketing** platform.
-The SDK automates push notification delivery, event submission, request retries, and supports flexible workflows with JWT or role-based tokens.
+Altcraft iOS SDK is a library for managing push notifications, user profiles, and interacting with the **Altcraft Marketing platform**. The SDK automates push notification delivery, event submission, request retries, and supports flexible workflows with JWT or role-based tokens.
 
 ---
 
 ## Features
 
+* [x] Compatible with Swift and Objective-C.
 * [x] Works with anonymous and registered users; supports multiple profiles on one device (JWT).
-* [x] Push subscription management: `pushSubscribe()`, `pushSuspend()`, `pushUnSubscribe()`.
+* [x] Push subscription management: push subscribe, push suspend, push unsubscribe.
 * [x] Automatic display of push notifications configured in the platform.
 * [x] Automatic push token update when it changes.
 * [x] Automatic transmission of notification delivery and open events.
@@ -24,8 +24,20 @@ The SDK automates push notification delivery, event submission, request retries,
 * [x] Automatic retry of failed requests.
 * [x] Support for push providers: APNS, Firebase, Huawei.
 * [x] Secure requests using JWT and flexible identifier matching.
-* [x] Support for `rToken` for simple subscription scenarios.
-* [x] SDK data cleanup (`clear()`) and background task termination.
+* [x] Support for rToken for simple subscription scenarios.
+* [x] SDK data cleanup and background tasks termination.
+
+---
+
+## Dependencies
+
+**Cocoapods:**
+
+`pod 'Altcraft', '1.0.1'`
+
+**Swift Package Manager:**
+
+`1.0.1`
 
 ---
 
@@ -63,19 +75,20 @@ Profile lookup is limited to the push token identifier.
 
 ---
 
-## Documentations
+## Documentation
 
 Detailed information on SDK setup, functionality, and usage is available on the Altcraft documentation portal. You can navigate to the required section using the links below:
 
-- [**Quick Start**](https://guides.altcraft.com/en/developer-guide/sdk/v2/ios/quick-start)
-- [**SDK Functionality**](https://guides.altcraft.com/en/developer-guide/sdk/v2/ios/functionality)
-- [**SDK Configuration**](https://guides.altcraft.com/en/developer-guide/sdk/v2/ios/setup)
-- [**Classes and Structures**](https://guides.altcraft.com/en/developer-guide/sdk/v2/ios/functions-and-classes)
-- **Provider Setup**
+- [**Quick Start**](https://guides.altcraft.com/en/developer-guide/sdk/v1/ios/quick-start)
+- [**SDK Functionality**](https://guides.altcraft.com/en/developer-guide/sdk/v1/ios/functionality)
+- [**SDK Configuration**](https://guides.altcraft.com/en/developer-guide/sdk/v1/ios/setup)
+- [**Classes and Structures**](https://guides.altcraft.com/en/developer-guide/sdk/v1/ios/api)
 
-  * [APNs](https://guides.altcraft.com/en/developer-guide/sdk/v2/ios/providers/apns/)
-  * [FCM](https://guides.altcraft.com/en/developer-guide/sdk/v2/ios/providers/fcm/)
-  * [HMS](https://guides.altcraft.com/en/developer-guide/sdk/v2/ios/providers/hms/)
+**Provider Setup**
+
+- [APNs](https://guides.altcraft.com/en/developer-guide/sdk/v1/ios/providers/apns/)
+- [FCM](https://guides.altcraft.com/en/developer-guide/sdk/v1/ios/providers/fcm/)
+- [HMS](https://guides.altcraft.com/en/developer-guide/sdk/v1/ios/providers/hms/)
 
 ---
 
@@ -133,3 +146,4 @@ Apple Developer License Agreement
 * [AdSupport](https://developer.apple.com/documentation/adsupport)
 * [Network](https://developer.apple.com/documentation/network)
 * [UserNotifications](https://developer.apple.com/documentation/usernotifications)
+

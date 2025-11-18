@@ -1,6 +1,6 @@
 //
 //  JWTManager.swift
-//  IOSAPNsExample
+//  Example
 //
 //  Created by Andrey Pogodin.
 //
