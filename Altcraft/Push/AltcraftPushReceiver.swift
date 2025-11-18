@@ -6,209 +6,143 @@
 //
 //  Copyright © 2025 Altcraft. All rights reserved.
 
-import Foundation
-import UIKit
 import UserNotifications
-import UserNotificationsUI
+import Foundation
 
-/// `AltcraftPushReceiver` class responsible for displaying rich push notifications.
+/// Handles Altcraft push notifications inside a Notification Service Extension.
+/// Responsible for: delivery event tracking, action button creation,
+/// category registration, and media attachment loading.
 @objcMembers
-class AltcraftPushReceiver: NSObject {
+final class AltcraftPushReceiver: NSObject {
     
-    private var contentHandler: ((UNNotificationContent) -> Void)?
-    private var bestAttemptContent: UNMutableNotificationContent?
-    private let pushEvent = PushEvent.shared
+    private var handler: ((UNNotificationContent) -> Void)?
+    private var content: UNMutableNotificationContent?
     
-    /// Determines if a notification request is related to an Altcraft push notification.
+    /// Checks whether a push notification belongs to Altcraft.
     ///
-    /// - Parameter request: The `UNNotificationRequest` to check.
-    /// - Returns: `true` if the notification is an Altcraft push notification; otherwise, `false`.
+    /// - Parameter request: The incoming `UNNotificationRequest`.
+    /// - Returns: `true` if the push contains Altcraft signature fields, otherwise `false`.
     func isAltcraftPush(_ request: UNNotificationRequest) -> Bool {
         (request.content.userInfo as? [String: Any])?["_ac_push"] != nil
     }
     
-    /// Handles incoming push notification request
+    /// Processes an Altcraft push inside the NSE: records delivery event,
+    /// attaches media, creates categories and actions, and returns final content.
+    ///
     /// - Parameters:
-    ///   - request: The notification request containing content
-    ///   - contentHandler: Completion handler to call with modified content
-    func didReceive(
-        _ request: UNNotificationRequest,
-        withContentHandler contentHandler: @escaping (UNNotificationContent) -> Void
-    ) {
-        event(#function, event: pushReceive)
-        guard let userInfo = request.content.userInfo as? [String: Any] else {
-            errorEvent(#function, error: errorHandleUserInfo)
-            contentHandler(request.content)
-            return
-        }
-        handleUserInfo(userInfo, contentHandler: contentHandler, request: request)
-    }
-    
-    /// Processes notification user info and prepares notification content
-    /// - Parameters:
-    ///   - userInfo: Dictionary containing push notification data
-    ///   - contentHandler: Completion handler for final notification content
-    ///   - request: Original notification request
-    private func handleUserInfo(
-        _ userInfo: [String: Any],
-        contentHandler: @escaping (UNNotificationContent) -> Void,
-        request: UNNotificationRequest) {
-            
-            pushEvent.createPushEvent(userInfo: userInfo, type: Constants.PushEvents.delivery)
-            
-            let actions = createNotificationActions(from: userInfo)
-            
-            let simpleCategory = UNNotificationCategory(
-                identifier: Constants.categoryForRichPush,
-                actions: actions,
-                intentIdentifiers: [],
-                options: []
-            )
-            
-            UNUserNotificationCenter.current().setNotificationCategories([simpleCategory])
-            
-            self.contentHandler = { content in
-                event(#function, event: pushIsPosted)
-                contentHandler(content)
-            }
-            
-            bestAttemptContent = (request.content.mutableCopy() as? UNMutableNotificationContent)
-            bestAttemptContent?.categoryIdentifier = Constants.categoryForRichPush
-            
-            guard userInfo[Constants.UserInfoKeys.media] != nil else {
-                self.contentHandler?(bestAttemptContent ?? request.content)
-                return
-            }
-            
-            request.loadAttachmentAsync { [weak self] content in
-                self?.contentHandler?(content)
-            }
-        }
-    
-    /// Creates notification actions from user info buttons
-    /// - Parameter userInfo: Dictionary containing push notification data
-    /// - Returns: Array of configured notification actions
-    private func createNotificationActions(from userInfo: [String: Any]) -> [UNNotificationAction] {
-        guard let buttonsJSON = userInfo[Constants.UserInfoKeys.buttons] as? String,
-              let buttonsData = buttonsJSON.data(using: .utf8),
-              let buttonDictionaries = try? JSONDecoder().decode([[String: String]].self, from: buttonsData)
-        else {
-            errorEvent(#function, error: errorButtonsKeyMissing)
-            return []
-        }
+    ///   - request: The notification request received by NSE.
+    ///   - handler: Completion handler invoked with modified content.
+    func takePush(_ request: UNNotificationRequest, withContentHandler handler: @escaping (UNNotificationContent) -> Void) {
+        self.handler = handler
+        self.content = (request.content.mutableCopy() as? UNMutableNotificationContent)
         
-        return buttonDictionaries.enumerated().compactMap { index, button in
-            guard let title = button["label"] else { return nil }
-            return UNNotificationAction(
-                identifier: "button\(index)",
-                title: title,
-                options: [.foreground]
-            )
-        }
-    }
-    
-    /// Called when the service extension is about to time out
-    /// Delivers the best attempt content available
-    func serviceExtensionTimeWillExpire() {
-        contentHandler?(bestAttemptContent ?? UNMutableNotificationContent())
-    }
-    
-    /// Adds a notification attachment to mutable content by moving a temporary file
-    /// - Parameters:
-    ///   - content: Mutable notification content to modify
-    ///   - tempURL: Source file location (will be moved)
-    ///   - directory: Destination directory for the attachment
-    /// - Note: Silently handles errors by logging them via `errorEvent`
-    func addAttachment(to content: UNMutableNotificationContent, from tempURL: URL, in directory: URL) {
-        do {
-            content.attachments = [try createNotificationAttachment(from: tempURL, in: directory)]
-        } catch {
-            errorEvent(#function, error: error)
-        }
-    }
-    
-    /// Prepares notification content and temporary directory
-    /// - Parameter content: Original notification content
-    /// - Returns: Tuple containing mutable content and temporary directory URL
-    func prepareNotificationContent(content: UNNotificationContent) -> (UNMutableNotificationContent, URL) {
-        return (
-            (content.mutableCopy() as? UNMutableNotificationContent) ?? UNMutableNotificationContent(),
-            URL(fileURLWithPath: NSTemporaryDirectory()).appendingPathComponent(UUID().uuidString)
+        guard content != nil else { return handler(request.content) }
+        
+        PushEvent.shared.createPushEvent(
+            userInfo: request.content.userInfo as? [String: Any] ?? [:], type: Constants.PushEvents.delivery
         )
+        addContent(from: request)
     }
     
-    /// Extracts media URL from notification content
-    /// - Returns: URL if valid media URL exists, nil otherwise
-    func extractMediaURL(content: UNNotificationContent) -> URL? {
-        guard let userInfo = content.userInfo as? [String: Any],
-              let imageURLString = userInfo[Constants.UserInfoKeys.media] as? String,
-              let attachmentURL = URL(string: imageURLString) else {
-            errorEvent(#function, error: errorMediaKeyMissing)
-            return nil
+    /// Builds category/actions and attaches preview image.
+    ///
+    /// - Parameter request: Original notification request.
+    private func addContent(from request: UNNotificationRequest) {
+        makeCategory(from: request.content.userInfo)
+        loadNotificationImage(for: request) { finalContent in
+            self.handler?(finalContent)
+            event("addContent", event: pushIsPosted)
         }
-        return attachmentURL
     }
     
-    /// Creates a UNNotificationAttachment from a temp image file, preserving its format.
-    /// - Parameters:
-    ///   - tempURL: Location of the downloaded/temporary image file.
-    ///   - directory: Target directory where the attachment file will be moved.
-    /// - Throws: File system or attachment creation errors.
-    /// - Returns: A configured `UNNotificationAttachment` with a format-appropriate filename.
-    func createNotificationAttachment(
-        from tempURL: URL,
-        in directory: URL
-    ) throws -> UNNotificationAttachment {
-        try FileManager.default.createDirectory(at: directory, withIntermediateDirectories: true)
+    /// Creates a notification category with interactive buttons extracted from push payload.
+    ///
+    /// - Parameter info: `userInfo` dictionary from push.
+    private func makeCategory(from info: [AnyHashable: Any]) {
+        let categoryKey = Constants.categoryForRichPush
+        var actions: [UNNotificationAction] = []
         
-        let data = try Data(contentsOf: tempURL, options: .mappedIfSafe)
-        let detected = ImageFormat(data: data)
-        
-        let fallbackExt = tempURL.pathExtension.isEmpty ? "jpg" : tempURL.pathExtension.lowercased()
-        let ext = detected?.fileExtension ?? fallbackExt
-        
-        let filename = "attachment-\(UUID().uuidString).\(ext)"
-        let destURL = directory.appendingPathComponent(filename, isDirectory: false)
-        
-        if FileManager.default.fileExists(atPath: destURL.path) {
-            try FileManager.default.removeItem(at: destURL)
-        }
-        try FileManager.default.moveItem(at: tempURL, to: destURL)
-        
-        var options: [String: Any]? = nil
-        if let hint = detected?.utiHint {
-            options = [UNNotificationAttachmentOptionsTypeHintKey: hint]
-        }
-        
-        return try UNNotificationAttachment(identifier: "image-\(ext)", url: destURL, options: options)
-    }
-}
-
-extension UNNotificationRequest {
-    /// Asynchronously loads media attachment for rich notification
-    /// - Parameter completion: Completion handler with content including attachment
-    func loadAttachmentAsync(completion: @escaping (UNNotificationContent) -> Void) {
-        
-        let service = AltcraftPushReceiver()
-        
-        guard let attachmentURL = service.extractMediaURL(content: content) else {
-            completion(content)
-            return
-        }
-        let (bestAttemptContent, tempDir) = service.prepareNotificationContent(content: content)
-        
-        let semaphore = DispatchSemaphore(value: 0)
-        
-        URLSession.shared.downloadTask(with: attachmentURL) { tempURL, response, error in
-            defer { semaphore.signal() }
-            guard let tempURL = tempURL, error == nil else {
-                errorEvent(#function, error: error ?? errorMediaDownload)
-                return
+        if
+            let json = info[Constants.UserInfoKeys.buttons] as? String,
+            let data = json.data(using: .utf8),
+            let arr = try? JSONDecoder().decode([[String: String]].self, from: data)
+        {
+            actions = arr.enumerated().compactMap { index, btn in
+                guard let title = btn["label"] else { return nil }
+                return UNNotificationAction(
+                    identifier: "button\(index)",
+                    title: title,
+                    options: [.foreground]
+                )
             }
-            service.addAttachment(to: bestAttemptContent, from: tempURL, in: tempDir)
-        }.resume()
+        }
         
-        _ = semaphore.wait(timeout: .now() + 25)
-        completion(bestAttemptContent)
+        let category = UNNotificationCategory(
+           identifier: categoryKey, actions: actions, intentIdentifiers: [], options: []
+        )
+        
+        UNUserNotificationCenter.current().setNotificationCategories([category])
+        content?.categoryIdentifier = Constants.categoryForRichPush
     }
+    
+    /// Loads a remote image specified in the notification payload and
+    /// attaches it to the mutable notification content.
+    /// - Parameters:
+    ///   - req: The original notification request containing the media URL in `userInfo`.
+    ///   - completion: Completion handler called with the final notification content (with or without image).
+    private func loadNotificationImage(
+        for req: UNNotificationRequest,
+        completion: @escaping (UNNotificationContent) -> Void
+    ) {
+        let media = (req.content.userInfo as? [String: Any])?[Constants.UserInfoKeys.media] as? String
+        
+        guard let media = media, let url = URL(string: media), let content = self.content else {
+            return completion(self.content ?? req.content)
+        }
+        
+        URLSession.shared.downloadTask(with: url) { tmp, _, error in
+            guard let tmp, error == nil else {
+                errorEvent(#function, error: error ?? errorMediaDownload)
+                return completion(content)
+            }
+            do {
+                try self.applyImageAttachment(from: tmp, to: content)
+            } catch {
+                errorEvent(#function, error: error)
+            }
+            completion(self.content ?? content)
+        }.resume()
+    }
+    
+    /// Builds and attaches image attachment to the mutable notification content.
+    ///
+    /// - Parameters:
+    ///   - tempURL: Temporary file URL returned by URLSession.
+    ///   - content: Mutable notification content to update with attachment.
+    /// - Throws: File / Data / UNNotificationAttachment errors.
+     func applyImageAttachment(
+        from tempURL: URL,
+        to content: UNMutableNotificationContent
+    ) throws {
+        let data = try Data(contentsOf: tempURL)
+        let format = ImageFormat(data: data)
+        let ext = format?.fileExtension ?? "jpg"
+        
+        let dir = URL(fileURLWithPath: NSTemporaryDirectory())
+            .appendingPathComponent(UUID().uuidString)
+        try FileManager.default.createDirectory(at: dir, withIntermediateDirectories: true)
+        
+        let dest = dir.appendingPathComponent("image.\(ext)")
+        try FileManager.default.moveItem(at: tempURL, to: dest)
+        
+        let options = format?.utiHint.map { [UNNotificationAttachmentOptionsTypeHintKey: $0] }
+        let att = try UNNotificationAttachment(identifier: "img", url: dest, options: options)
+        
+        content.attachments = [att]
+        self.content = content
+    }
+
+    /// Called by the system when the NSE execution time is about to expire.
+    /// Returns the best content currently available.
+    func serviceExtensionTimeWillExpire() { if let handler, let content { handler(content) } }
 }

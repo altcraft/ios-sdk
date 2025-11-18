@@ -14,6 +14,7 @@ Altcraft iOS SDK is a library for managing push notifications, user profiles, an
 
 ## Features
 
+* [x] Compatible with Swift and Objective-C.
 * [x] Works with anonymous and registered users; supports multiple profiles on one device (JWT).
 * [x] Push subscription management: push subscribe, push suspend, push unsubscribe.
 * [x] Automatic display of push notifications configured in the platform.
@@ -25,6 +26,18 @@ Altcraft iOS SDK is a library for managing push notifications, user profiles, an
 * [x] Secure requests using JWT and flexible identifier matching.
 * [x] Support for rToken for simple subscription scenarios.
 * [x] SDK data cleanup and background tasks termination.
+
+---
+
+## Dependencies
+
+**Cocoapods:**
+
+`pod 'Altcraft', '1.0.1'`
+
+**Swift Package Manager:**
+
+`1.0.1`
 
 ---
 
@@ -62,21 +75,20 @@ Profile lookup is limited to the push token identifier.
 
 ---
 
-## Documentations
+## Documentation
 
 Detailed information on SDK setup, functionality, and usage is available on the Altcraft documentation portal. You can navigate to the required section using the links below:
 
-Detailed information on SDK setup, functionality, and usage is available on the Altcraft documentation portal. You can navigate to the required section using the links below:
+- [**Quick Start**](https://guides.altcraft.com/en/developer-guide/sdk/v1/ios/quick-start)
+- [**SDK Functionality**](https://guides.altcraft.com/en/developer-guide/sdk/v1/ios/functionality)
+- [**SDK Configuration**](https://guides.altcraft.com/en/developer-guide/sdk/v1/ios/setup)
+- [**Classes and Structures**](https://guides.altcraft.com/en/developer-guide/sdk/v1/ios/api)
 
-- [**Quick Start**](https://guides.altcraft.com/en/developer-guide/sdk/v2/ios/quick-start)
-- [**SDK Functionality**](https://guides.altcraft.com/en/developer-guide/sdk/v2/ios/functionality)
-- [**SDK Configuration**](https://guides.altcraft.com/en/developer-guide/sdk/v2/ios/setup)
-- [**Classes and Structures**](https://guides.altcraft.com/en/developer-guide/sdk/v2/ios/functions-and-classes)
-- **Provider Setup**
+**Provider Setup**
 
-  * [APNs](https://guides.altcraft.com/en/developer-guide/sdk/v2/ios/providers/apns/)
-  * [FCM](https://guides.altcraft.com/en/developer-guide/sdk/v2/ios/providers/fcm/)
-  * [HMS](https://guides.altcraft.com/en/developer-guide/sdk/v2/ios/providers/hms/)
+- [APNs](https://guides.altcraft.com/en/developer-guide/sdk/v1/ios/providers/apns/)
+- [FCM](https://guides.altcraft.com/en/developer-guide/sdk/v1/ios/providers/fcm/)
+- [HMS](https://guides.altcraft.com/en/developer-guide/sdk/v1/ios/providers/hms/)
 
 ---
 

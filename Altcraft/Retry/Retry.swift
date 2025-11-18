@@ -17,8 +17,6 @@ private let mobileEvent    = MobileEvent.shared
 private let pushEvent      = PushEvent.shared
 private let networkMonitor = NetworkMonitor.shared
 
-
-
 var subRetryCount = 0
 var updateRetryCount = 0
 var pushEventRetryCount = 0

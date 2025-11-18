@@ -8,7 +8,7 @@
 
 import Foundation
 
-/// Interface for HMS (Huawei Mobile Services) operations.
+/// Protocol for HMS (Huawei Mobile Services) operations.
 ///
 /// Provides methods to get and delete the HMS token.
 @objc
@@ -24,4 +24,3 @@ public protocol HMSInterface: AnyObject {
     /// - Parameter completion: Callback with `true` if successful, `false` otherwise.
     @objc func deleteToken(completion: @escaping (Bool) -> Void)
 }
-

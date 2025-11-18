@@ -14,9 +14,15 @@ import UserNotifications
 /// and deliver the best available content on extension timeout.
 @objcMembers
 public class AltcraftNSE: NSObject {
+    
+    /// The singleton instance of the AltcraftNSE class.
     public static let shared = AltcraftNSE()
 
+    /// Internal receiver handling Altcraft push processing logic.
     let receiver = AltcraftPushReceiver()
+    
+    /// Provides access to the mobile event registration function.
+    public let mobileEventFunctions = PublicMobileEventFunctions.shared
 
     /// Determines whether the given notification request belongs to Altcraft.
     ///
@@ -35,7 +41,7 @@ public class AltcraftNSE: NSObject {
         request: UNNotificationRequest,
         contentHandler: @escaping (UNNotificationContent) -> Void
     ) {
-        receiver.didReceive(request, withContentHandler: contentHandler)
+        receiver.takePush(request, withContentHandler: contentHandler)
     }
 
     /// Called when the Notification Service Extension is about to time out.

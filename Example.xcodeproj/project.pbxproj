@@ -10,6 +10,13 @@
 		5509FAA02D6C677700B1DE03 /* SubscribeStatusManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5509FA9F2D6C677700B1DE03 /* SubscribeStatusManager.swift */; };
 		5516B35A2D9C3AA7001FAF66 /* JWTProvider.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5516B3592D9C3AA7001FAF66 /* JWTProvider.swift */; };
 		55302BBE2E9D4356003A1A4C /* PushServiceTest.swift in Sources */ = {isa = PBXBuildFile; fileRef = 551440DA2E8E88F300BD0451 /* PushServiceTest.swift */; };
+		553646D22ECB374D0017AB0D /* Altcraft.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 55302CAD2EA13466003A1A4C /* Altcraft.framework */; };
+		553646D32ECB374D0017AB0D /* Altcraft.framework in Embed Frameworks */ = {isa = PBXBuildFile; fileRef = 55302CAD2EA13466003A1A4C /* Altcraft.framework */; settings = {ATTRIBUTES = (CodeSignOnCopy, RemoveHeadersOnCopy, ); }; };
+		553646E22ECB3D680017AB0D /* NotificationService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 553646E12ECB3D680017AB0D /* NotificationService.swift */; };
+		553646E62ECB3D680017AB0D /* PushService.appex in Embed Foundation Extensions */ = {isa = PBXBuildFile; fileRef = 553646DF2ECB3D680017AB0D /* PushService.appex */; settings = {ATTRIBUTES = (RemoveHeadersOnCopy, ); }; };
+		553646EA2ECB3D830017AB0D /* Altcraft.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 55302CAD2EA13466003A1A4C /* Altcraft.framework */; };
+		553646EB2ECB3D830017AB0D /* Altcraft.framework in Embed Frameworks */ = {isa = PBXBuildFile; fileRef = 55302CAD2EA13466003A1A4C /* Altcraft.framework */; settings = {ATTRIBUTES = (CodeSignOnCopy, RemoveHeadersOnCopy, ); }; };
+		553646EE2ECB3DB00017AB0D /* JWTProvider.swift in Sources */ = {isa = PBXBuildFile; fileRef = 553646ED2ECB3DB00017AB0D /* JWTProvider.swift */; };
 		5557A9232DF026B700BEF354 /* SDKFunctions.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5557A9222DF026B700BEF354 /* SDKFunctions.swift */; };
 		55654E862EB63299000BF004 /* FirebaseMessaging in Frameworks */ = {isa = PBXBuildFile; productRef = 55654E852EB63299000BF004 /* FirebaseMessaging */; };
 		556FC6FF2E27BE55000584AA /* BoxModeManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 556FC6FE2E27BE55000584AA /* BoxModeManager.swift */; };
@@ -25,9 +32,6 @@
 		556FC7152E2A710E000584AA /* JWTSettingManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 556FC7142E2A710E000584AA /* JWTSettingManager.swift */; };
 		556FC7172E2A71B7000584AA /* JWTSettingComponents.swift in Sources */ = {isa = PBXBuildFile; fileRef = 556FC7162E2A71B7000584AA /* JWTSettingComponents.swift */; };
 		556FC7192E2AA433000584AA /* JWTManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 556FC7182E2AA433000584AA /* JWTManager.swift */; };
-		556FC7212E2AB1FC000584AA /* NotificationService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 556FC7202E2AB1FC000584AA /* NotificationService.swift */; };
-		556FC7252E2AB1FC000584AA /* PushService.appex in Embed Foundation Extensions */ = {isa = PBXBuildFile; fileRef = 556FC71E2E2AB1FC000584AA /* PushService.appex */; settings = {ATTRIBUTES = (RemoveHeadersOnCopy, ); }; };
-		556FC72B2E2AB2AD000584AA /* JWTProvider.swift in Sources */ = {isa = PBXBuildFile; fileRef = 556FC72A2E2AB2AD000584AA /* JWTProvider.swift */; };
 		556FC7332E2E8109000584AA /* NotificationDataManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 556FC7322E2E8109000584AA /* NotificationDataManager.swift */; };
 		558C47EF2C9DA6120006750E /* NavigatorView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 558C47EE2C9DA6120006750E /* NavigatorView.swift */; };
 		558C47F12C9DA6ED0006750E /* ExampleView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 558C47F02C9DA6ED0006750E /* ExampleView.swift */; };
@@ -56,14 +60,9 @@
 		55A41CF12EBB4853002DF416 /* AGConnectCredential.xcframework in Frameworks */ = {isa = PBXBuildFile; fileRef = 55E566482D107BE900FA2B07 /* AGConnectCredential.xcframework */; };
 		55A41CF32EBB4863002DF416 /* HMFoundation.xcframework in Frameworks */ = {isa = PBXBuildFile; fileRef = 55E5664E2D107C0B00FA2B07 /* HMFoundation.xcframework */; };
 		55A41CF52EBB4879002DF416 /* HiAnalytics.xcframework in Frameworks */ = {isa = PBXBuildFile; fileRef = 55E5664B2D107BEE00FA2B07 /* HiAnalytics.xcframework */; };
-		55D4D6CF2EBB7246007370F9 /* Altcraft.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 55302CAD2EA13466003A1A4C /* Altcraft.framework */; };
-		55D4D6D02EBB7246007370F9 /* Altcraft.framework in Embed Frameworks */ = {isa = PBXBuildFile; fileRef = 55302CAD2EA13466003A1A4C /* Altcraft.framework */; settings = {ATTRIBUTES = (CodeSignOnCopy, RemoveHeadersOnCopy, ); }; };
-		55D4D6D22EBB724A007370F9 /* Altcraft.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 55302CAD2EA13466003A1A4C /* Altcraft.framework */; };
-		55D4D6D32EBB724A007370F9 /* Altcraft.framework in Embed Frameworks */ = {isa = PBXBuildFile; fileRef = 55302CAD2EA13466003A1A4C /* Altcraft.framework */; settings = {ATTRIBUTES = (CodeSignOnCopy, RemoveHeadersOnCopy, ); }; };
 		55E566552D108A5100FA2B07 /* libz.tbd in Frameworks */ = {isa = PBXBuildFile; fileRef = 55E566542D108A4800FA2B07 /* libz.tbd */; };
 		55E566562D108A6500FA2B07 /* libc++.tbd in Frameworks */ = {isa = PBXBuildFile; fileRef = 55E566422D107BD100FA2B07 /* libc++.tbd */; };
 		8E3E2B3A979E1F327C3CEF9F /* Pods_Example.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 7F922E0B53F9131D91C6FD0B /* Pods_Example.framework */; };
-		C9A038FC517787B7E74A5C4A /* Pods_PushService.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 4AA2DDD1707D6A449043469A /* Pods_PushService.framework */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -81,47 +80,47 @@
 			remoteGlobalIDString = 5509561F2E7AB38B000BFBA8;
 			remoteInfo = AltcraftTests;
 		};
-		556FC7232E2AB1FC000584AA /* PBXContainerItemProxy */ = {
+		553646E42ECB3D680017AB0D /* PBXContainerItemProxy */ = {
 			isa = PBXContainerItemProxy;
 			containerPortal = 558C70142C9C29D10062F600 /* Project object */;
 			proxyType = 1;
-			remoteGlobalIDString = 556FC71D2E2AB1FC000584AA;
+			remoteGlobalIDString = 553646DE2ECB3D680017AB0D;
 			remoteInfo = PushService;
 		};
 /* End PBXContainerItemProxy section */
 
 /* Begin PBXCopyFilesBuildPhase section */
+		553646D42ECB374E0017AB0D /* Embed Frameworks */ = {
+			isa = PBXCopyFilesBuildPhase;
+			buildActionMask = 2147483647;
+			dstPath = "";
+			dstSubfolderSpec = 10;
+			files = (
+				553646D32ECB374D0017AB0D /* Altcraft.framework in Embed Frameworks */,
+			);
+			name = "Embed Frameworks";
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		553646EC2ECB3D830017AB0D /* Embed Frameworks */ = {
+			isa = PBXCopyFilesBuildPhase;
+			buildActionMask = 2147483647;
+			dstPath = "";
+			dstSubfolderSpec = 10;
+			files = (
+				553646EB2ECB3D830017AB0D /* Altcraft.framework in Embed Frameworks */,
+			);
+			name = "Embed Frameworks";
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 		558C476F2C9C3CE10006750E /* Embed Foundation Extensions */ = {
 			isa = PBXCopyFilesBuildPhase;
 			buildActionMask = 2147483647;
 			dstPath = "";
 			dstSubfolderSpec = 13;
 			files = (
-				556FC7252E2AB1FC000584AA /* PushService.appex in Embed Foundation Extensions */,
+				553646E62ECB3D680017AB0D /* PushService.appex in Embed Foundation Extensions */,
 			);
 			name = "Embed Foundation Extensions";
-			runOnlyForDeploymentPostprocessing = 0;
-		};
-		55D4D6D12EBB7246007370F9 /* Embed Frameworks */ = {
-			isa = PBXCopyFilesBuildPhase;
-			buildActionMask = 2147483647;
-			dstPath = "";
-			dstSubfolderSpec = 10;
-			files = (
-				55D4D6D02EBB7246007370F9 /* Altcraft.framework in Embed Frameworks */,
-			);
-			name = "Embed Frameworks";
-			runOnlyForDeploymentPostprocessing = 0;
-		};
-		55D4D6D42EBB724B007370F9 /* Embed Frameworks */ = {
-			isa = PBXCopyFilesBuildPhase;
-			buildActionMask = 2147483647;
-			dstPath = "";
-			dstSubfolderSpec = 10;
-			files = (
-				55D4D6D32EBB724A007370F9 /* Altcraft.framework in Embed Frameworks */,
-			);
-			name = "Embed Frameworks";
 			runOnlyForDeploymentPostprocessing = 0;
 		};
 /* End PBXCopyFilesBuildPhase section */
@@ -134,6 +133,11 @@
 		551440DA2E8E88F300BD0451 /* PushServiceTest.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PushServiceTest.swift; sourceTree = "<group>"; };
 		5516B3592D9C3AA7001FAF66 /* JWTProvider.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = JWTProvider.swift; sourceTree = "<group>"; };
 		55302CA72EA13466003A1A4C /* Altcraft.xcodeproj */ = {isa = PBXFileReference; lastKnownFileType = "wrapper.pb-project"; path = Altcraft.xcodeproj; sourceTree = "<group>"; };
+		553646DF2ECB3D680017AB0D /* PushService.appex */ = {isa = PBXFileReference; explicitFileType = "wrapper.app-extension"; includeInIndex = 0; path = PushService.appex; sourceTree = BUILT_PRODUCTS_DIR; };
+		553646E12ECB3D680017AB0D /* NotificationService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NotificationService.swift; sourceTree = "<group>"; };
+		553646E32ECB3D680017AB0D /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
+		553646ED2ECB3DB00017AB0D /* JWTProvider.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = JWTProvider.swift; sourceTree = "<group>"; };
+		553646EF2ECB3DD70017AB0D /* PushService.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = PushService.entitlements; sourceTree = "<group>"; };
 		5557A9222DF026B700BEF354 /* SDKFunctions.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SDKFunctions.swift; sourceTree = "<group>"; };
 		556FC6FE2E27BE55000584AA /* BoxModeManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BoxModeManager.swift; sourceTree = "<group>"; };
 		556FC7002E27C15A000584AA /* AppConstants.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppConstants.swift; sourceTree = "<group>"; };
@@ -148,11 +152,6 @@
 		556FC7142E2A710E000584AA /* JWTSettingManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = JWTSettingManager.swift; sourceTree = "<group>"; };
 		556FC7162E2A71B7000584AA /* JWTSettingComponents.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = JWTSettingComponents.swift; sourceTree = "<group>"; };
 		556FC7182E2AA433000584AA /* JWTManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = JWTManager.swift; sourceTree = "<group>"; };
-		556FC71E2E2AB1FC000584AA /* PushService.appex */ = {isa = PBXFileReference; explicitFileType = "wrapper.app-extension"; includeInIndex = 0; path = PushService.appex; sourceTree = BUILT_PRODUCTS_DIR; };
-		556FC7202E2AB1FC000584AA /* NotificationService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NotificationService.swift; sourceTree = "<group>"; };
-		556FC7222E2AB1FC000584AA /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
-		556FC7292E2AB254000584AA /* PushService.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = PushService.entitlements; sourceTree = "<group>"; };
-		556FC72A2E2AB2AD000584AA /* JWTProvider.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = JWTProvider.swift; sourceTree = "<group>"; };
 		556FC7322E2E8109000584AA /* NotificationDataManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NotificationDataManager.swift; sourceTree = "<group>"; };
 		558C47EE2C9DA6120006750E /* NavigatorView.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = NavigatorView.swift; sourceTree = "<group>"; };
 		558C47F02C9DA6ED0006750E /* ExampleView.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = ExampleView.swift; sourceTree = "<group>"; };
@@ -195,12 +194,11 @@
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
-		556FC71B2E2AB1FC000584AA /* Frameworks */ = {
+		553646DC2ECB3D680017AB0D /* Frameworks */ = {
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				C9A038FC517787B7E74A5C4A /* Pods_PushService.framework in Frameworks */,
-				55D4D6D22EBB724A007370F9 /* Altcraft.framework in Frameworks */,
+				553646EA2ECB3D830017AB0D /* Altcraft.framework in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -210,7 +208,7 @@
 			files = (
 				55A41CF12EBB4853002DF416 /* AGConnectCredential.xcframework in Frameworks */,
 				55654E862EB63299000BF004 /* FirebaseMessaging in Frameworks */,
-				55D4D6CF2EBB7246007370F9 /* Altcraft.framework in Frameworks */,
+				553646D22ECB374D0017AB0D /* Altcraft.framework in Frameworks */,
 				55A41CF32EBB4863002DF416 /* HMFoundation.xcframework in Frameworks */,
 				55E566562D108A6500FA2B07 /* libc++.tbd in Frameworks */,
 				55A41CF52EBB4879002DF416 /* HiAnalytics.xcframework in Frameworks */,
@@ -243,13 +241,13 @@
 			name = Products;
 			sourceTree = "<group>";
 		};
-		556FC71F2E2AB1FC000584AA /* PushService */ = {
+		553646E02ECB3D680017AB0D /* PushService */ = {
 			isa = PBXGroup;
 			children = (
-				556FC7292E2AB254000584AA /* PushService.entitlements */,
-				556FC7202E2AB1FC000584AA /* NotificationService.swift */,
-				556FC7222E2AB1FC000584AA /* Info.plist */,
-				556FC72A2E2AB2AD000584AA /* JWTProvider.swift */,
+				553646EF2ECB3DD70017AB0D /* PushService.entitlements */,
+				553646E12ECB3D680017AB0D /* NotificationService.swift */,
+				553646E32ECB3D680017AB0D /* Info.plist */,
+				553646ED2ECB3DB00017AB0D /* JWTProvider.swift */,
 			);
 			path = PushService;
 			sourceTree = "<group>";
@@ -283,7 +281,7 @@
 			children = (
 				55302CA72EA13466003A1A4C /* Altcraft.xcodeproj */,
 				558C701E2C9C29D10062F600 /* Example */,
-				556FC71F2E2AB1FC000584AA /* PushService */,
+				553646E02ECB3D680017AB0D /* PushService */,
 				558C701D2C9C29D10062F600 /* Products */,
 				558C70632C9C2B180062F600 /* Frameworks */,
 				387A0AD0F598BE51690CBDB7 /* Pods */,
@@ -294,7 +292,7 @@
 			isa = PBXGroup;
 			children = (
 				558C701C2C9C29D10062F600 /* Example.app */,
-				556FC71E2E2AB1FC000584AA /* PushService.appex */,
+				553646DF2ECB3D680017AB0D /* PushService.appex */,
 			);
 			name = Products;
 			sourceTree = "<group>";
@@ -442,25 +440,22 @@
 /* End PBXGroup section */
 
 /* Begin PBXNativeTarget section */
-		556FC71D2E2AB1FC000584AA /* PushService */ = {
+		553646DE2ECB3D680017AB0D /* PushService */ = {
 			isa = PBXNativeTarget;
-			buildConfigurationList = 556FC7262E2AB1FC000584AA /* Build configuration list for PBXNativeTarget "PushService" */;
+			buildConfigurationList = 553646E72ECB3D680017AB0D /* Build configuration list for PBXNativeTarget "PushService" */;
 			buildPhases = (
-				63C5F1137E4A9CE6FD48A8BD /* [CP] Check Pods Manifest.lock */,
-				556FC71A2E2AB1FC000584AA /* Sources */,
-				556FC71B2E2AB1FC000584AA /* Frameworks */,
-				556FC71C2E2AB1FC000584AA /* Resources */,
-				55D4D6D42EBB724B007370F9 /* Embed Frameworks */,
+				553646DB2ECB3D680017AB0D /* Sources */,
+				553646DC2ECB3D680017AB0D /* Frameworks */,
+				553646DD2ECB3D680017AB0D /* Resources */,
+				553646EC2ECB3D830017AB0D /* Embed Frameworks */,
 			);
 			buildRules = (
 			);
 			dependencies = (
 			);
 			name = PushService;
-			packageProductDependencies = (
-			);
 			productName = PushService;
-			productReference = 556FC71E2E2AB1FC000584AA /* PushService.appex */;
+			productReference = 553646DF2ECB3D680017AB0D /* PushService.appex */;
 			productType = "com.apple.product-type.app-extension";
 		};
 		558C701B2C9C29D10062F600 /* Example */ = {
@@ -473,12 +468,12 @@
 				558C701A2C9C29D10062F600 /* Resources */,
 				558C476F2C9C3CE10006750E /* Embed Foundation Extensions */,
 				2349CBE4D8EC8EE549D3D92E /* [CP] Copy Pods Resources */,
-				55D4D6D12EBB7246007370F9 /* Embed Frameworks */,
+				553646D42ECB374E0017AB0D /* Embed Frameworks */,
 			);
 			buildRules = (
 			);
 			dependencies = (
-				556FC7242E2AB1FC000584AA /* PBXTargetDependency */,
+				553646E52ECB3D680017AB0D /* PBXTargetDependency */,
 			);
 			name = Example;
 			packageProductDependencies = (
@@ -498,7 +493,7 @@
 				LastSwiftUpdateCheck = 1530;
 				LastUpgradeCheck = 1530;
 				TargetAttributes = {
-					556FC71D2E2AB1FC000584AA = {
+					553646DE2ECB3D680017AB0D = {
 						CreatedOnToolsVersion = 15.3;
 					};
 					558C701B2C9C29D10062F600 = {
@@ -529,7 +524,7 @@
 			projectRoot = "";
 			targets = (
 				558C701B2C9C29D10062F600 /* Example */,
-				556FC71D2E2AB1FC000584AA /* PushService */,
+				553646DE2ECB3D680017AB0D /* PushService */,
 			);
 		};
 /* End PBXProject section */
@@ -552,7 +547,7 @@
 /* End PBXReferenceProxy section */
 
 /* Begin PBXResourcesBuildPhase section */
-		556FC71C2E2AB1FC000584AA /* Resources */ = {
+		553646DD2ECB3D680017AB0D /* Resources */ = {
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
@@ -588,28 +583,6 @@
 			shellScript = "\"${PODS_ROOT}/Target Support Files/Pods-Example/Pods-Example-resources.sh\"\n";
 			showEnvVarsInLog = 0;
 		};
-		63C5F1137E4A9CE6FD48A8BD /* [CP] Check Pods Manifest.lock */ = {
-			isa = PBXShellScriptBuildPhase;
-			buildActionMask = 2147483647;
-			files = (
-			);
-			inputFileListPaths = (
-			);
-			inputPaths = (
-				"${PODS_PODFILE_DIR_PATH}/Podfile.lock",
-				"${PODS_ROOT}/Manifest.lock",
-			);
-			name = "[CP] Check Pods Manifest.lock";
-			outputFileListPaths = (
-			);
-			outputPaths = (
-				"$(DERIVED_FILE_DIR)/Pods-PushService-checkManifestLockResult.txt",
-			);
-			runOnlyForDeploymentPostprocessing = 0;
-			shellPath = /bin/sh;
-			shellScript = "diff \"${PODS_PODFILE_DIR_PATH}/Podfile.lock\" \"${PODS_ROOT}/Manifest.lock\" > /dev/null\nif [ $? != 0 ] ; then\n    # print error to STDERR\n    echo \"error: The sandbox is not in sync with the Podfile.lock. Run 'pod install' or update your CocoaPods installation.\" >&2\n    exit 1\nfi\n# This output is used by Xcode 'outputs' to avoid re-running this script phase.\necho \"SUCCESS\" > \"${SCRIPT_OUTPUT_FILE_0}\"\n";
-			showEnvVarsInLog = 0;
-		};
 		A4F0665D6936902C22A1EC54 /* [CP] Check Pods Manifest.lock */ = {
 			isa = PBXShellScriptBuildPhase;
 			buildActionMask = 2147483647;
@@ -635,12 +608,12 @@
 /* End PBXShellScriptBuildPhase section */
 
 /* Begin PBXSourcesBuildPhase section */
-		556FC71A2E2AB1FC000584AA /* Sources */ = {
+		553646DB2ECB3D680017AB0D /* Sources */ = {
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				556FC72B2E2AB2AD000584AA /* JWTProvider.swift in Sources */,
-				556FC7212E2AB1FC000584AA /* NotificationService.swift in Sources */,
+				553646EE2ECB3DB00017AB0D /* JWTProvider.swift in Sources */,
+				553646E22ECB3D680017AB0D /* NotificationService.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -693,28 +666,26 @@
 /* End PBXSourcesBuildPhase section */
 
 /* Begin PBXTargetDependency section */
-		556FC7242E2AB1FC000584AA /* PBXTargetDependency */ = {
+		553646E52ECB3D680017AB0D /* PBXTargetDependency */ = {
 			isa = PBXTargetDependency;
-			target = 556FC71D2E2AB1FC000584AA /* PushService */;
-			targetProxy = 556FC7232E2AB1FC000584AA /* PBXContainerItemProxy */;
+			target = 553646DE2ECB3D680017AB0D /* PushService */;
+			targetProxy = 553646E42ECB3D680017AB0D /* PBXContainerItemProxy */;
 		};
 /* End PBXTargetDependency section */
 
 /* Begin XCBuildConfiguration section */
-		556FC7272E2AB1FC000584AA /* Debug */ = {
+		553646E82ECB3D680017AB0D /* Debug */ = {
 			isa = XCBuildConfiguration;
-			baseConfigurationReference = 89712A9CD728D7842DC6613B /* Pods-PushService.debug.xcconfig */;
 			buildSettings = {
 				CODE_SIGN_ENTITLEMENTS = PushService/PushService.entitlements;
 				CODE_SIGN_IDENTITY = "Apple Development";
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
 				DEVELOPMENT_TEAM = 6G7526ELLP;
-				ENABLE_USER_SCRIPT_SANDBOXING = NO;
+				ENABLE_USER_SCRIPT_SANDBOXING = YES;
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_FILE = PushService/Info.plist;
 				INFOPLIST_KEY_CFBundleDisplayName = PushService;
-				INFOPLIST_KEY_LSApplicationCategoryType = "";
 				INFOPLIST_KEY_NSHumanReadableCopyright = "";
 				IPHONEOS_DEPLOYMENT_TARGET = 15.1;
 				LD_RUNPATH_SEARCH_PATHS = (
@@ -727,30 +698,24 @@
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SDKROOT = iphoneos;
 				SKIP_INSTALL = YES;
-				SUPPORTED_PLATFORMS = "iphoneos iphonesimulator";
-				SUPPORTS_MACCATALYST = NO;
-				SUPPORTS_MAC_DESIGNED_FOR_IPHONE_IPAD = NO;
-				SUPPORTS_XR_DESIGNED_FOR_IPHONE_IPAD = NO;
 				SWIFT_EMIT_LOC_STRINGS = YES;
 				SWIFT_VERSION = 5.0;
 				TARGETED_DEVICE_FAMILY = "1,2";
 			};
 			name = Debug;
 		};
-		556FC7282E2AB1FC000584AA /* Release */ = {
+		553646E92ECB3D680017AB0D /* Release */ = {
 			isa = XCBuildConfiguration;
-			baseConfigurationReference = 02F07B5176EFAF454E573BEB /* Pods-PushService.release.xcconfig */;
 			buildSettings = {
 				CODE_SIGN_ENTITLEMENTS = PushService/PushService.entitlements;
 				CODE_SIGN_IDENTITY = "Apple Development";
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
 				DEVELOPMENT_TEAM = 6G7526ELLP;
-				ENABLE_USER_SCRIPT_SANDBOXING = NO;
+				ENABLE_USER_SCRIPT_SANDBOXING = YES;
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_FILE = PushService/Info.plist;
 				INFOPLIST_KEY_CFBundleDisplayName = PushService;
-				INFOPLIST_KEY_LSApplicationCategoryType = "";
 				INFOPLIST_KEY_NSHumanReadableCopyright = "";
 				IPHONEOS_DEPLOYMENT_TARGET = 15.1;
 				LD_RUNPATH_SEARCH_PATHS = (
@@ -763,10 +728,6 @@
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SDKROOT = iphoneos;
 				SKIP_INSTALL = YES;
-				SUPPORTED_PLATFORMS = "iphoneos iphonesimulator";
-				SUPPORTS_MACCATALYST = NO;
-				SUPPORTS_MAC_DESIGNED_FOR_IPHONE_IPAD = NO;
-				SUPPORTS_XR_DESIGNED_FOR_IPHONE_IPAD = NO;
 				SWIFT_EMIT_LOC_STRINGS = YES;
 				SWIFT_VERSION = 5.0;
 				TARGETED_DEVICE_FAMILY = "1,2";
@@ -983,11 +944,11 @@
 /* End XCBuildConfiguration section */
 
 /* Begin XCConfigurationList section */
-		556FC7262E2AB1FC000584AA /* Build configuration list for PBXNativeTarget "PushService" */ = {
+		553646E72ECB3D680017AB0D /* Build configuration list for PBXNativeTarget "PushService" */ = {
 			isa = XCConfigurationList;
 			buildConfigurations = (
-				556FC7272E2AB1FC000584AA /* Debug */,
-				556FC7282E2AB1FC000584AA /* Release */,
+				553646E82ECB3D680017AB0D /* Debug */,
+				553646E92ECB3D680017AB0D /* Release */,
 			);
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Release;

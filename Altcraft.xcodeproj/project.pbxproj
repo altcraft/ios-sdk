@@ -514,7 +514,7 @@
 				5516B3342D7AFB70001FAF66 /* Device */,
 				559B61E22C90461F0081192F /* SDK_events */,
 				559B61D22C90461F0081192F /* Factory */,
-				559F2D5E2E2532C400C5B7EE /* Interfaces */,
+				559F2D5E2E2532C400C5B7EE /* Protocols */,
 				55E406602D9EE5B800F375EC /* Network */,
 				559B61F02C90461F0081192F /* Push */,
 				556FC7372E30D2B5000584AA /* Retry */,
@@ -613,7 +613,7 @@
 			path = Push;
 			sourceTree = "<group>";
 		};
-		559F2D5E2E2532C400C5B7EE /* Interfaces */ = {
+		559F2D5E2E2532C400C5B7EE /* Protocols */ = {
 			isa = PBXGroup;
 			children = (
 				559F2D582E252BF000C5B7EE /* APNSInterface.swift */,
@@ -622,7 +622,7 @@
 				559F2D5F2E2532FE00C5B7EE /* JWTInterface.swift */,
 				55302BC12E9E3CCC003A1A4C /* Subscription.swift */,
 			);
-			path = Interfaces;
+			path = Protocols;
 			sourceTree = "<group>";
 		};
 		55A672CA2EAA515900BFDBAD /* MOB_events */ = {

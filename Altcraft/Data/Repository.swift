@@ -19,34 +19,14 @@ import CoreData
 /// If any of the required elements are missing, the function logs an error and returns `nil` via the completion handler.
 ///
 /// - Parameter completion: A closure that receives a `CommonData` object if all data is available, or `nil` otherwise.
-func getCommonData(completion: @escaping (CommonData?) -> Void) {
-    let userDefault = StoredVariablesManager.shared
-    let tokenManager = TokenManager.shared
+func getRequestData(completion: @escaping (RequestData?) -> Void) {
     getConfig { config in
-        
-        tokenManager.getCurrentToken{ currentToken in
-            guard let config = config else {
-                errorEvent(#function, error: configIsNil)
-                completion(nil)
-                return
-            }
-            
-            guard let authData = getAuthData(rToken: config.rToken) else {
-                errorEvent(#function, error: authDataIsNil)
-                completion(nil)
-                return
-            }
-
-            let savedToken = userDefault.getSavedToken()
-
-            completion(CommonData(
-                config: config,
-                currentToken: currentToken,
-                savedToken:  savedToken,
-                authHeader: authData.0,
-                matchingMode: authData.1)
-            )
+        let authData: (String, String)? = if let config {
+            getAuthData(rToken: config.rToken)
+        } else {
+            nil
         }
+        completion(RequestData(config: config, auth: authData))
     }
 }
 
@@ -62,53 +42,52 @@ func getSubscribeRequestData(
     objectID: NSManagedObjectID,
     completion: @escaping (SubscribeRequestData?) -> Void
 ) {
-    getCommonData { data in
-        guard let data = data else {
-            errorEvent(#function, error: commonDataIsNil)
-            completion(nil)
-            return
-        }
-        guard let currentToken = data.currentToken else {
-            errorEvent(#function, error: currentTokenIsNil)
-            completion(nil)
-            return
-        }
-        
-        context.perform {
-            guard let entity = try? context.existingObject(
-                with: objectID
-            ) as? SubscribeEntity else {
-                errorEvent(#function, error: entityNotFoundByID)
+    getRequestData { data in
+        TokenManager.shared.getCurrentToken { token in
+            let fail: ((Int, String)) -> Void = { error in
+                errorEvent(#function, error: error)
                 completion(nil)
-                return
             }
+
+            guard let config = data?.config else { return fail(configIsNil) }
+            guard let auth = data?.auth else { return fail(authDataIsNil) }
+            guard let token = token else { return fail(pushTokenIsNil) }
             
-            let profileFields = decodeAnyMap(entity.profileFields)
-            let customFields  = getFields(config: data.config, entity: entity)
-            
-            let requestData = SubscribeRequestData(
-                url: subscribeURL(data.config.url),
-                time: entity.time / 1000,
-                rToken: data.config.rToken,
-                requestId: entity.uid ?? "",
-                authHeader: data.authHeader,
-                matchingMode: data.matchingMode,
-                provider: currentToken.provider,
-                deviceToken: currentToken.token,
-                status: entity.status ?? "",
-                sync: entity.sync,
-                profileFields: profileFields,
-                customFields: customFields,
-                cats: decodeCats(entity.cats),
-                replace: entity.replace,
-                skipTriggers: entity.skipTriggers
-            )
-            
-            if requestData.isValid() {
+            context.perform {
+                guard let entity = try? context.existingObject(
+                    with: objectID
+                ) as? SubscribeEntity else {
+                    fail(entityNotFoundByID)
+                    return
+                }
+                
+                let profileFields = decodeAnyMap(entity.profileFields)
+                let customFields  = getFields(config: config, entity: entity)
+                
+                let requestData = SubscribeRequestData(
+                    url: subscribeURL(config.url),
+                    time: entity.time / 1000,
+                    rToken: config.rToken,
+                    requestId: entity.uid ?? "",
+                    authHeader: auth.0,
+                    matchingMode: auth.1,
+                    provider: token.provider,
+                    deviceToken: token.token,
+                    status: entity.status ?? "",
+                    sync: entity.sync,
+                    profileFields: profileFields,
+                    customFields: customFields,
+                    cats: decodeCats(entity.cats),
+                    replace: entity.replace,
+                    skipTriggers: entity.skipTriggers
+                )
+                
+                guard requestData.isValid() else {
+                    fail(invalidSubscribeRequestData)
+                    return
+                }
+                
                 completion(requestData)
-            } else {
-                errorEvent(#function, error: invalidSubscribeRequestData)
-                completion(nil)
             }
         }
     }
@@ -129,38 +108,37 @@ func getMobileEventRequestData(
     objectID: NSManagedObjectID,
     completion: @escaping (MobileEventRequestData?) -> Void
 ) {
-    getCommonData { data in
-        guard let data = data else {
-            errorEvent(#function, error: commonDataIsNil)
+    getRequestData { data in
+        let fail: ((Int, String)) -> Void = { error in
+            errorEvent(#function, error: error)
             completion(nil)
-            return
         }
 
+        guard let config = data?.config else { return fail(configIsNil) }
+        guard let auth = data?.auth else { return fail(authDataIsNil) }
+        
         context.perform {
             guard let entity = try? context.existingObject(
                 with: objectID
             ) as? MobileEventEntity else {
-                errorEvent(#function, error: entityNotFoundByID)
-                completion(nil)
-                return
+                return fail(entityNotFoundByID)
             }
             
-            guard let sid = entity.sid, let name = entity.eventName else {
-                errorEvent(#function, error: mobileRequestDataIsNil)
-                completion(nil)
-                return
+            guard let sid = entity.sid,
+                  let name = entity.eventName else {
+                return fail(mobileRequestDataIsNil)
             }
             
             let parts = PartsFactory.createMobileEventParts(from: entity)
-
-            // Build request data
+            
             let requestData = MobileEventRequestData(
-                url: eventMobileURL(data.config.url),
+                url: eventMobileURL(config.url),
                 sid: sid,
                 eventName: name,
                 parts: parts,
-                authHeader: data.authHeader
+                authHeader: auth.0
             )
+            
             completion(requestData)
         }
     }
@@ -179,45 +157,41 @@ func getPushEventRequestData(
     objectID: NSManagedObjectID,
     completion: @escaping (PushEventRequestData?) -> Void
 ) {
-    getCommonData { data in
-        guard let data = data else {
-            errorEvent(#function, error: commonDataIsNil)
+    getRequestData { data in
+        let fail: ((Int, String)) -> Void = { error in
+            errorEvent(#function, error: error)
             completion(nil)
-            return
         }
+
+        guard let config = data?.config else { return fail(configIsNil) }
+        guard let auth = data?.auth else { return fail(authDataIsNil) }
 
         context.perform {
             guard let entity = try? context.existingObject(
                 with: objectID
             ) as? PushEventEntity else {
-                errorEvent(#function, error: entityNotFoundByID)
-                completion(nil)
-                return
+                return fail(entityNotFoundByID)
             }
- 
+
             guard let uid = entity.uid,
-                  let type = entity.type
-            else {
-                errorEvent(#function, error: invalidPushEventRequestData)
-                completion(nil)
-                return
+                  let type = entity.type else {
+                return fail(invalidPushEventRequestData)
             }
 
             let requestData = PushEventRequestData(
-                url: eventPushURL(data.config.url, event: entity),
+                url: eventPushURL(config.url, event: entity),
                 time: entity.time / 1000,
                 type: type,
                 uid: uid,
-                authHeader: data.authHeader,
-                matchingMode: data.matchingMode
+                authHeader: auth.0,
+                matchingMode: auth.1
             )
 
-            if requestData.isValid() {
-                completion(requestData)
-            } else {
-                errorEvent(#function, error: invalidPushEventRequestData)
-                completion(nil)
+            guard requestData.isValid() else {
+                return fail(invalidPushEventRequestData)
             }
+
+            completion(requestData)
         }
     }
 }
@@ -228,31 +202,30 @@ func getPushEventRequestData(
 ///
 /// - Parameter completion: Closure returning a valid `UpdateRequestData` or `nil`.
 func getUpdateRequestData(completion: @escaping (UpdateRequestData?) -> Void) {
-    getCommonData { data in
-        guard let data = data else {
-            errorEvent(#function, error: commonDataIsNil)
-            completion(nil)
-            return
-        }
-        
-        guard let currentToken = data.currentToken else {
-            errorEvent(#function, error: currentTokenIsNil)
-            completion(nil)
-            return
-        }
-        
-        completion(
-            UpdateRequestData(
-                url: updateUrl(data.config.url),
+    getRequestData { data in
+        TokenManager.shared.getCurrentToken { token in
+            let fail: ((Int, String)) -> Void = { error in
+                errorEvent(#function, error: error)
+                completion(nil)
+            }
+
+            guard let currentToken = token else { return fail(pushTokenIsNil) }
+            guard let config = data?.config else { return fail(configIsNil) }
+            guard let auth = data?.auth else { return fail(authDataIsNil) }
+            let savedToken = StoredVariablesManager.shared.getSavedToken()
+            
+            let requestData = UpdateRequestData(
+                url: updateUrl(config.url),
                 requestId: UUID().uuidString,
-                authHeader: data.authHeader,
-                oldToken: data.savedToken?.token,
+                authHeader: auth.0,
+                oldToken: savedToken?.token,
                 newToken: currentToken.token,
-                oldProvider: data.savedToken?.provider,
+                oldProvider: savedToken?.provider,
                 newProvider: currentToken.provider
-                
             )
-        )
+
+            completion(requestData)
+        }
     }
 }
 
@@ -264,30 +237,28 @@ func getUpdateRequestData(completion: @escaping (UpdateRequestData?) -> Void) {
 ///
 /// - Parameter completion: Closure returning optional `UnSuspendRequestData`.
 func getUnSuspendRequestData(completion: @escaping (UnSuspendRequestData?) -> Void) {
-    getCommonData { commonData in
-        guard let data = commonData else {
-            errorEvent(#function, error: commonDataIsNil)
-            completion(nil)
-            return
-        }
-        
-        guard let currentToken = data.currentToken else {
-            errorEvent(#function, error: currentTokenIsNil)
-            completion(nil)
-            return
-        }
-        
-    
-        let requestData = UnSuspendRequestData(
-            url: unSuspendUrl(data.config.url),
-            uid: UUID().uuidString,
-            provider: currentToken.provider,
-            token: currentToken.token,
-            authHeader: data.authHeader,
-            matchingMode: data.matchingMode
-        )
+    getRequestData { data in
+        TokenManager.shared.getCurrentToken { token in
+            let fail: ((Int, String)) -> Void = { error in
+                errorEvent(#function, error: error)
+                completion(nil)
+            }
 
-        completion(requestData)
+            guard let config = data?.config else { return fail(configIsNil) }
+            guard let auth = data?.auth else { return fail(authDataIsNil) }
+            guard let token = token else { return fail(pushTokenIsNil) }
+            
+            let requestData = UnSuspendRequestData(
+                url: unSuspendUrl(config.url),
+                uid: UUID().uuidString,
+                provider: token.provider,
+                token: token.token,
+                authHeader: auth.0,
+                matchingMode: auth.1
+            )
+            
+            completion(requestData)
+        }
     }
 }
 
@@ -298,38 +269,28 @@ func getUnSuspendRequestData(completion: @escaping (UnSuspendRequestData?) -> Vo
 ///
 /// - Parameter completion: Closure returning a valid `ProfileRequestData` or `nil`.
 func getProfileRequestData(completion: @escaping (ProfileRequestData?) -> Void) {
-    
-    getCommonData { data in
-        guard let data = data else {
-            errorEvent(#function, error: commonDataIsNil)
-            completion(nil)
-            return
-        }
-        
-        let tokenData = getToken(data: data)
-        
-        let requestData = ProfileRequestData(
-            url: profileUrl(data.config.url),
-            uid: UUID().uuidString,
-            authHeader: data.authHeader,
-            matchingMode: data.matchingMode,
-            provider: tokenData?.provider,
-            token: tokenData?.token
-        )
-        
-        completion(requestData)
-    }
-    
-    /// Retrieves the preferred token to use for API requests.
-    ///
-    /// - Parameter data: Aggregated `CommonData` containing config and tokens.
-    /// - Returns: A `TokenData` object if available; `savedToken` (or `currentToken` as fallback) when `rToken` is set;
-    ///            otherwise `savedToken`. Returns `nil` if none is available.
-    func getToken(data: CommonData) -> TokenData? {
-        if data.config.rToken != nil {
-            return data.savedToken ?? data.currentToken
-        } else {
-            return data.savedToken
+    getRequestData { data in
+        TokenManager.shared.getCurrentToken { currentToken in
+            let fail: ((Int, String)) -> Void = { error in
+                errorEvent(#function, error: error)
+                completion(nil)
+            }
+
+            guard let config = data?.config else { return fail(configIsNil) }
+            guard let auth = data?.auth else { return fail(authDataIsNil) }
+            let savedToken = StoredVariablesManager.shared.getSavedToken()
+            let tokenData = savedToken ?? currentToken
+            
+            let requestData = ProfileRequestData(
+                url: profileUrl(config.url),
+                uid: UUID().uuidString,
+                authHeader: auth.0,
+                matchingMode: auth.1,
+                provider: tokenData?.provider,
+                token: tokenData?.token
+            )
+            
+            completion(requestData)
         }
     }
 }
@@ -350,6 +311,6 @@ func getFields(config: Configuration, entity: SubscribeEntity) -> [String: Any] 
        let customFields = try? JSONSerialization.jsonObject(with: customFieldsData) as? [String: Any] {
         fields.merge(customFields) { (_, new) in new }
     }
-
+    
     return fields
 }

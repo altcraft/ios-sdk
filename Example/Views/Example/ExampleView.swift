@@ -1,7 +1,6 @@
 //
 //  ExampleView.swift
-//
-//  IOSAPNsApp
+//  Example
 //
 //  Created by Andrey Pogodin.
 //

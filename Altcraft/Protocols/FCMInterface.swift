@@ -8,7 +8,7 @@
 
 import Foundation
 
-/// Interface for FCM (Firebase Cloud Messaging) operations.
+/// Protocol for FCM (Firebase Cloud Messaging) operations.
 ///
 /// Provides methods to get and delete the FCM token.
 @objc

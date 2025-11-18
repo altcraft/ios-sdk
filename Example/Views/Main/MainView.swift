@@ -1,7 +1,6 @@
 //
 //  MainView.swift
-//
-//  IOSAPNsApp
+//  Example
 //
 //  Created by Andrey Pogodin.
 //

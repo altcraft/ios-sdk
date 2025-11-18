@@ -1,6 +1,6 @@
 //
 //  AppConstants.swift
-//  IOSAPNsExample
+//  Example
 //
 //  Created by Andrey Pogodin.
 //
@@ -16,8 +16,7 @@ public enum AppConstants {
         static let profile = "profile"
     }
     
-    
-public enum SubscriptionStatus {
+    public enum SubscriptionStatus {
         static let subscribed = "subscribed"
         static let unsubscribed = "unsubscribed"
         static let suspended = "suspended"

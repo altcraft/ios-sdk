@@ -57,8 +57,7 @@ final class TokenManager {
     /// - Parameter completion: Callback with `TokenData` if successful, `nil` otherwise.
     func getAPNsTokenData(completion: @escaping (TokenData?) -> Void) {
         guard let provider = apnsProvider else {
-            completion(nil)
-            return
+            return completion(nil)
         }
         getNonEmptyToken(
             provider: Constants.ProviderName.apns, fetch: provider.getToken, completion: completion
@@ -71,8 +70,7 @@ final class TokenManager {
     /// - Parameter completion: Callback with `TokenData` if successful, `nil` otherwise.
     func getFCMTokenData(completion: @escaping (TokenData?) -> Void) {
         guard let provider = fcmProvider else {
-            completion(nil)
-            return
+            return completion(nil)
         }
         getNonEmptyToken(
             provider: Constants.ProviderName.firebase, fetch: provider.getToken, completion: completion
@@ -85,8 +83,7 @@ final class TokenManager {
     /// - Parameter completion: Callback with `TokenData` if successful, `nil` otherwise.
     func getHMSTokenData(completion: @escaping (TokenData?) -> Void) {
         guard let provider = hmsProvider else {
-            completion(nil)
-            return
+            return completion(nil)
         }
         getNonEmptyToken(
             provider: Constants.ProviderName.huawei, fetch: provider.getToken, completion: completion

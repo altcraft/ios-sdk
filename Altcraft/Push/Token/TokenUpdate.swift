@@ -35,7 +35,7 @@ class TokenUpdate: NSObject {
 
             self.tokenManager.getCurrentToken { currentToken in
                 guard let currentToken = currentToken else {
-                    errorEvent(#function, error: currentTokenIsNil)
+                    errorEvent(#function, error: pushTokenIsNil)
                     return self.tokenUpdateQueue.async {
                         completion?()
                     }

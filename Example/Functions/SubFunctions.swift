@@ -1,7 +1,6 @@
 //
 //  SubFunctions.swift
-//
-//  IOSAPNsExample
+//  Example
 //
 //  Created by Andrey Pogodin.
 //
@@ -43,8 +42,6 @@ extension Color {
         )
     }
 }
-
-
 func resizeImage(image: UIImage, targetSize: CGSize) -> UIImage {
     let size = image.size
     let widthRatio  = targetSize.width  / size.width
@@ -61,8 +58,6 @@ func resizeImage(image: UIImage, targetSize: CGSize) -> UIImage {
     }
     return resizedImage
 }
-
-
 
 func getTokenSubString(of input: String) -> String {
     return input.count > 10 ? String(input.suffix(10)) : input

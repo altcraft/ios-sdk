@@ -1,6 +1,6 @@
 //
 //  SubscribeSettingManager.swift
-//  IOSAPNsExample
+//  Example
 //
 //  Created by Andrey Pogodin.
 //
