@@ -1,6 +1,7 @@
 //
 //  IOSAPNsExampleApp.swift
-//  Example
+//
+//  IOSAPNsExample
 //
 //  Created by Andrey Pogodin.
 //
@@ -16,7 +17,7 @@ let appGroupID = "group.your.id"
 
 ///set the JWT value for the anonymous user as anonJWT or in the application IU interface (config)
 let anonJWT: String? = nil
-
+ 
 ///set the JWT value for the registered user as regJWT or in the application IU interface (config)
 let regJWT: String? = nil
 
@@ -63,7 +64,7 @@ class AppDelegate: UIResponder, UIApplicationDelegate, UNUserNotificationCenterD
         AltcraftSDK.shared.notificationManager.registerForPushNotifications(for: application)
     
         initSDK(config: getConfigFromUserDefault())
-    
+
         return true
     }
     
@@ -79,7 +80,7 @@ class AppDelegate: UIResponder, UIApplicationDelegate, UNUserNotificationCenterD
 
 /**
  * Altcraft SDK setup on iOS
- *
+ *'
  * You can configure Altcraft SDK via your app UI (Config screen) or initialize it programmatically.
  *
  * Example (programmatic init in AppDelegate):
@@ -119,7 +120,7 @@ class AppDelegate: UIResponder, UIApplicationDelegate, UNUserNotificationCenterD
  * - Capabilities:
  *   • Push Notifications (Signing & Capabilities)
  *   • Background Modes → “Remote notifications”
- *   • (Optional) App Groups → if you call setAppGroup(...)
+ *   • App Groups → if you call setAppGroup(...)
  *   • (Optional) Notification Service Extension → for rich push (media, buttons)
  *
  * - Provider resources (Bundle files):
@@ -136,4 +137,6 @@ class AppDelegate: UIResponder, UIApplicationDelegate, UNUserNotificationCenterD
  * - Objective-C:
  *   All the same steps are available from ObjC via the `AltcraftConfiguration_Builder`
  *   and ObjC-bridged functions/types you added (see AltcraftObjCTypes.swift).
+ *
+ * - Example of sdk function implementation: Example/Functions/SDKFunctions.swift
  */

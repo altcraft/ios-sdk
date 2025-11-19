@@ -19,6 +19,7 @@ class NotificationService: UNNotificationServiceExtension {
     override func didReceive(_ request: UNNotificationRequest, withContentHandler contentHandler: @escaping (UNNotificationContent) -> Void) {
         AltcraftNSE.shared.setAppGroup(groupName: appGroupID)
         AltcraftNSE.shared.setJWTProvider(provider: jwtProvider)
+
         
         if AltcraftNSE.shared.isAltcraftPush(request) {
             AltcraftNSE.shared.handleNotificationRequest(request: request, contentHandler: contentHandler)

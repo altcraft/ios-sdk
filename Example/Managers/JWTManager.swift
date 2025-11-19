@@ -18,9 +18,13 @@ final class JWTManager {
     private let authKey = "AUTH_KEY"
     private let JWTKey = "JWT_KEY"
 
-    private let defaults: UserDefaults?
+    private var defaults: UserDefaults?
 
     private init() {
+        update()
+    }
+    
+    private func update() {
         self.defaults = UserDefaults(suiteName: Self.suiteName)
         
         let regJWT = regJWT ?? getRegJWT()
@@ -53,6 +57,7 @@ final class JWTManager {
     
     func setAuthStatus(_ value: Bool?) {
         defaults?.set(value, forKey: authKey)
+        update()
     }
 
     func getAuthFlag() -> Bool? {
