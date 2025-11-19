@@ -32,14 +32,21 @@ final class AltcraftPushReceiver: NSObject {
     /// - Parameters:
     ///   - request: The notification request received by NSE.
     ///   - handler: Completion handler invoked with modified content.
-    func takePush(_ request: UNNotificationRequest, withContentHandler handler: @escaping (UNNotificationContent) -> Void) {
+    func takePush(
+        _ request: UNNotificationRequest,
+        withContentHandler handler: @escaping (UNNotificationContent
+        ) -> Void
+    ) {
         self.handler = handler
-        self.content = (request.content.mutableCopy() as? UNMutableNotificationContent)
+        self.content = (
+            request.content.mutableCopy() as? UNMutableNotificationContent
+        )
         
         guard content != nil else { return handler(request.content) }
         
         PushEvent.shared.createPushEvent(
-            userInfo: request.content.userInfo as? [String: Any] ?? [:], type: Constants.PushEvents.delivery
+            userInfo: request.content.userInfo as? [String: Any] ?? [:],
+            type: Constants.PushEvents.delivery
         )
         addContent(from: request)
     }
@@ -78,7 +85,7 @@ final class AltcraftPushReceiver: NSObject {
         }
         
         let category = UNNotificationCategory(
-           identifier: categoryKey, actions: actions, intentIdentifiers: [], options: []
+            identifier: categoryKey, actions: actions, intentIdentifiers: [], options: []
         )
         
         UNUserNotificationCenter.current().setNotificationCategories([category])
@@ -94,9 +101,14 @@ final class AltcraftPushReceiver: NSObject {
         for req: UNNotificationRequest,
         completion: @escaping (UNNotificationContent) -> Void
     ) {
-        let media = (req.content.userInfo as? [String: Any])?[Constants.UserInfoKeys.media] as? String
+        let media = (
+            req.content.userInfo as? [String: Any]
+        )?[Constants.UserInfoKeys.media] as? String
         
-        guard let media = media, let url = URL(string: media), let content = self.content else {
+        guard let media = media,
+              let url = URL(string: media),
+              let content = self.content
+        else {
             return completion(self.content ?? req.content)
         }
         
@@ -120,7 +132,7 @@ final class AltcraftPushReceiver: NSObject {
     ///   - tempURL: Temporary file URL returned by URLSession.
     ///   - content: Mutable notification content to update with attachment.
     /// - Throws: File / Data / UNNotificationAttachment errors.
-     func applyImageAttachment(
+    func applyImageAttachment(
         from tempURL: URL,
         to content: UNMutableNotificationContent
     ) throws {
@@ -141,7 +153,7 @@ final class AltcraftPushReceiver: NSObject {
         content.attachments = [att]
         self.content = content
     }
-
+    
     /// Called by the system when the NSE execution time is about to expire.
     /// Returns the best content currently available.
     func serviceExtensionTimeWillExpire() { if let handler, let content { handler(content) } }
