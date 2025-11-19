@@ -98,7 +98,8 @@ final class PushAction {
     /// Returns the index corresponding to a button identifier.
     ///
     /// - Parameter identifier: A string representing the button identifier.
-    /// - Returns: An optional integer representing the index of the button. Returns `nil` if the identifier is not recognized.
+    /// - Returns: An optional integer representing the index of the button.
+    ///  Returns `nil` if the identifier is not recognized.
     private func buttonIndex(for identifier: String) -> Int? {
         switch identifier {
         case Constants.ButtonIdentifier.buttonOne: return 0

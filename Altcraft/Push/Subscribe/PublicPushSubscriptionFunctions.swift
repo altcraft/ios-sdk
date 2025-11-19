@@ -25,7 +25,8 @@ public class PublicPushSubscriptionFunctions: NSObject {
     /// is forwarded to the backend (`1`/`0`) to control server-side behavior.
     ///
     /// - Parameters:
-    ///   - sync: Whether the call should be treated as synchronous (`true`) or asynchronous (`false`) on the server (default `true`).
+    ///   - sync: Whether the call should be treated as synchronous (`true`)
+    ///    or asynchronous (`false`) on the server (default `true`).
     ///   - profileFields: Optional profile fields to include.
     ///   - customFields: Optional custom fields to include. Must contain only primitive values.
     ///   - cats: Optional list of categories (`[CategoryData]`).
@@ -78,7 +79,8 @@ public class PublicPushSubscriptionFunctions: NSObject {
     /// is forwarded to the backend (`1`/`0`) to control server-side behavior.
     ///
     /// - Parameters:
-    ///   - sync: Whether the call should be treated as synchronous (`true`) or asynchronous (`false`) on the server (default `true`).
+    ///   - sync: Whether the call should be treated as synchronous (`true`) 
+    ///   or asynchronous (`false`) on the server (default `true`).
     ///   - profileFields: Optional profile fields to include.
     ///   - customFields: Optional custom fields to include. Must contain only primitive values.
     ///   - cats: Optional list of categories (`[CategoryData]`).
@@ -131,7 +133,8 @@ public class PublicPushSubscriptionFunctions: NSObject {
     /// is forwarded to the backend (`1`/`0`) to control server-side behavior.
     ///
     /// - Parameters:
-    ///   - sync: Whether the call should be treated as synchronous (`true`) or asynchronous (`false`) on the server (default `true`).
+    ///   - sync: Whether the call should be treated as synchronous (`true`) 
+    ///   or asynchronous (`false`) on the server (default `true`).
     ///   - profileFields: Optional profile fields to include.
     ///   - customFields: Optional custom fields to include. Must contain only primitive values.
     ///   - cats: Optional list of categories (`[CategoryData]`).
@@ -285,7 +288,8 @@ public class PublicPushSubscriptionFunctions: NSObject {
     /// Equivalent to Kotlin's `getStatusOfLatestSubscriptionForProvider()`.
     ///
     /// - Parameters:
-    ///   - provider: Optional push provider identifier (`"apns"`, `"firebase"`, `"huawei"`). If `nil`, the current provider is used.
+    ///   - provider: Optional push provider identifier (`"ios-apns"`, `"ios-firebase"`, `"ios-huawei"`). 
+    ///   If `nil`, the current provider is used.
     ///   - completion: Callback invoked with `ResponseWithHttp` (contains HTTP status and parsed `Response`)
     ///                 or `nil` if validation fails or the request could not be created/sent.
     @nonobjc

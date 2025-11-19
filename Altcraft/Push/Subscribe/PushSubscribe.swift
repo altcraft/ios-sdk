@@ -59,20 +59,17 @@ internal class PushSubscribe: NSObject {
                 done()
                 return
             }
-            
             getUserTag { userTag in
                 guard let userTag = userTag else {
                     errorEvent(#function, error: userTagIsNilE)
                     done()
                     return
                 }
-                
                 if customFields.containsNonPrimitiveValues() {
                     errorEvent(#function, error: fieldsIsObjects)
                     done()
                     return
                 }
-                
                 addSubscribeEntity(
                     userTag: userTag,
                     status: status,
