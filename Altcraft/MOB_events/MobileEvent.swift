@@ -61,20 +61,18 @@ class MobileEvent: NSObject {
                 done()
                 return
             }
-            
             getUserTag { userTag in
                 guard let userTag else {
                     errorEvent(#function, error: userTagIsNilE)
                     done()
                     return
                 }
-                
                 if payloadFields.containsNonPrimitiveValues() {
                     errorEvent(#function, error: fieldsIsObjects)
                     done()
                     return
                 }
-                
+        
                 let timeZone = DeviceInfo().getTimeZone()
                 
                 addMobileEventEntity(

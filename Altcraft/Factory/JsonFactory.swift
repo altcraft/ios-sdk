@@ -5,15 +5,14 @@
 //  Created by Andrey Pogodin.
 //
 //  Copyright © 2025 Altcraft. All rights reserved.
+//
 
 import Foundation
 
-/**
- Creates a JSON body for the push notification subscription request.
-
- - Parameter data: The `SubscribeRequestData` object containing subscription details.
- - Returns: An optional `Data` representing the JSON-encoded request body, or `nil` if serialization fails.
- */
+/// Creates a JSON body for the subscription request.
+///
+/// - Parameter data: The `SubscribeRequestData` containing subscription details.
+/// - Returns: JSON-encoded `Data`, or `nil` if serialization fails.
 func createSubscribeJSONBody(data: SubscribeRequestData) -> Data? {
     let keys = Constants.JSONKeys.self
 
@@ -42,7 +41,6 @@ func createSubscribeJSONBody(data: SubscribeRequestData) -> Data? {
         keys.skipTriggers: data.skipTriggers ?? false
     ]
 
-
     if let profileFields = data.profileFields {
         json[keys.profileFields] = profileFields
     }
@@ -55,12 +53,10 @@ func createSubscribeJSONBody(data: SubscribeRequestData) -> Data? {
     }
 }
 
-/**
- Creates a JSON payload for updating a device token.
-
- - Parameter data: The `UpdateRequestData` object containing old and new token information.
- - Returns: A `Data` object representing the JSON body, or `nil` if encoding fails.
- */
+/// Creates a JSON body for the push token update request.
+///
+/// - Parameter data: The `UpdateRequestData` containing token details.
+/// - Returns: JSON-encoded `Data`, or `nil` if encoding fails.
 func createUpdateJSONBody(data: UpdateRequestData) -> Data? {
     let keys = Constants.JSONKeys.self
 
@@ -79,13 +75,13 @@ func createUpdateJSONBody(data: UpdateRequestData) -> Data? {
     }
 }
 
-/// Creates a JSON payload for the unSuspend request.
+/// Creates a JSON body for the unSuspend request.
 ///
-/// - Parameter data: The `UnSuspendRequestData` object containing subscription information.
-/// - Returns: A `Data` object representing the JSON body, or `nil` if encoding fails.
+/// - Parameter data: The `UnSuspendRequestData` containing subscription identifiers.
+/// - Returns: JSON-encoded `Data`, or `nil` on failure.
 func createUnSuspendJSONBody(data: UnSuspendRequestData) -> Data? {
     let keys = Constants.JSONKeys.self
-    
+
     let json: [String: Any] = [
         keys.subscription: [
             keys.subscriptionId: data.token,
@@ -102,15 +98,10 @@ func createUnSuspendJSONBody(data: UnSuspendRequestData) -> Data? {
     }
 }
 
-/**
- Creates a JSON payload for a push event request.
-
- This function converts the given `PushEventRequestData` into a JSON-compatible
- dictionary and encodes it into `Data` for use as a request body.
-
- - Parameter data: The request data containing event details such as time and UID.
- - Returns: A `Data` object representing the JSON body, or `nil` if encoding fails.
- */
+/// Creates a JSON body for a push event request.
+///
+/// - Parameter data: The `PushEventRequestData` containing event time and UID.
+/// - Returns: JSON-encoded `Data`, or `nil` if encoding fails.
 func createPushEventJSONBody(data: PushEventRequestData) -> Data? {
     let keys = Constants.JSONKeys.self
 
@@ -126,3 +117,4 @@ func createPushEventJSONBody(data: PushEventRequestData) -> Data? {
         return nil
     }
 }
+
