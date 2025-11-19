@@ -6,8 +6,8 @@
 //
 //  Copyright © 2025 Altcraft. All rights reserved.
 
-import Foundation
 import Altcraft
+import Foundation
 
 class JWTProvider: JWTInterface {
     func getToken() -> String? {

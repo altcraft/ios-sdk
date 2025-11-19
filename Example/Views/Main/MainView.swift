@@ -181,7 +181,7 @@ struct MainView: View {
                                     
                                     AltcraftSDK.shared.clear {
                                         eventManager.clearEvents()
-                                        JWTManager.shared.setJWT(JWTManager.shared.getAnonJWT())
+                                        JWTManager.shared.clearJWT()
                                         statusManager.clearStatus()
                                         statusManager.status = AppConstants.SubscriptionStatus.unsubscribed
                                     }

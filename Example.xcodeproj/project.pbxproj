@@ -7,16 +7,16 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		0181B66E084608CC60E6F3A8 /* Pods_PushService.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 4AA2DDD1707D6A449043469A /* Pods_PushService.framework */; };
 		5509FAA02D6C677700B1DE03 /* SubscribeStatusManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5509FA9F2D6C677700B1DE03 /* SubscribeStatusManager.swift */; };
 		5516B35A2D9C3AA7001FAF66 /* JWTProvider.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5516B3592D9C3AA7001FAF66 /* JWTProvider.swift */; };
 		55302BBE2E9D4356003A1A4C /* PushServiceTest.swift in Sources */ = {isa = PBXBuildFile; fileRef = 551440DA2E8E88F300BD0451 /* PushServiceTest.swift */; };
-		553646D22ECB374D0017AB0D /* Altcraft.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 55302CAD2EA13466003A1A4C /* Altcraft.framework */; };
-		553646D32ECB374D0017AB0D /* Altcraft.framework in Embed Frameworks */ = {isa = PBXBuildFile; fileRef = 55302CAD2EA13466003A1A4C /* Altcraft.framework */; settings = {ATTRIBUTES = (CodeSignOnCopy, RemoveHeadersOnCopy, ); }; };
 		553646E22ECB3D680017AB0D /* NotificationService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 553646E12ECB3D680017AB0D /* NotificationService.swift */; };
 		553646E62ECB3D680017AB0D /* PushService.appex in Embed Foundation Extensions */ = {isa = PBXBuildFile; fileRef = 553646DF2ECB3D680017AB0D /* PushService.appex */; settings = {ATTRIBUTES = (RemoveHeadersOnCopy, ); }; };
-		553646EA2ECB3D830017AB0D /* Altcraft.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 55302CAD2EA13466003A1A4C /* Altcraft.framework */; };
-		553646EB2ECB3D830017AB0D /* Altcraft.framework in Embed Frameworks */ = {isa = PBXBuildFile; fileRef = 55302CAD2EA13466003A1A4C /* Altcraft.framework */; settings = {ATTRIBUTES = (CodeSignOnCopy, RemoveHeadersOnCopy, ); }; };
 		553646EE2ECB3DB00017AB0D /* JWTProvider.swift in Sources */ = {isa = PBXBuildFile; fileRef = 553646ED2ECB3DB00017AB0D /* JWTProvider.swift */; };
+		553646FC2ECDF4660017AB0D /* Altcraft.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 55302CAD2EA13466003A1A4C /* Altcraft.framework */; };
+		553646FF2ECDF4730017AB0D /* Altcraft.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 55302CAD2EA13466003A1A4C /* Altcraft.framework */; };
+		553647002ECDF4730017AB0D /* Altcraft.framework in Embed Frameworks */ = {isa = PBXBuildFile; fileRef = 55302CAD2EA13466003A1A4C /* Altcraft.framework */; settings = {ATTRIBUTES = (CodeSignOnCopy, RemoveHeadersOnCopy, ); }; };
 		5557A9232DF026B700BEF354 /* SDKFunctions.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5557A9222DF026B700BEF354 /* SDKFunctions.swift */; };
 		55654E862EB63299000BF004 /* FirebaseMessaging in Frameworks */ = {isa = PBXBuildFile; productRef = 55654E852EB63299000BF004 /* FirebaseMessaging */; };
 		556FC6FF2E27BE55000584AA /* BoxModeManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 556FC6FE2E27BE55000584AA /* BoxModeManager.swift */; };
@@ -90,24 +90,13 @@
 /* End PBXContainerItemProxy section */
 
 /* Begin PBXCopyFilesBuildPhase section */
-		553646D42ECB374E0017AB0D /* Embed Frameworks */ = {
+		553647012ECDF4730017AB0D /* Embed Frameworks */ = {
 			isa = PBXCopyFilesBuildPhase;
 			buildActionMask = 2147483647;
 			dstPath = "";
 			dstSubfolderSpec = 10;
 			files = (
-				553646D32ECB374D0017AB0D /* Altcraft.framework in Embed Frameworks */,
-			);
-			name = "Embed Frameworks";
-			runOnlyForDeploymentPostprocessing = 0;
-		};
-		553646EC2ECB3D830017AB0D /* Embed Frameworks */ = {
-			isa = PBXCopyFilesBuildPhase;
-			buildActionMask = 2147483647;
-			dstPath = "";
-			dstSubfolderSpec = 10;
-			files = (
-				553646EB2ECB3D830017AB0D /* Altcraft.framework in Embed Frameworks */,
+				553647002ECDF4730017AB0D /* Altcraft.framework in Embed Frameworks */,
 			);
 			name = "Embed Frameworks";
 			runOnlyForDeploymentPostprocessing = 0;
@@ -198,7 +187,8 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				553646EA2ECB3D830017AB0D /* Altcraft.framework in Frameworks */,
+				0181B66E084608CC60E6F3A8 /* Pods_PushService.framework in Frameworks */,
+				553646FC2ECDF4660017AB0D /* Altcraft.framework in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -208,7 +198,7 @@
 			files = (
 				55A41CF12EBB4853002DF416 /* AGConnectCredential.xcframework in Frameworks */,
 				55654E862EB63299000BF004 /* FirebaseMessaging in Frameworks */,
-				553646D22ECB374D0017AB0D /* Altcraft.framework in Frameworks */,
+				553646FF2ECDF4730017AB0D /* Altcraft.framework in Frameworks */,
 				55A41CF32EBB4863002DF416 /* HMFoundation.xcframework in Frameworks */,
 				55E566562D108A6500FA2B07 /* libc++.tbd in Frameworks */,
 				55A41CF52EBB4879002DF416 /* HiAnalytics.xcframework in Frameworks */,
@@ -444,10 +434,10 @@
 			isa = PBXNativeTarget;
 			buildConfigurationList = 553646E72ECB3D680017AB0D /* Build configuration list for PBXNativeTarget "PushService" */;
 			buildPhases = (
+				907E22FE7527D9D49F664337 /* [CP] Check Pods Manifest.lock */,
 				553646DB2ECB3D680017AB0D /* Sources */,
 				553646DC2ECB3D680017AB0D /* Frameworks */,
 				553646DD2ECB3D680017AB0D /* Resources */,
-				553646EC2ECB3D830017AB0D /* Embed Frameworks */,
 			);
 			buildRules = (
 			);
@@ -468,7 +458,7 @@
 				558C701A2C9C29D10062F600 /* Resources */,
 				558C476F2C9C3CE10006750E /* Embed Foundation Extensions */,
 				2349CBE4D8EC8EE549D3D92E /* [CP] Copy Pods Resources */,
-				553646D42ECB374E0017AB0D /* Embed Frameworks */,
+				553647012ECDF4730017AB0D /* Embed Frameworks */,
 			);
 			buildRules = (
 			);
@@ -512,6 +502,7 @@
 			mainGroup = 558C70132C9C29D10062F600;
 			packageReferences = (
 				55302CBA2EA2395C003A1A4C /* XCRemoteSwiftPackageReference "firebase-ios-sdk" */,
+				553646F02ECDC9590017AB0D /* XCRemoteSwiftPackageReference "ios-sdk" */,
 			);
 			productRefGroup = 558C701D2C9C29D10062F600 /* Products */;
 			projectDirPath = "";
@@ -581,6 +572,28 @@
 			runOnlyForDeploymentPostprocessing = 0;
 			shellPath = /bin/sh;
 			shellScript = "\"${PODS_ROOT}/Target Support Files/Pods-Example/Pods-Example-resources.sh\"\n";
+			showEnvVarsInLog = 0;
+		};
+		907E22FE7527D9D49F664337 /* [CP] Check Pods Manifest.lock */ = {
+			isa = PBXShellScriptBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			inputFileListPaths = (
+			);
+			inputPaths = (
+				"${PODS_PODFILE_DIR_PATH}/Podfile.lock",
+				"${PODS_ROOT}/Manifest.lock",
+			);
+			name = "[CP] Check Pods Manifest.lock";
+			outputFileListPaths = (
+			);
+			outputPaths = (
+				"$(DERIVED_FILE_DIR)/Pods-PushService-checkManifestLockResult.txt",
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+			shellPath = /bin/sh;
+			shellScript = "diff \"${PODS_PODFILE_DIR_PATH}/Podfile.lock\" \"${PODS_ROOT}/Manifest.lock\" > /dev/null\nif [ $? != 0 ] ; then\n    # print error to STDERR\n    echo \"error: The sandbox is not in sync with the Podfile.lock. Run 'pod install' or update your CocoaPods installation.\" >&2\n    exit 1\nfi\n# This output is used by Xcode 'outputs' to avoid re-running this script phase.\necho \"SUCCESS\" > \"${SCRIPT_OUTPUT_FILE_0}\"\n";
 			showEnvVarsInLog = 0;
 		};
 		A4F0665D6936902C22A1EC54 /* [CP] Check Pods Manifest.lock */ = {
@@ -676,13 +689,14 @@
 /* Begin XCBuildConfiguration section */
 		553646E82ECB3D680017AB0D /* Debug */ = {
 			isa = XCBuildConfiguration;
+			baseConfigurationReference = 89712A9CD728D7842DC6613B /* Pods-PushService.debug.xcconfig */;
 			buildSettings = {
 				CODE_SIGN_ENTITLEMENTS = PushService/PushService.entitlements;
 				CODE_SIGN_IDENTITY = "Apple Development";
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
 				DEVELOPMENT_TEAM = 6G7526ELLP;
-				ENABLE_USER_SCRIPT_SANDBOXING = YES;
+				ENABLE_USER_SCRIPT_SANDBOXING = NO;
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_FILE = PushService/Info.plist;
 				INFOPLIST_KEY_CFBundleDisplayName = PushService;
@@ -698,6 +712,10 @@
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SDKROOT = iphoneos;
 				SKIP_INSTALL = YES;
+				SUPPORTED_PLATFORMS = "iphoneos iphonesimulator";
+				SUPPORTS_MACCATALYST = NO;
+				SUPPORTS_MAC_DESIGNED_FOR_IPHONE_IPAD = NO;
+				SUPPORTS_XR_DESIGNED_FOR_IPHONE_IPAD = NO;
 				SWIFT_EMIT_LOC_STRINGS = YES;
 				SWIFT_VERSION = 5.0;
 				TARGETED_DEVICE_FAMILY = "1,2";
@@ -706,13 +724,14 @@
 		};
 		553646E92ECB3D680017AB0D /* Release */ = {
 			isa = XCBuildConfiguration;
+			baseConfigurationReference = 02F07B5176EFAF454E573BEB /* Pods-PushService.release.xcconfig */;
 			buildSettings = {
 				CODE_SIGN_ENTITLEMENTS = PushService/PushService.entitlements;
 				CODE_SIGN_IDENTITY = "Apple Development";
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
 				DEVELOPMENT_TEAM = 6G7526ELLP;
-				ENABLE_USER_SCRIPT_SANDBOXING = YES;
+				ENABLE_USER_SCRIPT_SANDBOXING = NO;
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_FILE = PushService/Info.plist;
 				INFOPLIST_KEY_CFBundleDisplayName = PushService;
@@ -728,6 +747,10 @@
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SDKROOT = iphoneos;
 				SKIP_INSTALL = YES;
+				SUPPORTED_PLATFORMS = "iphoneos iphonesimulator";
+				SUPPORTS_MACCATALYST = NO;
+				SUPPORTS_MAC_DESIGNED_FOR_IPHONE_IPAD = NO;
+				SUPPORTS_XR_DESIGNED_FOR_IPHONE_IPAD = NO;
 				SWIFT_EMIT_LOC_STRINGS = YES;
 				SWIFT_VERSION = 5.0;
 				TARGETED_DEVICE_FAMILY = "1,2";
@@ -980,6 +1003,14 @@
 			requirement = {
 				kind = upToNextMajorVersion;
 				minimumVersion = 10.17.0;
+			};
+		};
+		553646F02ECDC9590017AB0D /* XCRemoteSwiftPackageReference "ios-sdk" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/altcraft/ios-sdk";
+			requirement = {
+				kind = upToNextMajorVersion;
+				minimumVersion = 0.1.1;
 			};
 		};
 /* End XCRemoteSwiftPackageReference section */
