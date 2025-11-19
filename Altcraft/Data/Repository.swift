@@ -9,16 +9,9 @@
 import Foundation
 import CoreData
 
-/// Retrieves common data required for the subscription process.
+/// Returns configuration data and authentication details (authorization header and matching mode).
 ///
-/// This function gathers all necessary components to construct a `CommonData` object:
-/// - Fetches the current configuration.
-/// - Retrieves the stored device token.
-/// - Obtains the authorization header and matching mode based on the configuration token.
-///
-/// If any of the required elements are missing, the function logs an error and returns `nil` via the completion handler.
-///
-/// - Parameter completion: A closure that receives a `CommonData` object if all data is available, or `nil` otherwise.
+/// - Parameter completion: A closure receiving `RequestData` or `nil` if retrieval fails.
 func getRequestData(completion: @escaping (RequestData?) -> Void) {
     getConfig { config in
         let authData: (String, String)? = if let config {
