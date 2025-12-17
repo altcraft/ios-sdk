@@ -32,7 +32,7 @@ import XCTest
  *  - test_17: Status request invalid mode returns nil quickly.
  *  - test_18: Status request no profile data emits error and returns nil.
  */
-final class RequestFactoryTests: XCTestCase {
+final class RequestFactoryTests: IsolatedTestCase {
 
     private final class EventSpy {
         private(set) var events: [Event] = []

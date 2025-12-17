@@ -14,6 +14,18 @@ import Foundation
 /// for categories, background tasks, provider names, event names, request names, entity names, and retry logic.
 public enum Constants {
     
+    /// The category identifier for rich push notifications.
+    static let categoryForRichPush = "Altcraft"
+    
+    /// The name of the background task for access control.
+    static let bgTaskName = "AccessToBackgroundTask"
+    
+    /// The name of the periodic background task for system control.
+    static let BGTaskID = "lib.Altcraft.bgTask.systemControl"
+    
+    /// Prefix used to namespace UserDefaults keys and prevent collisions with host app data.
+    static let UDPrefix = "com.altcraft.ios.sdk"
+    
     /// Provider names used for identifying push notification services.
     public enum ProviderName {
         
@@ -26,17 +38,7 @@ public enum Constants {
         /// The provider name for HMS.
         public static let huawei = "ios-huawei"
     }
-    
-    /// The category identifier for rich push notifications.
-    static let categoryForRichPush = "Altcraft"
-    
-    /// The name of the background task for access control.
 
-    static let bgTaskName = "AccessToBackgroundTask"
-    
-    /// The name of the periodic background task for system control.
-    static let BGTaskID = "lib.Altcraft.bgTask.systemControl"
-    
     /// Centralized string constants for queue labels used in the SDK.
     /// Helps to avoid duplication and typos when creating DispatchQueue instances.
     enum Queues {
@@ -451,6 +453,22 @@ public enum Constants {
         static let mobileEventDelivered = "successful request: \(RequestName.mobileEvent). Name: "
     }
     
+    /// Notification names and userInfo keys used by the Altcraft SDK.
+    public enum NotificationCenter {
+
+        /// Fired when a notification is about to be presented in foreground.
+        public static let pushWillPresent = "AltcraftPushWillPresent"
+
+        /// Fired when the user taps or interacts with a delivered notification.
+        public static let pushDidReceiveResponse = "AltcraftPushDidReceiveResponse"
+
+        /// userInfo key containing UNNotification for foreground events.
+        public static let notificationKey = "notification"
+
+        /// userInfo key containing UNNotificationResponse for click events.
+        public static let responseKey = "response"
+    }
+    
     /// Status request modes.
     enum StatusMode {
         /// Latest subscription overall (most recent, regardless of provider).
@@ -461,5 +479,18 @@ public enum Constants {
         
         /// Subscription matching the current token and current provider.
         static let matchCurrentContext = "match_current_context"
+    }
+    
+    /// Log-related constants for Altcraft SDK.
+    enum Log {
+
+        /// Prefix added to all Altcraft SDK logs to distinguish them from other system logs.
+        static let logPrefix = "[Altcraft SDK]"
+
+        /// One-time hint shown when logging is not configured.
+        static let hintLog =
+            "Altcraft SDK is integrated into the project. Please configure " +
+            "log publishing using the `setEnableLogging` parameter in the "  +
+            "SDK configuration."
     }
 }

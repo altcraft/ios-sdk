@@ -73,8 +73,6 @@ open class SDKEvents: NSObject {
     }
 }
 
-// MARK: - Event types
-
 /// Represents a general event with associated details.
 ///
 /// Used for storing information about various events in the system, including errors and retryable errors.
@@ -105,17 +103,14 @@ open class Event: NSObject {
         self.function = formatFunctionName(function)
         self.message = message
         self.eventCode = eventCode
-        // Drop nils so it bridges cleanly to NSDictionary
         self.value = value?.compactMapValues { $0 }
         self.date = date
         super.init()
     }
 
-    // ObjC-friendly mirrors
     public var objcEventCode: NSNumber? { eventCode.map(NSNumber.init(value:)) }
     public var objcValue: NSDictionary? { value as NSDictionary? }
 
-    // Equatable/Hashable via id
     public override func isEqual(_ object: Any?) -> Bool {
         guard let rhs = object as? Event else { return false }
         return self.id == rhs.id
@@ -166,8 +161,6 @@ public class RetryEvent: ErrorEvent {
     }
 }
 
-// MARK: - Helpers used by SDK
-
 /// Extracts an integer error code and message string from the provided error object.
 ///
 /// Supports:
@@ -187,14 +180,24 @@ private func extractErrorDetails(_ error: Any?, retry: Bool) -> (code: Int, mess
     }
 }
 
+/// Logs a formatted SDK message using the central logger.
+/// - Parameters:
+///   - function: Name of the function emitting the log.
+///   - message: Text message to be logged.
+private func log(function: String, message: String) {
+    Logger.shared.log(
+        "\(Constants.Log.logPrefix): \(function): \(message)"
+    )
+}
+
 /// Emits a general event and logs it to the console.
 @discardableResult
 func event(_ function: String, event: (Int, String), value: [String: Any?]? = nil) -> Event {
     let formattedFunc = formatFunctionName(function)
     let (code, message) = event
-
-    print("\(formattedFunc): \(message)")
-
+    
+    log(function: formattedFunc, message: message)
+    
     let ev = Event(function: formattedFunc, message: message, eventCode: code, value: value)
     SDKEvents.shared.emit(event: ev)
     return ev
@@ -206,8 +209,8 @@ func errorEvent(_ function: String, error: Any?, value: [String: Any?]? = nil) -
     let formattedFunc = formatFunctionName(function)
     let (code, message) = extractErrorDetails(error, retry: false)
 
-    print("\(formattedFunc): \(message)")
-
+    log(function: formattedFunc, message: message)
+    
     let err = ErrorEvent(function: formattedFunc, message: message, eventCode: code, value: value)
     SDKEvents.shared.emit(event: err)
     return err
@@ -219,9 +222,10 @@ func retryEvent(_ function: String, error: Any?, value: [String: Any?]? = nil) -
     let formattedFunc = formatFunctionName(function)
     let (code, message) = extractErrorDetails(error, retry: true)
 
-    print("\(formattedFunc): \(message)")
+    log(function: formattedFunc, message: message)
 
     let retry = RetryEvent(function: formattedFunc, message: message, eventCode: code, value: value)
     SDKEvents.shared.emit(event: retry)
     return retry
 }
+

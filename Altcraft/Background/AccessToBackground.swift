@@ -25,14 +25,9 @@ class AccessToBackground: NSObject {
     ///
     /// Requests additional time from the system and sets a timeout to end the task after 29 seconds.
     private func beginBackground() {
-        var bgTaskID: UIBackgroundTaskIdentifier = .invalid
-        bgTaskID = UIApplication.shared.beginBackgroundTask(withName: name) { [weak self] in
-            self?.endBackgroundTask(bgTaskID)
-        }
+        let id = UIApplication.shared.beginBackgroundTask(withName: name)
         DispatchQueue.main.asyncAfter(deadline: .now() + 29) { [weak self] in
-            if bgTaskID != .invalid {
-                self?.endBackgroundTask(bgTaskID)
-            }
+            self?.endBackgroundTask(id)
         }
     }
 

@@ -57,7 +57,7 @@ public class AltcraftNSE: NSObject {
     /// This ensures the persistent store is correctly located in the shared container.
     ///
     /// - Parameter groupName: The App Group identifier used for the shared container.
-    public func setAppGroup(groupName: String) {
+    public func setAppGroup(groupName: String?) {
         StoredVariablesManager.shared.setGroupsName(value: groupName)
         _ = CoreDataManager(appGroup: groupName)
     }

@@ -34,7 +34,7 @@ final class PushActionTests: XCTestCase {
 
         PushAction.shared.pushClickAction(
             userInfo: [:],
-            identifier: Constants.ButtonIdentifier.defaultNotificationAction
+            Identifier: Constants.ButtonIdentifier.defaultNotificationAction
         )
 
         XCTAssertFalse(spy.events.isEmpty)
@@ -53,7 +53,7 @@ final class PushActionTests: XCTestCase {
 
         PushAction.shared.pushClickAction(
             userInfo: payload,
-            identifier: Constants.ButtonIdentifier.defaultNotificationAction
+            Identifier: Constants.ButtonIdentifier.defaultNotificationAction
         )
 
         XCTAssertFalse(spy.events.isEmpty)
@@ -73,7 +73,7 @@ final class PushActionTests: XCTestCase {
 
         PushAction.shared.pushClickAction(
             userInfo: payload,
-            identifier: Constants.ButtonIdentifier.defaultNotificationAction
+            Identifier: Constants.ButtonIdentifier.defaultNotificationAction
         )
 
         let anyPushActionErrors = spy.events.contains {
@@ -96,7 +96,7 @@ final class PushActionTests: XCTestCase {
 
         PushAction.shared.pushClickAction(
             userInfo: payload,
-            identifier: Constants.ButtonIdentifier.buttonThree
+            Identifier: Constants.ButtonIdentifier.buttonThree
         )
 
         XCTAssertFalse(spy.events.isEmpty)
@@ -120,7 +120,7 @@ final class PushActionTests: XCTestCase {
 
         PushAction.shared.pushClickAction(
             userInfo: payload,
-            identifier: Constants.ButtonIdentifier.buttonTwo
+            Identifier: Constants.ButtonIdentifier.buttonTwo
         )
 
         let anyErrors = spy.events.contains {

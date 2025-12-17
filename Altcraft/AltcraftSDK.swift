@@ -18,7 +18,7 @@ import Foundation
 /// - `mobileEventFunctions`: Registration of generic mobile events (non-push), incl. payload/matching/UTM.
 /// - `backgroundTasks`: Scheduling and handling periodic background tasks.
 /// - `notificationManager`: Handling notification behavior in foreground/background.
-///
+/// 
 /// It also exposes configuration and cleanup APIs for initializing and resetting the SDK.
 @objcMembers
 @available(iOSApplicationExtension, unavailable)
@@ -68,7 +68,7 @@ public class AltcraftSDK: NSObject {
     ///
     /// - Parameter groupName: App Group identifier used for the shared container.
     ///
-    public func setAppGroup(groupName: String) {
+    public func setAppGroup(groupName: String?) {
         StoredVariablesManager.shared.setGroupsName(value: groupName)
         
         _ = CoreDataManager(appGroup: groupName)

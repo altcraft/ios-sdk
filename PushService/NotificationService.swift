@@ -15,11 +15,11 @@ class NotificationService: UNNotificationServiceExtension {
     
     /// - important! Set the provider to JWT if you are using JWT authentication.
     let jwtProvider = JWTProvider()
-
+    
     override func didReceive(_ request: UNNotificationRequest, withContentHandler contentHandler: @escaping (UNNotificationContent) -> Void) {
         AltcraftNSE.shared.setAppGroup(groupName: appGroupID)
         AltcraftNSE.shared.setJWTProvider(provider: jwtProvider)
-
+        
         
         if AltcraftNSE.shared.isAltcraftPush(request) {
             AltcraftNSE.shared.handleNotificationRequest(request: request, contentHandler: contentHandler)

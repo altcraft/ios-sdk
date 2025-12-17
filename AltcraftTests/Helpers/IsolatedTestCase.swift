@@ -4,9 +4,15 @@ import CoreData
 
 /// Base test case isolating UserDefaults and Core Data.
 class IsolatedTestCase: XCTestCase {
+
+    // MARK: - Global test mutex (serializes all tests inheriting this class)
+    private static let globalMutex = TestMutex()
+
+    // MARK: - UserDefaults isolation
     private(set) var udSandbox: UserDefaultsSandbox!
     var defaults: UserDefaults { udSandbox.defaults }
 
+    // MARK: - Core Data isolation
     private(set) var core: TestCoreDataStack!
     var viewContext: NSManagedObjectContext { core.viewContext }
 
@@ -20,13 +26,21 @@ class IsolatedTestCase: XCTestCase {
     class var frameworkBundleIdentifier: String? { nil }
     class var frameworkBundleToken: AnyClass { AltcraftSDK.self }
 
+    // MARK: - XCTest lifecycle
+
     /// Set up isolated stores before each test.
     override func setUpWithError() throws {
+        // 1) serialize tests
+        Self.globalMutex.lock()
+
+        // 2) call super
         try super.setUpWithError()
 
+        // 3) isolate UserDefaults
         udSandbox = UserDefaultsSandbox()
         UserDefaultsIsolation.enable(with: udSandbox.defaults)
 
+        // 4) isolate CoreData
         if Self.useSDKCoreData {
             core = TestCoreDataStack(mode: .sdkPersistent)
         } else {
@@ -41,13 +55,16 @@ class IsolatedTestCase: XCTestCase {
 
     /// Tear down isolated stores after each test.
     override func tearDownWithError() throws {
+        // unlock must happen even if something fails while tearing down
+        defer { Self.globalMutex.unlock() }
+
         if !Self.useSDKCoreData {
             CoreDataIsolation.disable()
         }
         UserDefaultsIsolation.disable()
 
-        udSandbox.clear()
-        core.wipe()
+        udSandbox?.clear()
+        core?.wipe()
 
         udSandbox = nil
         core = nil

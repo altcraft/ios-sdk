@@ -35,7 +35,6 @@ extension Data {
     }
 }
 
-
 // MARK: - Thread-safe optional String array storage
 // One shared queue for all such lists.
 private let _tsListQueue = DispatchQueue(label: "com.altcraft.tslist", attributes: .concurrent)

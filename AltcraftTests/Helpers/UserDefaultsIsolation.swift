@@ -4,7 +4,6 @@
 //
 //  Created by Andrey Pogodin.
 //  © 2025 Altcraft. All rights reserved.
-//
 
 import Foundation
 import ObjectiveC.runtime

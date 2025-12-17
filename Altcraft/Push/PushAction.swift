@@ -20,7 +20,7 @@ final class PushAction {
     /// - Parameters:
     ///   - userInfo: The original push notification payload (`userInfo`).
     ///   - identifier: The action identifier received from `UNUserNotificationCenter`.
-    func pushClickAction(userInfo: [String: Any], identifier: String) {
+    func pushClickAction(userInfo: [String: Any], Identifier: String) {
         guard let buttonsAsString = userInfo[Constants.UserInfoKeys.buttons] as? String,
               let buttonsData = buttonsAsString.data(using: .utf8) else {
             errorEvent(#function, error: errorButtonsKeyMissing)
@@ -35,7 +35,7 @@ final class PushAction {
             return
         }
 
-        handleButtonAction(identifier: identifier, buttons: buttons, userInfo: userInfo)
+        handleButtonAction(identifier: Identifier, buttons: buttons, userInfo: userInfo)
     }
 
     /// Handles a push notification tap or button press and opens the linked URL if available.

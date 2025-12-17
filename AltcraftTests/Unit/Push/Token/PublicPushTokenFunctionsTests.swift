@@ -25,7 +25,7 @@ import XCTest
  *  - test_10: Delete device token invalid emits error event and completion called.
  */
 final class PublicPushTokenFunctionsTests: XCTestCase {
-
+    
     private final class EventSpy {
         private(set) var events: [Event] = []
 

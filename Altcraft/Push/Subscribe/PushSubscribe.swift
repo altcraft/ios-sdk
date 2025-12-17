@@ -157,12 +157,14 @@ internal class PushSubscribe: NSObject {
                 errorEvent(#function, error: userTagIsNil)
                 return completion(true)
             }
-            getAllSubscriptionsByTag(context: context, userTag: tag) { subscriptions in
-                
-                guard !subscriptions.isEmpty else { return completion(true) }
-                
-                self.signAll(context: context, subscriptions: subscriptions) { retry in
-                    completion(!retry)
+            clearOldSubscriptions(context: context) {
+                getAllSubscriptionsByTag(context: context, userTag: tag) { subscriptions in
+                    
+                    guard !subscriptions.isEmpty else { return completion(true) }
+                    
+                    self.signAll(context: context, subscriptions: subscriptions) { retry in
+                        completion(!retry)
+                    }
                 }
             }
         }
