@@ -5,6 +5,7 @@
 //  Created by Andrey Pogodin.
 //
 //  © 2025 Altcraft. All rights reserved.
+//
 
 import XCTest
 @testable import Altcraft
@@ -26,7 +27,7 @@ import XCTest
  *  - test_11: Set current token with empty provider does nothing.
  *  - test_12: Get group name handles nil case appropriately.
  */
-final class StoredVariablesManagerTests: XCTestCase {
+final class StoredVariablesManagerTests: IsolatedTestCase {
 
     private var sandbox: UserDefaultsSandbox!
 
@@ -42,10 +43,15 @@ final class StoredVariablesManagerTests: XCTestCase {
     private let msgNonNil  = "Value must be non-nil"
     private let msgNil     = "Value must be nil"
 
-    private let stdKeysToClear = [
-        "CRIT_DB",
-        "GROUP_NAME"
-    ]
+    private var stdKeysToClear: [String] {
+        let prefix = Constants.UDPrefix
+        return [
+            "\(prefix)_CRIT_DB",
+            "\(prefix)_GROUP_NAME",
+            "\(prefix)_MANUAL_TOKEN",
+            "\(prefix)_CURRENT_TOKEN"
+        ]
+    }
 
     private func clearStandardDefaults() {
         let std = UserDefaults.standard
@@ -57,7 +63,7 @@ final class StoredVariablesManagerTests: XCTestCase {
         super.setUp()
         sandbox = UserDefaultsSandbox()
         clearStandardDefaults()
-        UserDefaults.standard.set(sandbox.suiteName, forKey: "GROUP_NAME")
+        StoredVariablesManager.shared.setGroupsName(value: sandbox.suiteName)
     }
 
     override func tearDown() {
@@ -167,9 +173,10 @@ final class StoredVariablesManagerTests: XCTestCase {
 
     /// test_12: Get group name handles nil case appropriately
     func test_12_getGroupName_handlesNilCase() {
-        UserDefaults.standard.removeObject(forKey: "GROUP_NAME")
+        StoredVariablesManager.shared.setGroupsName(value: nil)
         
         let result = StoredVariablesManager.shared.getGroupName()
         XCTAssertNil(result, msgNil)
     }
 }
+

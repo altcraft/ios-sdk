@@ -19,7 +19,7 @@ import CoreData
  *  - test_3: Delete all entities from DB wipes all predefined entities.
  *  - test_4: Delete entity on empty table returns true.
  */
-final class ClearingDbTests: XCTestCase {
+final class ClearingDbTests: IsolatedTestCase {
 
     private let container = CoreDataManager.shared.persistentContainer
 

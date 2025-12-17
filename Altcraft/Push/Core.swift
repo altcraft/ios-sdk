@@ -31,11 +31,11 @@ func performRetryOperations() {
             pushEventRetryCount = 0
             mobileEventRetryCount = 0
             
-            
             MobileEvent.shared.enqueueStart(enableRetry: false)
             
             TokenManager.shared.pushModuleIsActive{ active in
                 if active {
+                    
                     PushSubscribe.shared.enqueueStart(enableRetry: false)
                     PushEvent.shared.sendAllPushEvents()
                     TokenUpdate.shared.tokenUpdate()

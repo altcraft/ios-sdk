@@ -33,7 +33,9 @@ class AltcraftInit: NSObject {
             completion?(false)
             return
         }
-
+        Logger.shared.setStatus(
+            status: config.getEnableLogging()
+        )
         setConfig(
             url: config.getApiUrl(),
             rToken:config.getRToken(),

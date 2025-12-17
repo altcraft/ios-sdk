@@ -5,6 +5,7 @@
 //  Created by Andrey Pogodin.
 //
 //  © 2025 Altcraft. All rights reserved.
+//
 
 import XCTest
 import CoreData
@@ -17,6 +18,8 @@ import CoreData
  *  - test_1: Add subscribe entity persists all core fields and optionals.
  *  - test_2: Get all subscriptions by tag filters and sorts by time ascending.
  *  - test_3: Get all subscriptions by tag returns empty for unknown tag.
+ *  - test_4: clearOldSubscriptions does not delete records when below threshold.
+ *  - test_5: clearOldSubscriptions deletes oldest records when above threshold.
  */
 final class SubscribeDbQueriesTests: IsolatedTestCase {
 
@@ -81,6 +84,22 @@ final class SubscribeDbQueriesTests: IsolatedTestCase {
         return out
     }
 
+    /// Проверяет наличие SubscribeEntity в сторе, минуя кеш viewContext.
+    /// Используем новый background context, чтобы видеть реальные данные в persistent store.
+    private func existsSubscribeInStore(_ id: NSManagedObjectID) -> Bool {
+        let ctx = sdkNewBG()
+        var exists = false
+        ctx.performAndWait {
+            do {
+                let obj = try ctx.existingObject(with: id)
+                exists = !obj.isDeleted
+            } catch {
+                exists = false
+            }
+        }
+        return exists
+    }
+
     private func fetchAllByTag(_ tag: String) -> [SubscribeEntity] {
         let ctx = sdkViewContext
         var list: [SubscribeEntity] = []
@@ -105,7 +124,10 @@ final class SubscribeDbQueriesTests: IsolatedTestCase {
         let sync = 2
         let profile: [String: Any?] = ["name": "John", "age": 30]
         let custom:  [String: Any?] = ["vip": true, "tier": "gold"]
-        let cats: [CategoryData] = [CategoryData(name: "inbox", active: true), CategoryData(name: "promo", active: true)]
+        let cats: [CategoryData] = [
+            CategoryData(name: "inbox", active: true),
+            CategoryData(name: "promo", active: true)
+        ]
 
         let exp = expectation(description: "add entity")
         addSubscribeEntity(
@@ -211,6 +233,116 @@ final class SubscribeDbQueriesTests: IsolatedTestCase {
             XCTAssertTrue(ids.isEmpty)
             exp.fulfill()
         }
+        waitForExpectations(timeout: timeoutShort)
+    }
+
+    /// test_4: clearOldSubscriptions does not delete records when below threshold
+    func test_4_clearOldSubscriptions_doesNotDelete_whenBelowThreshold() {
+        let tag = "cleanup-tag"
+        let group = DispatchGroup()
+
+        for i in 0..<3 {
+            group.enter()
+            addSubscribeEntity(
+                userTag: tag,
+                status: "st\(i)",
+                sync: i,
+                profileFields: nil,
+                customFields: nil,
+                cats: nil,
+                replace: false,
+                skipTriggers: false,
+                uid: "C\(i)"
+            ) { _ in group.leave() }
+        }
+
+        let ok = group.wait(timeout: .now() + timeoutShort)
+        XCTAssertEqual(ok, .success, "addSubscribeEntity timed out")
+
+        XCTAssertEqual(
+            sdkCount(entityName: Constants.EntityNames.subscribe),
+            3,
+            "Precondition: we must have exactly 3 records"
+        )
+
+        let bg = sdkNewBG()
+        let exp = expectation(description: "clearOldSubscriptions below threshold")
+        clearOldSubscriptions(
+            context: bg,
+            threshold: 5,
+            purgeCount: 2
+        ) {
+            let after = self.sdkCount(entityName: Constants.EntityNames.subscribe)
+            XCTAssertEqual(after, 3, "Records must not be deleted when below or equal threshold")
+            exp.fulfill()
+        }
+
+        waitForExpectations(timeout: timeoutShort)
+    }
+
+    /// test_5: clearOldSubscriptions deletes oldest records when above threshold
+    func test_5_clearOldSubscriptions_deletesOldest_whenAboveThreshold() {
+        let tag = "cleanup-tag-2"
+        let group = DispatchGroup()
+        
+        for i in 0..<6 {
+            group.enter()
+            addSubscribeEntity(
+                userTag: tag,
+                status: "st\(i)",
+                sync: i,
+                profileFields: nil,
+                customFields: nil,
+                cats: nil,
+                replace: false,
+                skipTriggers: false,
+                uid: "D\(i)"
+            ) { _ in group.leave() }
+        }
+
+        let ok = group.wait(timeout: .now() + timeoutShort)
+        XCTAssertEqual(ok, .success, "addSubscribeEntity timed out")
+
+        XCTAssertEqual(
+            sdkCount(entityName: Constants.EntityNames.subscribe),
+            6,
+            "Precondition: we must have exactly 6 records"
+        )
+
+        let before = fetchAllByTag(tag)
+        XCTAssertEqual(before.count, 6, "Expected 6 records for tag \(tag)")
+
+        let oldestIDs = before.prefix(2).map { $0.objectID }
+        let newestIDs = before.suffix(4).map { $0.objectID }
+
+        let bg = sdkNewBG()
+        let exp = expectation(description: "clearOldSubscriptions above threshold")
+
+        clearOldSubscriptions(
+            context: bg,
+            threshold: 3,
+            purgeCount: 2
+        ) {
+            let totalAfter = self.sdkCount(entityName: Constants.EntityNames.subscribe)
+            XCTAssertEqual(
+                totalAfter,
+                4,
+                "After purging 2 of 6 records, total must be 4"
+            )
+
+            oldestIDs.forEach { id in
+                let exists = self.existsSubscribeInStore(id)
+                XCTAssertFalse(exists, "Oldest record with id \(id) must be deleted")
+            }
+            
+            newestIDs.forEach { id in
+                let exists = self.existsSubscribeInStore(id)
+                XCTAssertTrue(exists, "Newest record with id \(id) must stay")
+            }
+
+            exp.fulfill()
+        }
+
         waitForExpectations(timeout: timeoutShort)
     }
 }

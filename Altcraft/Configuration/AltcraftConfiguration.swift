@@ -12,7 +12,8 @@ import Foundation
 ///
 /// This class is responsible for initializing parameters for the Altcraft SDK,
 /// including the API URL, resource token authentication, optional application metadata,
-/// and an optional list of push notification providers in priority order.
+/// an optional list of push notification providers in priority order,
+/// and an optional flag controlling internal SDK logging.
 ///
 /// It can be constructed only via the nested `Builder` class (see below).
 @objc(AltcraftConfiguration)
@@ -23,17 +24,20 @@ public final class AltcraftConfiguration: NSObject {
     private let rToken: String?
     private var appInfo: AppInfo?
     private var providerPriorityList: [String]?
+    private let enableLogging: Bool?
 
     private init(
         apiUrl: String,
         rToken: String?,
         appInfo: AppInfo?,
-        providerPriorityList: [String]?
+        providerPriorityList: [String]?,
+        enableLogging: Bool?
     ) {
         self.apiUrl = apiUrl
         self.rToken = rToken
         self.appInfo = appInfo
         self.providerPriorityList = providerPriorityList
+        self.enableLogging = enableLogging
         super.init()
     }
 
@@ -47,6 +51,9 @@ public final class AltcraftConfiguration: NSObject {
     ///   - rToken: Optional static resource token for authentication.
     ///   - appInfo: Optional application metadata including app ID and version.
     ///   - providerPriorityList: A list of provider names in priority order for push notifications.
+    ///   - enableLogging: Optional flag controlling internal SDK logging:
+    ///     `true` to explicitly enable logging, `false` to explicitly disable it,
+    ///     `nil` to keep the default SDK behavior.
     ///
     /// ### Objective-C compatibility note:
     /// The Builder class is explicitly exposed to Objective-C under the name
@@ -61,6 +68,7 @@ public final class AltcraftConfiguration: NSObject {
         private var appInfo: AppInfo?
         private var appInfoObjC: AppInfoObjC?
         private var providerPriorityList: [String]?
+        private var enableLogging: Bool?
 
         public override init() {
             super.init()
@@ -122,6 +130,21 @@ public final class AltcraftConfiguration: NSObject {
             return self
         }
 
+        /// Sets the internal SDK logging behavior.
+        ///
+        /// Use this flag to control Altcraft SDK logging:
+        /// - `true`  → enable SDK logging.
+        /// - `false` → disable SDK logging.
+        /// - `nil`   → leave logging in its default mode (SDK decides).
+        ///
+        /// - Parameter enabled: Optional logging flag.
+        /// - Returns: Builder instance for chaining.
+        @discardableResult
+        public func setEnableLogging(_ enabled: Bool?) -> Builder {
+            self.enableLogging = enabled
+            return self
+        }
+
         /// Builds and returns a validated AltcraftConfiguration instance,
         /// or `nil` if required values are missing or invalid.
         ///
@@ -155,7 +178,8 @@ public final class AltcraftConfiguration: NSObject {
                 apiUrl: apiUrl,
                 rToken: rToken,
                 appInfo: resolvedAppInfo,
-                providerPriorityList: providerPriorityList
+                providerPriorityList: providerPriorityList,
+                enableLogging: enableLogging
             )
         }
     }
@@ -174,9 +198,15 @@ public final class AltcraftConfiguration: NSObject {
     public func getAppInfo() -> AppInfo? {
         appInfo
     }
+    
+    /// Returns the internal logging flag, if configured.
+    public func getEnableLogging() -> Bool? {
+        enableLogging
+    }
 
     /// Returns the priority order of push notification providers (if set).
     public func getProviderPriorityList() -> [String]? {
         providerPriorityList
     }
 }
+

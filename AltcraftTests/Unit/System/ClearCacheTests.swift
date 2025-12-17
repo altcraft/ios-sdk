@@ -3,8 +3,8 @@
 //  AltcraftTests
 //
 //  Created by Andrey Pogodin.
-//
 //  © 2025 Altcraft. All rights reserved.
+//
 
 import XCTest
 import CoreData
@@ -17,9 +17,7 @@ import CoreData
  *  - test_1: clearCache resets counters, tokens, emits event and wipes database.
  *  - test_2: clearCache when DB error flag is true does nothing and does not call completion.
  */
-final class ClearCacheTests: XCTestCase {
-
-    private let container = CoreDataManager.shared.persistentContainer
+final class ClearCacheTests: IsolatedTestCase {
 
     private final class EventSpy {
         private(set) var events: [Event] = []
@@ -28,30 +26,34 @@ final class ClearCacheTests: XCTestCase {
         func fresh(since n: Int) -> [Event] { Array(events.dropFirst(n)) }
     }
 
-    override func setUp() {
-        super.setUp()
+    override class var useSDKCoreData: Bool { true }
+
+    override func setUpWithError() throws {
+        try super.setUpWithError()
+
         wipeSDK([
             Constants.EntityNames.config,
             Constants.EntityNames.subscribe,
             Constants.EntityNames.pushEvent,
             Constants.EntityNames.mobileEvent
         ])
-        
-        StoredVariablesManager.shared.setGroupsName(value: "AltcraftTests.ClearCache")
+
+        StoredVariablesManager.shared.setGroupsName(value: "AltcraftTests.ClearCache.\(UUID().uuidString)")
     }
 
-    override func tearDown() {
+    override func tearDownWithError() throws {
         wipeSDK([
             Constants.EntityNames.config,
             Constants.EntityNames.subscribe,
             Constants.EntityNames.pushEvent,
             Constants.EntityNames.mobileEvent
         ])
-        super.tearDown()
+
+        try super.tearDownWithError()
     }
 
     private func withBG(_ block: @escaping (NSManagedObjectContext) -> Void) {
-        let ctx = container.newBackgroundContext()
+        let ctx = newBGContext()
         ctx.mergePolicy = NSMergeByPropertyObjectTrumpMergePolicy
         ctx.performAndWait { block(ctx) }
     }
@@ -83,6 +85,7 @@ final class ClearCacheTests: XCTestCase {
             let cfg = ConfigurationEntity(context: ctx)
             cfg.url = "https://api"
             cfg.rToken = "r"
+
             for i in 0..<2 {
                 let s = SubscribeEntity(context: ctx)
                 s.userTag = "u"
@@ -108,6 +111,7 @@ final class ClearCacheTests: XCTestCase {
                 me.retryCount = 0
                 me.maxRetryCount = 3
             }
+
             try? ctx.save()
         }
     }
@@ -160,33 +164,10 @@ final class ClearCacheTests: XCTestCase {
         XCTAssertTrue(hasClearedEvent, "Expected sdkCleared event from clearCache()")
     }
 
-//    /// test_2: clearCache when DB error flag is true does nothing and does not call completion
-//    func test_2_clearCache_whenDbErrorFlag_true_doesNothing_and_doesNotCallCompletion() {
-//        StoredVariablesManager.shared.setCritDB(value: true)
-//
-//        seedAllEntities()
-//        subRetryCount = 3
-//        TokenManager.shared.tokens.ts_append("x")
-//        TokenUpdate.shared.currentToken = TokenData(provider: "ios-apns", token: "y")
-//
-//        let exp = expectation(description: "no-callback")
-//        exp.isInverted = true
-//        clearCache { exp.fulfill() }
-//        wait(for: [exp], timeout: 0.3)
-//
-//        XCTAssertEqual(count(Constants.EntityNames.config), 1)
-//        XCTAssertEqual(subRetryCount, 3)
-//
-//        let lastBeforeClear = TokenManager.shared.tokens.ts_last() ?? (nil as String?)
-//        XCTAssertEqual(lastBeforeClear, "x")
-//        XCTAssertEqual(TokenUpdate.shared.currentToken?.token, "y")
-//
-//        StoredVariablesManager.shared.setCritDB(value: false)
-//    }
-
     private func normalizeFunc(_ raw: String?) -> String {
         guard let raw = raw else { return "" }
         if let idx = raw.firstIndex(of: "(") { return String(raw[..<idx]) }
         return raw.hasSuffix("()") ? String(raw.dropLast(2)) : raw
     }
 }
+

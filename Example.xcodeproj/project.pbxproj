@@ -9,16 +9,17 @@
 /* Begin PBXBuildFile section */
 		0181B66E084608CC60E6F3A8 /* Pods_PushService.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 4AA2DDD1707D6A449043469A /* Pods_PushService.framework */; };
 		5509FAA02D6C677700B1DE03 /* SubscribeStatusManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5509FA9F2D6C677700B1DE03 /* SubscribeStatusManager.swift */; };
+		550C5AF52EF1504C00D3EBC1 /* FirebaseMessaging in Frameworks */ = {isa = PBXBuildFile; productRef = 550C5AF42EF1504C00D3EBC1 /* FirebaseMessaging */; };
 		5516B35A2D9C3AA7001FAF66 /* JWTProvider.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5516B3592D9C3AA7001FAF66 /* JWTProvider.swift */; };
 		55302BBE2E9D4356003A1A4C /* PushServiceTest.swift in Sources */ = {isa = PBXBuildFile; fileRef = 551440DA2E8E88F300BD0451 /* PushServiceTest.swift */; };
 		553646E22ECB3D680017AB0D /* NotificationService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 553646E12ECB3D680017AB0D /* NotificationService.swift */; };
 		553646E62ECB3D680017AB0D /* PushService.appex in Embed Foundation Extensions */ = {isa = PBXBuildFile; fileRef = 553646DF2ECB3D680017AB0D /* PushService.appex */; settings = {ATTRIBUTES = (RemoveHeadersOnCopy, ); }; };
 		553646EE2ECB3DB00017AB0D /* JWTProvider.swift in Sources */ = {isa = PBXBuildFile; fileRef = 553646ED2ECB3DB00017AB0D /* JWTProvider.swift */; };
-		553646FC2ECDF4660017AB0D /* Altcraft.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 55302CAD2EA13466003A1A4C /* Altcraft.framework */; };
-		553646FF2ECDF4730017AB0D /* Altcraft.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 55302CAD2EA13466003A1A4C /* Altcraft.framework */; };
-		553647002ECDF4730017AB0D /* Altcraft.framework in Embed Frameworks */ = {isa = PBXBuildFile; fileRef = 55302CAD2EA13466003A1A4C /* Altcraft.framework */; settings = {ATTRIBUTES = (CodeSignOnCopy, RemoveHeadersOnCopy, ); }; };
 		5557A9232DF026B700BEF354 /* SDKFunctions.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5557A9222DF026B700BEF354 /* SDKFunctions.swift */; };
-		55654E862EB63299000BF004 /* FirebaseMessaging in Frameworks */ = {isa = PBXBuildFile; productRef = 55654E852EB63299000BF004 /* FirebaseMessaging */; };
+		556288C82ED5C048007D1633 /* Altcraft.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 55302CAD2EA13466003A1A4C /* Altcraft.framework */; };
+		556288C92ED5C048007D1633 /* Altcraft.framework in Embed Frameworks */ = {isa = PBXBuildFile; fileRef = 55302CAD2EA13466003A1A4C /* Altcraft.framework */; settings = {ATTRIBUTES = (CodeSignOnCopy, RemoveHeadersOnCopy, ); }; };
+		556288CB2ED5C052007D1633 /* Altcraft.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 55302CAD2EA13466003A1A4C /* Altcraft.framework */; };
+		556288CC2ED5C052007D1633 /* Altcraft.framework in Embed Frameworks */ = {isa = PBXBuildFile; fileRef = 55302CAD2EA13466003A1A4C /* Altcraft.framework */; settings = {ATTRIBUTES = (CodeSignOnCopy, RemoveHeadersOnCopy, ); }; };
 		556FC6FF2E27BE55000584AA /* BoxModeManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 556FC6FE2E27BE55000584AA /* BoxModeManager.swift */; };
 		556FC7012E27C15A000584AA /* AppConstants.swift in Sources */ = {isa = PBXBuildFile; fileRef = 556FC7002E27C15A000584AA /* AppConstants.swift */; };
 		556FC7032E27F5B6000584AA /* ProfileDataManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 556FC7022E27F5B6000584AA /* ProfileDataManager.swift */; };
@@ -56,10 +57,6 @@
 		559F2D522E2522E700C5B7EE /* FCMProvider.swift in Sources */ = {isa = PBXBuildFile; fileRef = 559F2D512E2522E700C5B7EE /* FCMProvider.swift */; };
 		559F2D542E25232E00C5B7EE /* HMSProvider.swift in Sources */ = {isa = PBXBuildFile; fileRef = 559F2D532E25232E00C5B7EE /* HMSProvider.swift */; };
 		559F2D562E25284B00C5B7EE /* APNSProvider.swift in Sources */ = {isa = PBXBuildFile; fileRef = 559F2D552E25284B00C5B7EE /* APNSProvider.swift */; };
-		55A41CEF2EBB484A002DF416 /* AGConnectCore.xcframework in Frameworks */ = {isa = PBXBuildFile; fileRef = 55E566452D107BE400FA2B07 /* AGConnectCore.xcframework */; };
-		55A41CF12EBB4853002DF416 /* AGConnectCredential.xcframework in Frameworks */ = {isa = PBXBuildFile; fileRef = 55E566482D107BE900FA2B07 /* AGConnectCredential.xcframework */; };
-		55A41CF32EBB4863002DF416 /* HMFoundation.xcframework in Frameworks */ = {isa = PBXBuildFile; fileRef = 55E5664E2D107C0B00FA2B07 /* HMFoundation.xcframework */; };
-		55A41CF52EBB4879002DF416 /* HiAnalytics.xcframework in Frameworks */ = {isa = PBXBuildFile; fileRef = 55E5664B2D107BEE00FA2B07 /* HiAnalytics.xcframework */; };
 		55E566552D108A5100FA2B07 /* libz.tbd in Frameworks */ = {isa = PBXBuildFile; fileRef = 55E566542D108A4800FA2B07 /* libz.tbd */; };
 		55E566562D108A6500FA2B07 /* libc++.tbd in Frameworks */ = {isa = PBXBuildFile; fileRef = 55E566422D107BD100FA2B07 /* libc++.tbd */; };
 		8E3E2B3A979E1F327C3CEF9F /* Pods_Example.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 7F922E0B53F9131D91C6FD0B /* Pods_Example.framework */; };
@@ -90,13 +87,24 @@
 /* End PBXContainerItemProxy section */
 
 /* Begin PBXCopyFilesBuildPhase section */
-		553647012ECDF4730017AB0D /* Embed Frameworks */ = {
+		556288CA2ED5C048007D1633 /* Embed Frameworks */ = {
 			isa = PBXCopyFilesBuildPhase;
 			buildActionMask = 2147483647;
 			dstPath = "";
 			dstSubfolderSpec = 10;
 			files = (
-				553647002ECDF4730017AB0D /* Altcraft.framework in Embed Frameworks */,
+				556288C92ED5C048007D1633 /* Altcraft.framework in Embed Frameworks */,
+			);
+			name = "Embed Frameworks";
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		556288CD2ED5C052007D1633 /* Embed Frameworks */ = {
+			isa = PBXCopyFilesBuildPhase;
+			buildActionMask = 2147483647;
+			dstPath = "";
+			dstSubfolderSpec = 10;
+			files = (
+				556288CC2ED5C052007D1633 /* Altcraft.framework in Embed Frameworks */,
 			);
 			name = "Embed Frameworks";
 			runOnlyForDeploymentPostprocessing = 0;
@@ -188,7 +196,7 @@
 			buildActionMask = 2147483647;
 			files = (
 				0181B66E084608CC60E6F3A8 /* Pods_PushService.framework in Frameworks */,
-				553646FC2ECDF4660017AB0D /* Altcraft.framework in Frameworks */,
+				556288CB2ED5C052007D1633 /* Altcraft.framework in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -196,13 +204,9 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				55A41CF12EBB4853002DF416 /* AGConnectCredential.xcframework in Frameworks */,
-				55654E862EB63299000BF004 /* FirebaseMessaging in Frameworks */,
-				553646FF2ECDF4730017AB0D /* Altcraft.framework in Frameworks */,
-				55A41CF32EBB4863002DF416 /* HMFoundation.xcframework in Frameworks */,
+				556288C82ED5C048007D1633 /* Altcraft.framework in Frameworks */,
 				55E566562D108A6500FA2B07 /* libc++.tbd in Frameworks */,
-				55A41CF52EBB4879002DF416 /* HiAnalytics.xcframework in Frameworks */,
-				55A41CEF2EBB484A002DF416 /* AGConnectCore.xcframework in Frameworks */,
+				550C5AF52EF1504C00D3EBC1 /* FirebaseMessaging in Frameworks */,
 				55E566552D108A5100FA2B07 /* libz.tbd in Frameworks */,
 				8E3E2B3A979E1F327C3CEF9F /* Pods_Example.framework in Frameworks */,
 			);
@@ -438,6 +442,7 @@
 				553646DB2ECB3D680017AB0D /* Sources */,
 				553646DC2ECB3D680017AB0D /* Frameworks */,
 				553646DD2ECB3D680017AB0D /* Resources */,
+				556288CD2ED5C052007D1633 /* Embed Frameworks */,
 			);
 			buildRules = (
 			);
@@ -457,8 +462,7 @@
 				558C70192C9C29D10062F600 /* Frameworks */,
 				558C701A2C9C29D10062F600 /* Resources */,
 				558C476F2C9C3CE10006750E /* Embed Foundation Extensions */,
-				2349CBE4D8EC8EE549D3D92E /* [CP] Copy Pods Resources */,
-				553647012ECDF4730017AB0D /* Embed Frameworks */,
+				556288CA2ED5C048007D1633 /* Embed Frameworks */,
 			);
 			buildRules = (
 			);
@@ -467,7 +471,7 @@
 			);
 			name = Example;
 			packageProductDependencies = (
-				55654E852EB63299000BF004 /* FirebaseMessaging */,
+				550C5AF42EF1504C00D3EBC1 /* FirebaseMessaging */,
 			);
 			productName = IOSAPNsExample;
 			productReference = 558C701C2C9C29D10062F600 /* Example.app */;
@@ -501,8 +505,7 @@
 			);
 			mainGroup = 558C70132C9C29D10062F600;
 			packageReferences = (
-				55302CBA2EA2395C003A1A4C /* XCRemoteSwiftPackageReference "firebase-ios-sdk" */,
-				553646F02ECDC9590017AB0D /* XCRemoteSwiftPackageReference "ios-sdk" */,
+				550C5AF32EF1504C00D3EBC1 /* XCRemoteSwiftPackageReference "firebase-ios-sdk" */,
 			);
 			productRefGroup = 558C701D2C9C29D10062F600 /* Products */;
 			projectDirPath = "";
@@ -557,23 +560,6 @@
 /* End PBXResourcesBuildPhase section */
 
 /* Begin PBXShellScriptBuildPhase section */
-		2349CBE4D8EC8EE549D3D92E /* [CP] Copy Pods Resources */ = {
-			isa = PBXShellScriptBuildPhase;
-			buildActionMask = 2147483647;
-			files = (
-			);
-			inputFileListPaths = (
-				"${PODS_ROOT}/Target Support Files/Pods-Example/Pods-Example-resources-${CONFIGURATION}-input-files.xcfilelist",
-			);
-			name = "[CP] Copy Pods Resources";
-			outputFileListPaths = (
-				"${PODS_ROOT}/Target Support Files/Pods-Example/Pods-Example-resources-${CONFIGURATION}-output-files.xcfilelist",
-			);
-			runOnlyForDeploymentPostprocessing = 0;
-			shellPath = /bin/sh;
-			shellScript = "\"${PODS_ROOT}/Target Support Files/Pods-Example/Pods-Example-resources.sh\"\n";
-			showEnvVarsInLog = 0;
-		};
 		907E22FE7527D9D49F664337 /* [CP] Check Pods Manifest.lock */ = {
 			isa = PBXShellScriptBuildPhase;
 			buildActionMask = 2147483647;
@@ -708,7 +694,7 @@
 					"@executable_path/../../Frameworks",
 				);
 				MARKETING_VERSION = 1.0;
-				PRODUCT_BUNDLE_IDENTIFIER = altcraft.altcraftmobile.ios.PushService;
+				PRODUCT_BUNDLE_IDENTIFIER = com.altcraft.ios.app.pushservice;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SDKROOT = iphoneos;
 				SKIP_INSTALL = YES;
@@ -743,7 +729,7 @@
 					"@executable_path/../../Frameworks",
 				);
 				MARKETING_VERSION = 1.0;
-				PRODUCT_BUNDLE_IDENTIFIER = altcraft.altcraftmobile.ios.PushService;
+				PRODUCT_BUNDLE_IDENTIFIER = com.altcraft.ios.app.pushservice;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SDKROOT = iphoneos;
 				SKIP_INSTALL = YES;
@@ -907,7 +893,7 @@
 				"LD_RUNPATH_SEARCH_PATHS[sdk=macosx*]" = "@executable_path/../Frameworks";
 				MACOSX_DEPLOYMENT_TARGET = 14.1;
 				MARKETING_VERSION = 1.0;
-				PRODUCT_BUNDLE_IDENTIFIER = altcraft.altcraftmobile.ios;
+				PRODUCT_BUNDLE_IDENTIFIER = com.altcraft.ios.app;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				PROVISIONING_PROFILE_SPECIFIER = "";
 				SDKROOT = auto;
@@ -952,7 +938,7 @@
 				"LD_RUNPATH_SEARCH_PATHS[sdk=macosx*]" = "@executable_path/../Frameworks";
 				MACOSX_DEPLOYMENT_TARGET = 14.1;
 				MARKETING_VERSION = 1.0;
-				PRODUCT_BUNDLE_IDENTIFIER = altcraft.altcraftmobile.ios;
+				PRODUCT_BUNDLE_IDENTIFIER = com.altcraft.ios.app;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				PROVISIONING_PROFILE_SPECIFIER = "";
 				SDKROOT = auto;
@@ -997,27 +983,20 @@
 /* End XCConfigurationList section */
 
 /* Begin XCRemoteSwiftPackageReference section */
-		55302CBA2EA2395C003A1A4C /* XCRemoteSwiftPackageReference "firebase-ios-sdk" */ = {
+		550C5AF32EF1504C00D3EBC1 /* XCRemoteSwiftPackageReference "firebase-ios-sdk" */ = {
 			isa = XCRemoteSwiftPackageReference;
 			repositoryURL = "https://github.com/firebase/firebase-ios-sdk";
 			requirement = {
 				kind = upToNextMajorVersion;
-				minimumVersion = 10.17.0;
-			};
-		};
-		553646F02ECDC9590017AB0D /* XCRemoteSwiftPackageReference "ios-sdk" */ = {
-			isa = XCRemoteSwiftPackageReference;
-			repositoryURL = "https://github.com/altcraft/ios-sdk";
-			requirement = {
-				kind = upToNextMajorVersion;
-				minimumVersion = 0.1.1;
+				minimumVersion = 12.7.0;
 			};
 		};
 /* End XCRemoteSwiftPackageReference section */
 
 /* Begin XCSwiftPackageProductDependency section */
-		55654E852EB63299000BF004 /* FirebaseMessaging */ = {
+		550C5AF42EF1504C00D3EBC1 /* FirebaseMessaging */ = {
 			isa = XCSwiftPackageProductDependency;
+			package = 550C5AF32EF1504C00D3EBC1 /* XCRemoteSwiftPackageReference "firebase-ios-sdk" */;
 			productName = FirebaseMessaging;
 		};
 /* End XCSwiftPackageProductDependency section */

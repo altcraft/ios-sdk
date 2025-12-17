@@ -1,6 +1,0 @@
-framework module AGConnectCredential {
-  umbrella header "AGConnectCredential.h"
-
-  export *
-  module * { export * }
-}

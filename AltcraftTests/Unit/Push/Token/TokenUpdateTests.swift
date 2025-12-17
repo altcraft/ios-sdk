@@ -18,7 +18,7 @@ import XCTest
  *  - test_3: tokenUpdate → sets currentToken and attempts update when saved and current differ.
  *  - test_4: tokenUpdate → completes when saved and current are equal.
  */
-final class TokenUpdateTests: XCTestCase {
+final class TokenUpdateTests: IsolatedTestCase {
 
     private var originalGroup: String?
 

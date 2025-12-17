@@ -11,6 +11,7 @@
 		550956232E7AB38B000BFBA8 /* Altcraft.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 559B61B02C903EF90081192F /* Altcraft.framework */; };
 		5509FA9C2D5114F700B1DE03 /* SubscribeDbQueries.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5509FA9B2D5114F700B1DE03 /* SubscribeDbQueries.swift */; };
 		5509FAA42D6CC8DC00B1DE03 /* EventList.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5509FAA32D6CC8DC00B1DE03 /* EventList.swift */; };
+		550C5AF12EF14FDE00D3EBC1 /* FirebaseMessaging in Frameworks */ = {isa = PBXBuildFile; productRef = 550C5AF02EF14FDE00D3EBC1 /* FirebaseMessaging */; };
 		5516B3332D7AF881001FAF66 /* JWTManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5516B3322D7AF881001FAF66 /* JWTManager.swift */; };
 		5516B3362D7AFB96001FAF66 /* DeviceInfo.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5516B3352D7AFB96001FAF66 /* DeviceInfo.swift */; };
 		5516B3382D7B139E001FAF66 /* AuthManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5516B3372D7B139E001FAF66 /* AuthManager.swift */; };
@@ -55,6 +56,8 @@
 		55302C922EA11A1A003A1A4C /* AltcraftObjCTypes.swift in Sources */ = {isa = PBXBuildFile; fileRef = 55302C912EA11A1A003A1A4C /* AltcraftObjCTypes.swift */; };
 		553B085D2E5DD49C004526D6 /* SubscribeQueue.swift in Sources */ = {isa = PBXBuildFile; fileRef = 553B085C2E5DD49C004526D6 /* SubscribeQueue.swift */; };
 		55527FB12D314BCE00919755 /* StringBuilder.swift in Sources */ = {isa = PBXBuildFile; fileRef = 55527FB02D314BCE00919755 /* StringBuilder.swift */; };
+		556288D52ED5D505007D1633 /* Logger.swift in Sources */ = {isa = PBXBuildFile; fileRef = 556288D42ED5D505007D1633 /* Logger.swift */; };
+		556288DF2EED9915007D1633 /* TestMutex.swift in Sources */ = {isa = PBXBuildFile; fileRef = 556288DE2EED9915007D1633 /* TestMutex.swift */; };
 		55654E772EB55922000BF004 /* CoreDataMigrationTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 55654E762EB55922000BF004 /* CoreDataMigrationTests.swift */; };
 		556FC7392E30D2D2000584AA /* Init.swift in Sources */ = {isa = PBXBuildFile; fileRef = 556FC7382E30D2D2000584AA /* Init.swift */; };
 		556FC73B2E30EE99000584AA /* Core.swift in Sources */ = {isa = PBXBuildFile; fileRef = 556FC73A2E30EE99000584AA /* Core.swift */; };
@@ -194,6 +197,8 @@
 		55302C912EA11A1A003A1A4C /* AltcraftObjCTypes.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AltcraftObjCTypes.swift; sourceTree = "<group>"; };
 		553B085C2E5DD49C004526D6 /* SubscribeQueue.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SubscribeQueue.swift; sourceTree = "<group>"; };
 		55527FB02D314BCE00919755 /* StringBuilder.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StringBuilder.swift; sourceTree = "<group>"; };
+		556288D42ED5D505007D1633 /* Logger.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Logger.swift; sourceTree = "<group>"; };
+		556288DE2EED9915007D1633 /* TestMutex.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TestMutex.swift; sourceTree = "<group>"; };
 		55654E762EB55922000BF004 /* CoreDataMigrationTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CoreDataMigrationTests.swift; sourceTree = "<group>"; };
 		556FC7382E30D2D2000584AA /* Init.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Init.swift; sourceTree = "<group>"; };
 		556FC73A2E30EE99000584AA /* Core.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Core.swift; sourceTree = "<group>"; };
@@ -289,6 +294,7 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				550C5AF12EF14FDE00D3EBC1 /* FirebaseMessaging in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -504,6 +510,7 @@
 		559B61B22C903EF90081192F /* Altcraft */ = {
 			isa = PBXGroup;
 			children = (
+				559B61D92C90461F0081192F /* System */,
 				55654EA92EB65848000BF004 /* DataBase */,
 				559B61CE2C90461F0081192F /* Background */,
 				55302B962E930BF2003A1A4C /* MOB_events */,
@@ -518,7 +525,6 @@
 				55E406602D9EE5B800F375EC /* Network */,
 				559B61F02C90461F0081192F /* Push */,
 				556FC7372E30D2B5000584AA /* Retry */,
-				559B61D92C90461F0081192F /* System */,
 				559B61B42C903EF90081192F /* Altcraft.docc */,
 				559B61B32C903EF90081192F /* Altcraft.h */,
 				559B61E52C90461F0081192F /* AltcraftSDK.swift */,
@@ -582,6 +588,7 @@
 				55D3CCB72DB7B0E600A4F2D7 /* ActionFieldBuilder.swift */,
 				55D3CCCA2DD201DA00A4F2D7 /* PairBuilder.swift */,
 				552BCFAB2E7D9E41008A9116 /* ImageFormat.swift */,
+				556288D42ED5D505007D1633 /* Logger.swift */,
 			);
 			path = Additional;
 			sourceTree = "<group>";
@@ -673,6 +680,7 @@
 				55A672C32EAA4F9600BFDBAD /* IsolatedTestCase.swift */,
 				55A672CF2EAA71D000BFDBAD /* UserDefaultsIsolation.swift */,
 				55A672D12EAA722D00BFDBAD /* CoreDataIsolation.swift */,
+				556288DE2EED9915007D1633 /* TestMutex.swift */,
 			);
 			path = Helpers;
 			sourceTree = "<group>";
@@ -858,6 +866,9 @@
 				Base,
 			);
 			mainGroup = 559B61A62C903EF90081192F;
+			packageReferences = (
+				550C5AEF2EF14FDE00D3EBC1 /* XCRemoteSwiftPackageReference "firebase-ios-sdk" */,
+			);
 			productRefGroup = 559B61B12C903EF90081192F /* Products */;
 			projectDirPath = "";
 			projectRoot = "";
@@ -933,6 +944,7 @@
 				552BCFB22E7DA32C008A9116 /* PushActionTests.swift in Sources */,
 				55B314922E7AC85000A3F9E4 /* UserDefaultsSandbox.swift in Sources */,
 				55A672D42EAA79F500BFDBAD /* PartsFactoryTests.swift in Sources */,
+				556288DF2EED9915007D1633 /* TestMutex.swift in Sources */,
 				55B314B12E7C669200A3F9E4 /* ConverterTests.swift in Sources */,
 				55B314992E7ACF8B00A3F9E4 /* StringBuilderTests.swift in Sources */,
 				55A672D22EAA722D00BFDBAD /* CoreDataIsolation.swift in Sources */,
@@ -981,6 +993,7 @@
 				559B620C2C90461F0081192F /* PushAction.swift in Sources */,
 				5516B3582D9C1B3F001FAF66 /* JsonFactory.swift in Sources */,
 				559B61FB2C90461F0081192F /* StoredVariablesManager.swift in Sources */,
+				556288D52ED5D505007D1633 /* Logger.swift in Sources */,
 				55D3CCB82DB7B0E600A4F2D7 /* ActionFieldBuilder.swift in Sources */,
 				5579FD5F2D9D6F110000131C /* RequestManager.swift in Sources */,
 				559B61FA2C90461F0081192F /* Retry.swift in Sources */,
@@ -1045,7 +1058,7 @@
 				GENERATE_INFOPLIST_FILE = YES;
 				IPHONEOS_DEPLOYMENT_TARGET = 13.0;
 				MARKETING_VERSION = 1.0;
-				PRODUCT_BUNDLE_IDENTIFIER = altcraft.AltcraftTests;
+				PRODUCT_BUNDLE_IDENTIFIER = com.altcraft.ios.tests;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SDKROOT = iphoneos;
 				SUPPORTED_PLATFORMS = "iphoneos iphonesimulator";
@@ -1069,7 +1082,7 @@
 				GENERATE_INFOPLIST_FILE = YES;
 				IPHONEOS_DEPLOYMENT_TARGET = 13.0;
 				MARKETING_VERSION = 1.0;
-				PRODUCT_BUNDLE_IDENTIFIER = altcraft.AltcraftTests;
+				PRODUCT_BUNDLE_IDENTIFIER = com.altcraft.ios.tests;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SDKROOT = iphoneos;
 				SUPPORTED_PLATFORMS = "iphoneos iphonesimulator";
@@ -1232,7 +1245,7 @@
 				MARKETING_VERSION = 1.0;
 				MODULE_VERIFIER_SUPPORTED_LANGUAGES = "objective-c objective-c++";
 				MODULE_VERIFIER_SUPPORTED_LANGUAGE_STANDARDS = "gnu17 gnu++20";
-				PRODUCT_BUNDLE_IDENTIFIER = altcraft.Altcraft;
+				PRODUCT_BUNDLE_IDENTIFIER = com.altcraft.ios.sdk;
 				PRODUCT_NAME = "$(TARGET_NAME:c99extidentifier)";
 				SDKROOT = auto;
 				SKIP_INSTALL = YES;
@@ -1274,7 +1287,7 @@
 				MARKETING_VERSION = 1.0;
 				MODULE_VERIFIER_SUPPORTED_LANGUAGES = "objective-c objective-c++";
 				MODULE_VERIFIER_SUPPORTED_LANGUAGE_STANDARDS = "gnu17 gnu++20";
-				PRODUCT_BUNDLE_IDENTIFIER = altcraft.Altcraft;
+				PRODUCT_BUNDLE_IDENTIFIER = com.altcraft.ios.sdk;
 				PRODUCT_NAME = "$(TARGET_NAME:c99extidentifier)";
 				SDKROOT = auto;
 				SKIP_INSTALL = YES;
@@ -1318,6 +1331,25 @@
 			defaultConfigurationName = Release;
 		};
 /* End XCConfigurationList section */
+
+/* Begin XCRemoteSwiftPackageReference section */
+		550C5AEF2EF14FDE00D3EBC1 /* XCRemoteSwiftPackageReference "firebase-ios-sdk" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/firebase/firebase-ios-sdk";
+			requirement = {
+				kind = upToNextMajorVersion;
+				minimumVersion = 12.7.0;
+			};
+		};
+/* End XCRemoteSwiftPackageReference section */
+
+/* Begin XCSwiftPackageProductDependency section */
+		550C5AF02EF14FDE00D3EBC1 /* FirebaseMessaging */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = 550C5AEF2EF14FDE00D3EBC1 /* XCRemoteSwiftPackageReference "firebase-ios-sdk" */;
+			productName = FirebaseMessaging;
+		};
+/* End XCSwiftPackageProductDependency section */
 
 /* Begin XCVersionGroup section */
 		559B61E62C90461F0081192F /* DataBase.xcdatamodeld */ = {
