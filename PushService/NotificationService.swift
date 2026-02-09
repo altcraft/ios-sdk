@@ -20,7 +20,6 @@ class NotificationService: UNNotificationServiceExtension {
         AltcraftNSE.shared.setAppGroup(groupName: appGroupID)
         AltcraftNSE.shared.setJWTProvider(provider: jwtProvider)
         
-        
         if AltcraftNSE.shared.isAltcraftPush(request) {
             AltcraftNSE.shared.handleNotificationRequest(request: request, contentHandler: contentHandler)
         } else {

@@ -49,13 +49,10 @@ private func getMatchingFields(jwt: String?) -> JWTData? {
         errorEvent(#function, error: jwtIsNil)
         return nil
     }
-
-    // Decode JWT payload (Base64URL)
     guard
         let part = jwt.split(separator: ".").dropFirst().first,
         let payload = Data(base64UrlEncoded: String(part)),
         let json = try? JSONSerialization.jsonObject(with: payload) as? [String: Any],
-        // The `matching` claim inside payload is itself a JSON string → parse again
         let raw = (json[Constants.AuthKeys.matching] as? String)?.data(using: .utf8),
         let dict = try? JSONSerialization.jsonObject(with: raw) as? [String: Any]
     else {

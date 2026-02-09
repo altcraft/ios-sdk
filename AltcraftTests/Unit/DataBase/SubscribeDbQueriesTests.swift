@@ -84,8 +84,8 @@ final class SubscribeDbQueriesTests: IsolatedTestCase {
         return out
     }
 
-    /// Проверяет наличие SubscribeEntity в сторе, минуя кеш viewContext.
-    /// Используем новый background context, чтобы видеть реальные данные в persistent store.
+    /// Checks SubscribeEntity presence in store bypassing viewContext cache.
+    /// Uses a new background context to observe real persistent store state.
     private func existsSubscribeInStore(_ id: NSManagedObjectID) -> Bool {
         let ctx = sdkNewBG()
         var exists = false
@@ -138,8 +138,7 @@ final class SubscribeDbQueriesTests: IsolatedTestCase {
             customFields: custom,
             cats: cats,
             replace: nil,
-            skipTriggers: nil,
-            uid: "req-1"
+            skipTriggers: nil
         ) { result in
             switch result {
             case .success: exp.fulfill()
@@ -155,7 +154,8 @@ final class SubscribeDbQueriesTests: IsolatedTestCase {
         XCTAssertEqual(e.userTag, tag)
         XCTAssertEqual(e.status, status)
         XCTAssertEqual(e.sync, Int16(sync))
-        XCTAssertEqual(e.uid, "req-1")
+        XCTAssertNotNil(e.requestId)
+        XCTAssertFalse(e.requestId?.isEmpty ?? true)
         XCTAssertFalse(e.replace)
         XCTAssertFalse(e.skipTriggers)
         XCTAssertEqual(e.retryCount, 0)
@@ -183,18 +183,28 @@ final class SubscribeDbQueriesTests: IsolatedTestCase {
         for i in 0..<3 {
             group.enter()
             addSubscribeEntity(
-                userTag: tagA, status: "st\(i)", sync: i,
-                profileFields: nil, customFields: nil, cats: nil,
-                replace: false, skipTriggers: false, uid: "A\(i)"
+                userTag: tagA,
+                status: "st\(i)",
+                sync: i,
+                profileFields: nil,
+                customFields: nil,
+                cats: nil,
+                replace: false,
+                skipTriggers: false
             ) { _ in group.leave() }
         }
 
         for i in 0..<2 {
             group.enter()
             addSubscribeEntity(
-                userTag: tagB, status: "st\(i)", sync: i,
-                profileFields: nil, customFields: nil, cats: nil,
-                replace: false, skipTriggers: false, uid: "B\(i)"
+                userTag: tagB,
+                status: "st\(i)",
+                sync: i,
+                profileFields: nil,
+                customFields: nil,
+                cats: nil,
+                replace: false,
+                skipTriggers: false
             ) { _ in group.leave() }
         }
 
@@ -219,9 +229,14 @@ final class SubscribeDbQueriesTests: IsolatedTestCase {
         for i in 0..<2 {
             group.enter()
             addSubscribeEntity(
-                userTag: "known", status: "s\(i)", sync: i,
-                profileFields: nil, customFields: nil, cats: nil,
-                replace: false, skipTriggers: false, uid: "K\(i)"
+                userTag: "known",
+                status: "s\(i)",
+                sync: i,
+                profileFields: nil,
+                customFields: nil,
+                cats: nil,
+                replace: false,
+                skipTriggers: false
             ) { _ in group.leave() }
         }
         let ok = group.wait(timeout: .now() + timeoutShort)
@@ -251,8 +266,7 @@ final class SubscribeDbQueriesTests: IsolatedTestCase {
                 customFields: nil,
                 cats: nil,
                 replace: false,
-                skipTriggers: false,
-                uid: "C\(i)"
+                skipTriggers: false
             ) { _ in group.leave() }
         }
 
@@ -284,7 +298,7 @@ final class SubscribeDbQueriesTests: IsolatedTestCase {
     func test_5_clearOldSubscriptions_deletesOldest_whenAboveThreshold() {
         let tag = "cleanup-tag-2"
         let group = DispatchGroup()
-        
+
         for i in 0..<6 {
             group.enter()
             addSubscribeEntity(
@@ -295,8 +309,7 @@ final class SubscribeDbQueriesTests: IsolatedTestCase {
                 customFields: nil,
                 cats: nil,
                 replace: false,
-                skipTriggers: false,
-                uid: "D\(i)"
+                skipTriggers: false
             ) { _ in group.leave() }
         }
 
@@ -334,7 +347,7 @@ final class SubscribeDbQueriesTests: IsolatedTestCase {
                 let exists = self.existsSubscribeInStore(id)
                 XCTAssertFalse(exists, "Oldest record with id \(id) must be deleted")
             }
-            
+
             newestIDs.forEach { id in
                 let exists = self.existsSubscribeInStore(id)
                 XCTAssertTrue(exists, "Newest record with id \(id) must stay")
@@ -346,3 +359,4 @@ final class SubscribeDbQueriesTests: IsolatedTestCase {
         waitForExpectations(timeout: timeoutShort)
     }
 }
+

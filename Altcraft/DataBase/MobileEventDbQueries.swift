@@ -48,6 +48,7 @@ func addMobileEventEntity(
         do {
             let entity = MobileEventEntity(context: context)
             entity.userTag = userTag
+            entity.requestId = UUID().uuidString
             entity.timeZone = timeZone
             entity.time = Int64(Date().timeIntervalSince1970 * 1000)
             entity.sid = sid

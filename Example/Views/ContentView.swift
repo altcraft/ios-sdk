@@ -7,6 +7,7 @@
 //  Copyright © 2025 Altcraft. All rights reserved.
 
 import SwiftUI
+import Altcraft
 
 struct ContentView: View {
     @Binding var mode: Int
@@ -24,7 +25,7 @@ struct ContentView: View {
             }
             .frame(maxWidth: .infinity, maxHeight: .infinity)
             .background(Color.white)
-
+    
             NavigatorView(mode: $mode)
                 .frame(height: 60)
         }

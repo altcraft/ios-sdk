@@ -22,10 +22,10 @@ import Foundation
 /// - No parameters; this function uses shared singletons.
 /// - It does **not** disable token debug logging.
 @available(iOSApplicationExtension, unavailable)
-func performRetryOperations() {
+func performInitOperations() {
     NetworkMonitor.shared.performActionWhenConnected {
         ForegroundCheck.shared.isForeground {
-            
+
             subRetryCount = 0
             updateRetryCount = 0
             pushEventRetryCount = 0
@@ -35,7 +35,6 @@ func performRetryOperations() {
             
             TokenManager.shared.pushModuleIsActive{ active in
                 if active {
-                    
                     PushSubscribe.shared.enqueueStart(enableRetry: false)
                     PushEvent.shared.sendAllPushEvents()
                     TokenUpdate.shared.tokenUpdate()

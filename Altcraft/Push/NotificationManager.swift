@@ -165,12 +165,12 @@ public class NotificationManager: NSObject, UNUserNotificationCenterDelegate {
             }
             return
         }
+        
         if let userInfo = response.notification.request.content.userInfo as? [String: AnyObject] {
-            pushEvent.createPushEvent(userInfo: userInfo, type: Constants.PushEvents.open)
             pushAction.pushClickAction(userInfo: userInfo, Identifier: response.actionIdentifier)
+            self.pushEvent.createPushEvent(userInfo: userInfo, type: Constants.PushEvents.open)
         }
         if let handler = onNotificationClick { handler(response, {}) }
-
         completionHandler()
     }
 }

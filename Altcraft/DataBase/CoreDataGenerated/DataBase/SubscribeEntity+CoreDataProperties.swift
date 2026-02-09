@@ -1,14 +1,16 @@
 //
 //  SubscribeEntity+CoreDataProperties.swift
-//  Altcraft
+//  
 //
-//  Created by Andrey Pogodin.
+//  Created by andrey on 06.01.2026.
 //
-//  Copyright © 2025 Altcraft. All rights reserved.
+//
 
-import Foundation
-import CoreData
+public import Foundation
+public import CoreData
 
+
+public typealias SubscribeEntityCoreDataPropertiesSet = NSSet
 
 extension SubscribeEntity {
 
@@ -26,9 +28,6 @@ extension SubscribeEntity {
     @NSManaged public var status: String?
     @NSManaged public var sync: Int16
     @NSManaged public var time: Int64
-    @NSManaged public var uid: String?
+    @NSManaged public var requestId: String?
     @NSManaged public var userTag: String?
-
 }
-
-extension SubscribeEntity : Identifiable {}

@@ -20,7 +20,7 @@ import XCTest
 final class DeviceInfoNoSeamsTests: XCTestCase {
 
     private static let expectedOS = "IOS"
-    private static let expectedDeviceType = "Mobile"
+    private static let expectedDeviceType = "mob"
 
     private static let msgAdIdAbsent = "_ad_id must be absent when _ad_track == false"
     private static let msgAdIdPresent = "_ad_id must be present when _ad_track == true"

@@ -59,15 +59,15 @@ func getSubscribeRequestData(
                 
                 let requestData = SubscribeRequestData(
                     url: subscribeURL(config.url),
+                    requestId: entity.requestId ?? "",
                     time: entity.time / 1000,
                     rToken: config.rToken,
-                    requestId: entity.uid ?? "",
                     authHeader: auth.0,
                     matchingMode: auth.1,
                     provider: token.provider,
                     deviceToken: token.token,
                     status: entity.status ?? "",
-                    sync: entity.sync,
+                    sync: entity.sync == 1,
                     profileFields: profileFields,
                     customFields: customFields,
                     cats: decodeCats(entity.cats),
@@ -126,6 +126,7 @@ func getMobileEventRequestData(
             
             let requestData = MobileEventRequestData(
                 url: eventMobileURL(config.url),
+                requestId: entity.requestId ?? "",
                 sid: sid,
                 eventName: name,
                 parts: parts,
@@ -173,6 +174,7 @@ func getPushEventRequestData(
 
             let requestData = PushEventRequestData(
                 url: eventPushURL(config.url, event: entity),
+                requestId: entity.requestId ?? "",
                 time: entity.time / 1000,
                 type: type,
                 uid: uid,
@@ -214,7 +216,8 @@ func getUpdateRequestData(completion: @escaping (UpdateRequestData?) -> Void) {
                 oldToken: savedToken?.token,
                 newToken: currentToken.token,
                 oldProvider: savedToken?.provider,
-                newProvider: currentToken.provider
+                newProvider: currentToken.provider,
+                sync: !(config.rToken?.isEmpty ?? true)
             )
 
             completion(requestData)
@@ -243,7 +246,7 @@ func getUnSuspendRequestData(completion: @escaping (UnSuspendRequestData?) -> Vo
             
             let requestData = UnSuspendRequestData(
                 url: unSuspendUrl(config.url),
-                uid: UUID().uuidString,
+                requestId: UUID().uuidString,
                 provider: token.provider,
                 token: token.token,
                 authHeader: auth.0,
@@ -276,7 +279,7 @@ func getProfileRequestData(completion: @escaping (ProfileRequestData?) -> Void) 
             
             let requestData = ProfileRequestData(
                 url: profileUrl(config.url),
-                uid: UUID().uuidString,
+                requestId: UUID().uuidString,
                 authHeader: auth.0,
                 matchingMode: auth.1,
                 provider: tokenData?.provider,

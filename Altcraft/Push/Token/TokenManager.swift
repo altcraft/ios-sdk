@@ -116,7 +116,9 @@ final class TokenManager {
 
             let priorityList = config?.providerPriorityList ?? []
 
-            let providers: [(type: String, fetch: (@escaping (TokenData?) -> Void) -> Void)] = [
+            let providers: [(type: String, fetch: (
+                @escaping (TokenData?) -> Void) -> Void)
+            ] = [
                 (Constants.ProviderName.apns, self.getAPNsTokenData),
                 (Constants.ProviderName.firebase, self.getFCMTokenData),
                 (Constants.ProviderName.huawei, self.getHMSTokenData)
@@ -267,14 +269,11 @@ final class TokenManager {
                 workQueue.asyncAfter(deadline: when) {
                     if isCurrentlyActive() {
                         completion(true)
-                    } else if index < maxAttempts {
-                        attempt(index + 1)
-                    } else {
+                    } else if index < maxAttempts { attempt(index + 1) } else {
                         completion(false)
                     }
                 }
             }
-
             attempt(1)
         }
     }

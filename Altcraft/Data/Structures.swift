@@ -11,34 +11,44 @@ import CoreData
 
 // MARK: - Internal Structs
 
-/// Structure for storing Altcraft configuration data.
+/// Altcraft SDK configuration.
+///
+/// Holds base parameters required to build requests and drive SDK behavior.
 struct Configuration {
+    /// Base API URL.
     let url: String
+    /// Resource token (optional).
     let rToken: String?
+    /// Application metadata (optional).
     let appInfo: AppInfo?
+    /// Push provider priority list (optional).
     let providerPriorityList: [String]?
 }
 
-/// Contains the required data for JWT request authentication.
+/// JWT authentication payload.
+///
+/// Used when requests require JWT + a SHA-256 hash of a normalized matching claim.
 struct JWTData {
-    /// JWT token
+    /// JWT token.
     let jwt: String
     /// SHA-256 hash of the normalized matching claim.
     let hash: String
-    /// Matching method (e.g. "push_sub").
+    /// Matching method (e.g., `"push_sub"`).
     let matching: String
 }
 
-/// Holds the common data required to construct SDK network requests.
+/// Common data required to construct SDK network requests.
 struct RequestData {
+    /// SDK configuration (optional).
     let config: Configuration?
+    /// Authorization tuple (key, value) (optional).
     let auth: (String, String)?
 }
 
-/// Contains the data required to perform a `push/subscribe` request.
+/// Subscription model restored from Core Data.
 ///
-/// This structure is used to convert the stored `SubscribeEntity` into a usable
-/// model with decoded fields, including profile data, custom fields, and categories.
+/// Converts a stored `SubscribeEntity` into a usable model with decoded fields,
+/// including profile data, custom fields, and categories.
 struct Subscribe {
     let time: Int64?
     let requestId: String?
@@ -53,9 +63,13 @@ struct Subscribe {
     let customFields: [String: Any]?
     let cats: [CategoryData]?
 
+    /// Creates a `Subscribe` model from `SubscribeEntity`.
+    ///
+    /// - Note: `profileFields` and `customFields` are expected to be stored as encoded
+    ///         dictionaries; decoding is performed via `decodeAnyMap`.
     init(from entity: SubscribeEntity) {
         self.time = entity.time
-        self.requestId = entity.uid
+        self.requestId = entity.requestId
         self.userTag = entity.userTag
         self.status = entity.status
         self.sync = entity.sync
@@ -72,56 +86,56 @@ struct Subscribe {
     }
 }
 
-/// Represents the data required for a push notification subscription request.
+/// Data required to perform a `push/subscribe` request.
 struct SubscribeRequestData {
-    /// The URL of the subscription API endpoint.
+    /// Subscription API endpoint URL.
     let url: String
 
-    /// Timestamp in epoch milliseconds (Int64).
-    let time: Int64
-
-    /// The resource token for authentication (optional).
-    let rToken: String?
-
-    /// A unique identifier for the request.
+    /// Unique request identifier.
     let requestId: String
 
-    /// The authorization header for the request.
+    /// Timestamp in epoch milliseconds.
+    let time: Int64
+
+    /// Resource token (optional).
+    let rToken: String?
+
+    /// Authorization header value.
     let authHeader: String
 
-    /// The matching mode used for subscription identification.
+    /// Matching mode used for subscription identification.
     let matchingMode: String
 
-    /// The provider name (e.g., "ios-apns", "ios-firebase").
+    /// Provider name (e.g., `"ios-apns"`, `"ios-firebase"`).
     let provider: String
 
-    /// The device token used for push notifications.
+    /// Device token used for push notifications.
     let deviceToken: String
 
-    /// The subscription status.
+    /// Subscription status.
     let status: String
 
-    /// An  synchronization flag.
-    let sync: Int16
-    
-    /// A dictionary of profile  fields related to the subscription (optional).
+    /// Synchronization flag.
+    let sync: Bool
+
+    /// Profile fields associated with the subscription (optional).
     let profileFields: [String: Any]?
 
-    /// A dictionary of additional fields related to the subscription  (optional).
+    /// Additional custom fields (may be empty, but not nil).
     let customFields: [String: Any]
 
-    /// A dictionary of category preferences for the subscription (optional).
+    /// Category preferences (optional).
     let cats: [CategoryData]?
 
-    /// A flag indicating whether to replace the existing subscription (optional).
+    /// Whether to replace an existing subscription (optional).
     let replace: Bool?
 
-    /// A flag indicating whether to skip triggers associated with the subscription (optional).
+    /// Whether to skip triggers associated with the subscription (optional).
     let skipTriggers: Bool?
 
-    /// Validates the required fields in the subscription request.
+    /// Validates required fields.
     ///
-    /// - Returns: `true` if all required fields are present and valid, otherwise `false`.
+    /// - Returns: `true` if required fields are present and valid; otherwise `false`.
     func isValid() -> Bool {
         return time != 0 &&
         !requestId.isEmpty &&
@@ -133,10 +147,7 @@ struct SubscribeRequestData {
     }
 }
 
-/// Represents the data required for sending an update request.
-///
-/// This struct holds all the necessary parameters needed to update a token
-/// or perform an authentication-related operation.
+/// Data required to perform a token update request.
 struct UpdateRequestData {
     let url: String
     let requestId: String
@@ -145,26 +156,28 @@ struct UpdateRequestData {
     let newToken: String
     let oldProvider: String?
     let newProvider: String
+    let sync: Bool
 }
 
-/// A structure representing the necessary data for sending a push event request.
+/// Data required to perform a push event request.
 ///
-/// This structure encapsulates all required parameters for a push event API call,
-/// ensuring that only valid data is included in the request.
+/// Encapsulates required parameters for a push event API call and provides validation.
 struct PushEventRequestData {
     let url: String
+    let requestId: String
     let time: Int64
     let type: String
     let uid: String
     let authHeader: String
     let matchingMode: String
 
-    /// Validates the required fields in the push event request.
+    /// Validates required fields and event type.
     ///
-    /// - Returns: `true` if all required fields are present and valid, otherwise `false`.
+    /// - Returns: `true` if required fields are present and valid; otherwise `false`.
     func isValid() -> Bool {
         let allowedTypes = [
-            Constants.PushEvents.delivery, Constants.PushEvents.open
+            Constants.PushEvents.delivery,
+            Constants.PushEvents.open
         ]
         return time > 0 &&
             !uid.isEmpty &&
@@ -174,40 +187,40 @@ struct PushEventRequestData {
     }
 }
 
-/// Represents request data for an unSuspend reauthentication call.
+/// Data required to perform an `unSuspend` re-authentication request.
 struct UnSuspendRequestData {
     let url: String
-    let uid: String
+    let requestId: String
     let provider: String
     let token: String
     let authHeader: String
     let matchingMode: String
 }
 
-/// Represents the required data for a profile request, including the URL, headers,
-/// and subscription details.
+/// Data required to perform a profile request.
+///
+/// Includes endpoint URL, headers, matching mode, and optional subscription details.
 struct ProfileRequestData {
     let url: String
-    let uid: String
+    let requestId: String
     let authHeader: String
     let matchingMode: String
     var provider: String?
     var token: String?
 }
 
-/// Represents the necessary data for sending a mobile event request.
+/// Data required to perform a mobile event request.
 ///
-/// This struct encapsulates all required parameters for a mobile event API call,
-/// ensuring that only valid data is included in the request.
-///
+/// Encapsulates parameters for a mobile event API call.
 /// - Parameters:
-///   - url: The full API endpoint for the mobile event.
-///   - sid: The string ID of the pixel (Altcraft client ID).
-///   - eventName: The event name.
-///   - parts: The event parts.
-///   - authHeader: The authorization header (e.g. `"Bearer <token>"`).
+///   - url: Full API endpoint URL.
+///   - sid: Pixel identifier (Altcraft client ID).
+///   - eventName: Event name.
+///   - parts: Event parts.
+///   - authHeader: Authorization header value (e.g., `"Bearer <token>"`).
 struct MobileEventRequestData {
     let url: String
+    let requestId: String
     let sid: String
     let eventName: String
     let parts: [Part]
@@ -216,38 +229,36 @@ struct MobileEventRequestData {
 
 // MARK: - Public Structs
 
-/// Stores a push token and its provider name.
+/// Push token and provider.
 ///
-/// Used for saving and restoring the current device token in UserDefaults.
-///
-/// - `provider`: Push provider ("ios-apns", "ios-firebase",  "ios-huawei").
-/// - `token`: Push  token string.
+/// Used to persist and restore the current device token in `UserDefaults`.
+/// - `provider`: Push provider (e.g., `"ios-apns"`, `"ios-firebase"`, `"ios-huawei"`).
+/// - `token`: Push token string.
 public struct TokenData: Codable {
     public let provider: String
     public let token: String
 }
 
-/// Represents basic application metadata used in Firebase Analytics.
+/// Application metadata used for analytics.
 ///
-/// Provides identifying information about the app, its installation,
-/// and version, which is attached to analytics events for tracking and reporting.
+/// Provides basic app identifiers attached to events for tracking and reporting.
 public struct AppInfo: Codable {
-    
-    /// The unique Firebase App identifier.
+
+    /// Unique application identifier.
     public var appID: String
-    
-    /// The installation identifier (Instance ID) for this specific app installation.
+
+    /// Installation identifier for this specific app instance.
     public var appIID: String
-    
-    /// The version string of the app.
+
+    /// Application version string.
     public var appVer: String
 
-    /// Initializes a new `AppInfo` instance with the given app metadata.
+    /// Creates a new `AppInfo`.
     ///
     /// - Parameters:
-    ///   - appID: The Firebase App identifier.
-    ///   - appIID: The installation identifier for this app instance.
-    ///   - appVer: The application version string.
+    ///   - appID: Application identifier.
+    ///   - appIID: Installation identifier.
+    ///   - appVer: Application version.
     public init(
         appID: String,
         appIID: String,
@@ -258,10 +269,9 @@ public struct AppInfo: Codable {
         self.appVer = appVer
     }
 
-    /// Converts `AppInfo` into a dictionary representation suitable for analytics fields.
+    /// Converts `AppInfo` into a string map suitable for analytics fields.
     ///
-    /// - Returns: A dictionary with keys `_app_id`, `_app_iid`, and `_app_ver`
-    ///   mapped to the corresponding property values.
+    /// - Returns: A dictionary with `_app_id`, `_app_iid`, and `_app_ver`.
     func toAppFieldsMap() -> [String: String] {
         return [
             "_app_id": appID,
@@ -271,17 +281,17 @@ public struct AppInfo: Codable {
     }
 }
 
-/// Wraps the API response together with the HTTP status code.
+/// Wraps an API response together with an HTTP status code.
 public struct ResponseWithHttp {
     public let httpCode: Int?
     public let response: Response?
 }
 
-/// Represents the response received from a synchronous subscription request.
+/// Synchronous subscribe response payload.
 public struct Response: Codable {
-  public  let error: Int?
-  public  let errorText: String?
-  public  let profile: ProfileData?
+    public let error: Int?
+    public let errorText: String?
+    public let profile: ProfileData?
 
     enum CodingKeys: String, CodingKey {
         case error
@@ -290,7 +300,7 @@ public struct Response: Codable {
     }
 }
 
-/// Represents user profile data, including the ID, status, and subscriptions.
+/// User profile payload, including status and subscription details.
 public struct ProfileData: Codable {
     public let id: String?
     public let status: String?
@@ -305,7 +315,7 @@ public struct ProfileData: Codable {
     }
 }
 
-/// Represents a subscription with its ID, status, and associated categories.
+/// Subscription payload including provider, fields, and categories.
 public struct SubscriptionData: Codable {
     public let subscriptionId: String?
     public let hashId: String?
@@ -324,13 +334,13 @@ public struct SubscriptionData: Codable {
     }
 }
 
-/// Represents the details of a subscription category.
+/// Subscription category details.
 public struct CategoryData: Codable {
     public var name: String?
     public var title: String? = nil
     public var steady: Bool? = nil
     public var active: Bool?
-    
+
     public init(
         name: String?,
         title: String? = nil,
@@ -344,7 +354,9 @@ public struct CategoryData: Codable {
     }
 }
 
-/// Enum representing any JSON value (string, number, bool, object, array, or null).
+/// A type-safe representation of any JSON value.
+///
+/// Supports strings, numbers, booleans, objects, arrays, and null.
 public enum JSONValue: Codable, CustomStringConvertible {
     case string(String)
     case number(Double)
@@ -354,6 +366,7 @@ public enum JSONValue: Codable, CustomStringConvertible {
     case null
 
     // MARK: - Codable
+
     public init(from decoder: Decoder) throws {
         let container = try decoder.singleValueContainer()
         if container.decodeNil() {
@@ -389,6 +402,7 @@ public enum JSONValue: Codable, CustomStringConvertible {
     }
 
     // MARK: - CustomStringConvertible
+
     public var description: String {
         switch self {
         case .string(let value): return value
@@ -400,32 +414,33 @@ public enum JSONValue: Codable, CustomStringConvertible {
         }
     }
 
-    // MARK: - Convenient accessors
-    /// Returns the string value if case is `.string`, otherwise `nil`.
+    // MARK: - Convenience accessors
+
+    /// Returns the underlying string when the value is `.string`.
     public var stringValue: String? {
         if case let .string(value) = self { return value }
         return nil
     }
 
-    /// Returns the numeric value if case is `.number`, otherwise `nil`.
+    /// Returns the underlying number when the value is `.number`.
     public var numberValue: Double? {
         if case let .number(value) = self { return value }
         return nil
     }
 
-    /// Returns the boolean value if case is `.bool`, otherwise `nil`.
+    /// Returns the underlying boolean when the value is `.bool`.
     public var boolValue: Bool? {
         if case let .bool(value) = self { return value }
         return nil
     }
 
-    /// Returns the object dictionary if case is `.object`, otherwise `nil`.
+    /// Returns the underlying object when the value is `.object`.
     public var objectValue: [String: JSONValue]? {
         if case let .object(value) = self { return value }
         return nil
     }
 
-    /// Returns the array if case is `.array`, otherwise `nil`.
+    /// Returns the underlying array when the value is `.array`.
     public var arrayValue: [JSONValue]? {
         if case let .array(value) = self { return value }
         return nil
@@ -526,7 +541,7 @@ public struct PushSubscription: Subscription, Codable {
     public let resourceId: Int
     /// Provider name (e.g., `"ios-apns"`).
     public let provider: String
-    /// Unique subscription ID.
+    /// Unique subscription identifier.
     public let subscriptionId: String
     /// Subscription status (optional).
     public let status: String?
@@ -615,7 +630,7 @@ public struct CcDataSubscription: Subscription, Codable {
     }
 }
 
-/// UTM params for mobile events (all optional).
+/// UTM parameters for mobile events (all optional).
 public struct UTM: Codable {
     public let campaign: String?
     public let content: String?
@@ -624,7 +639,7 @@ public struct UTM: Codable {
     public let source: String?
     public let temp: String?
 
-    /// Public initializer (all params optional).
+    /// Creates a new `UTM` instance (all parameters are optional).
     public init(
         campaign: String? = nil,
         content: String? = nil,

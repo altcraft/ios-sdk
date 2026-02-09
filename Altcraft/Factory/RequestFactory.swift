@@ -56,7 +56,8 @@ func buildGetRequest(url: URL, authHeader: String, requestId: String) -> URLRequ
 private func buildMultipartRequest(
     url: URL,
     parts: [Part],
-    authHeader: String
+    authHeader: String,
+    requestId: String
 ) -> URLRequest {
     var request = URLRequest(url: url)
     request.httpMethod = Constants.HTTPMethod.post
@@ -68,7 +69,7 @@ private func buildMultipartRequest(
     request.setValue("multipart/form-data; boundary=\(boundary)", forHTTPHeaderField: Constants.HTTPHeader.contentType)
     request.setValue(authHeader, forHTTPHeaderField: Constants.HTTPHeader.authorization)
     request.setValue(String(body.count), forHTTPHeaderField: "Content-Length")
-
+    request.setValue(requestId, forHTTPHeaderField: Constants.HTTPHeader.requestId)
     return request
 }
 
@@ -85,7 +86,7 @@ func buildURLComponents(
     url: String,
     provider: String? = nil,
     matchingMode: String? = nil,
-    sync: Int16? = nil,
+    sync: Bool? = nil,
     subscriptionId: String? = nil
 ) -> URLComponents? {
     guard let baseURL = URL(string: url),
@@ -182,7 +183,9 @@ func createSubscribeRequest(
         return nil
     }
     
-    return buildPostRequest(url: url, body: requestBody, authHeader: data.authHeader, requestId: data.requestId)
+    return buildPostRequest(
+        url: url, body: requestBody, authHeader: data.authHeader, requestId: data.requestId
+    )
 }
 
 /// Creates a URL request for updating a push subscription token.
@@ -199,13 +202,16 @@ func createUpdateRequest(
     guard let url = buildURLComponents(
         url: data.url,
         provider: data.newProvider,
+        sync: data.sync,
         subscriptionId: data.oldToken
     )?.url else {
         errorEvent(#function, error: invalidRequestUrl, value: [Constants.MapKeys.url: data.url])
         return nil
     }
     
-    return buildPostRequest(url: url, body: requestBody, authHeader: data.authHeader, requestId: data.requestId)
+    return buildPostRequest(
+        url: url, body: requestBody, authHeader: data.authHeader, requestId: data.requestId
+    )
 }
 
 /// Creates a URL request for sending a push event (e.g. open or delivery).
@@ -227,7 +233,9 @@ func createPushEventRequest(
         return nil
     }
     
-    return buildPostRequest(url: url, body: requestBody, authHeader: data.authHeader, requestId: data.uid)
+    return buildPostRequest(
+        url: url, body: requestBody, authHeader: data.authHeader, requestId: data.requestId
+    )
 }
 
 /// Builds the `URLRequest` for an unSuspend operation.
@@ -250,7 +258,9 @@ func createUnSuspendRequest(
         return nil
     }
     
-    return buildPostRequest(url: url, body: requestBody, authHeader: data.authHeader, requestId: data.uid)
+    return buildPostRequest(
+        url: url, body: requestBody, authHeader: data.authHeader, requestId: data.requestId
+    )
 }
 
 /// Creates a URL request for profile resolution based on saved token and matching rules.
@@ -269,7 +279,7 @@ func createProfileRequest(data: ProfileRequestData) -> URLRequest? {
         return nil
     }
     
-    return buildGetRequest( url: url, authHeader: data.authHeader, requestId: data.uid)
+    return buildGetRequest(url: url, authHeader: data.authHeader, requestId: data.requestId)
 }
 
 /// Creates a complete URL request for a push subscription.
@@ -390,5 +400,7 @@ func createMobileEventRequest(
         errorEvent(#function, error: invalidRequestUrl, value: [Constants.MapKeys.url: data.url])
         return nil
     }
-    return buildMultipartRequest(url: url, parts: data.parts, authHeader: data.authHeader)
+    return buildMultipartRequest(
+        url: url, parts: data.parts, authHeader: data.authHeader, requestId: data.requestId
+    )
 }
