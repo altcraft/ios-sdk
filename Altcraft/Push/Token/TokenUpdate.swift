@@ -46,7 +46,8 @@ final class TokenUpdate: NSObject {
     ///   - `false` if the flow fails.
     private func performTokenUpdate(done: @escaping (Bool) -> Void) {
         guard let savedToken = self.userDefault.getSavedToken() else {
-            return done(true)
+            done(true)
+            return
         }
         
         self.tokenManager.getCurrentToken { [weak self]
