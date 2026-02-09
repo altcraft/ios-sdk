@@ -10,7 +10,8 @@ import Foundation
 
 /// A singleton class responsible for handling device token updates for Altcraft profiles .
 @available(iOSApplicationExtension, unavailable)
-class TokenUpdate: NSObject {
+final class TokenUpdate: NSObject {
+
     public static let shared = TokenUpdate()
     private let pushSubscribe = PushSubscribe.shared
     private let tokenManager = TokenManager.shared
@@ -18,56 +19,76 @@ class TokenUpdate: NSObject {
     let userDefault = StoredVariablesManager.shared
     private func retry() { localTokenUpdateRetry() }
     var currentToken: TokenData? = nil
-    private let tokenUpdateQueue = DispatchQueue(
+
+    private let coordinator = UpdateCoordinator<Bool>(
         label: Constants.Queues.tokenUpdateQueue
     )
-  
+
+    private override init() { super.init() }
+
     /// Initiates the device push token update flow.
     ///
-    /// Compares the saved token with the current one obtained from `TokenManager`.
-    /// If tokens differ, requests background execution, resets the retry counter to `0`,
-    /// and starts the update process. If tokens are equal, simply completes.
+    /// Completion returns:
+    /// - false: if tokenUpdate failed OR if update produced RetryEvent
+    /// - true:  for any other outcome (including "no update needed")
+    func tokenUpdate(completion: ((Bool) -> Void)? = nil) {
+        coordinator.run(operation: { [weak self] done in
+            guard let self else { done(false); return }
+            self.performTokenUpdate(done: done)
+        }, completion: completion)
+    }
+    
+    /// Performs the device push token update flow.
     ///
-    /// - Parameter completion: Optional closure called after the operation completes.
-    func tokenUpdate(completion: (() -> Void)? = nil) {
-        tokenUpdateQueue.async {
-            let savedToken = self.userDefault.getSavedToken()
+    /// - Parameter done: Completion handler called when the flow finishes.
+    ///   Passes:
+    ///   - `true` if update is not needed or the update flow finishes successfully
+    ///   - `false` if the flow fails.
+    private func performTokenUpdate(done: @escaping (Bool) -> Void) {
+        guard let savedToken = self.userDefault.getSavedToken() else {
+            return done(true)
+        }
+        
+        self.tokenManager.getCurrentToken { [weak self]
+            currentToken in
+            
+            guard let self else { done(false); return }
 
-            self.tokenManager.getCurrentToken { currentToken in
-                guard let currentToken = currentToken else {
-                    errorEvent(#function, error: pushTokenIsNil)
-                    return self.tokenUpdateQueue.async {
-                        completion?()
-                    }
-                }
+            guard let currentToken = currentToken else {
+                errorEvent(#function, error: pushTokenIsNil)
+                done(false)
+                return
+            }
+            
+            self.currentToken = currentToken
 
-                self.currentToken = currentToken
-
-                if savedToken?.token != currentToken.token {
-                    self.backgroundTask.accessToBackground()
-                    updateRetryCount = 0
-                    self.startUpdate {
-                        self.tokenUpdateQueue.async {
-                            completion?()
-                        }
-                    }
-                } else {
-                    self.tokenUpdateQueue.async {
-                        completion?()
-                    }
-                }
+            if savedToken.token == currentToken.token {
+                done(true)
+                return
+            }
+            
+            self.backgroundTask.accessToBackground()
+            updateRetryCount = 0
+            
+            self.startUpdate { [weak self] success in
+                guard self != nil else { done(false); return }
+                done(success)
             }
         }
     }
-    
+
     /// Starts the token update process.
     ///
-    /// - Parameter completion: Optional closure called after the update finishes.
-    func startUpdate (completion: (() -> Void)? = nil) {
-        sendUpdateRequest { event in
+    /// Completion returns:
+    /// - false: if event is RetryEvent
+    /// - true:  for any other event type (including ErrorEvent)
+    func startUpdate(completion: ((Bool) -> Void)? = nil) {
+        sendUpdateRequest { [weak self] event in
+            guard let self else { return }
+            
             if event is RetryEvent {
                 self.retry()
-                completion?()
+                completion?(false)
                 return
             }
             
@@ -77,20 +98,14 @@ class TokenUpdate: NSObject {
                     token: self.currentToken?.token
                 )
             }
-            completion?()
+            
+            completion?(true)
         }
     }
-    
+
     /// Sends the device push token update request.
-    ///
-    /// Builds the request using `getUpdateRequestData()` and `updateRequest(data:)`.
-    /// If required data is missing or the request cannot be created, completes with a `RetryEvent`.
-    /// Otherwise forwards the resulting `Event` from `RequestManager`.
-    ///
-    /// - Parameter completion: Closure invoked with the resulting `Event`
-    ///   (success, non-retryable error, or `RetryEvent`).
     func sendUpdateRequest(completion: @escaping (Event) -> Void) {
-        getUpdateRequestData{ data in
+        getUpdateRequestData { data in
             guard let data = data else {
                 completion(retryEvent(#function, error: updateRequestDataIsNil))
                 return
@@ -100,7 +115,7 @@ class TokenUpdate: NSObject {
                 return
             }
             RequestManager.shared.sendRequest(
-                request: request, requestName: Constants.RequestName.update, completion: completion
+                request: request, requestName: Constants.RequestName.update,completion: completion
             )
         }
     }

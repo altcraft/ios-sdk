@@ -53,42 +53,45 @@ internal class PushSubscribe: NSObject {
         skipTriggers: Bool? = nil
     ) {
         self.backgroundTask.accessToBackground()
+        let initGate = InitBarrier.shared.current()
         SubscribeQueues.entityQueue.submit { done in
-            guard !self.userDefault.getDbErrorStatus() else {
-                errorEvent(#function, error: coreDataError)
-                done()
-                return
-            }
-            getUserTag { userTag in
-                guard let userTag = userTag else {
-                    errorEvent(#function, error: userTagIsNilE)
+            withInitReady(function: #function, gate: initGate) {
+                guard !self.userDefault.getDbErrorStatus() else {
+                    errorEvent(#function, error: coreDataError)
                     done()
                     return
                 }
-                if customFields.containsNonPrimitiveValues() {
-                    errorEvent(#function, error: fieldsIsObjects)
-                    done()
-                    return
-                }
-                addSubscribeEntity(
-                    userTag: userTag,
-                    status: status,
-                    sync: sync,
-                    profileFields: profileFields,
-                    customFields: customFields,
-                    cats: cats,
-                    replace: replace,
-                    skipTriggers: skipTriggers,
-                    uid: UUID().uuidString
-                ) { result in
-                    switch result {
-                    case .success:
-                        subRetryCount = 0
-                        self.enqueueStart()
+                getUserTag { userTag in
+                    guard let userTag = userTag else {
+                        errorEvent(#function, error: userTagIsNilE)
                         done()
-                    case .failure(let err):
-                        errorEvent(#function, error: err)
+                        return
+                    }
+                    if customFields.containsNonPrimitiveValues() {
+                        errorEvent(#function, error: fieldsIsObjects)
                         done()
+                        return
+                    }
+                    addSubscribeEntity(
+                        userTag: userTag,
+                        status: status,
+                        sync: sync,
+                        profileFields: profileFields,
+                        customFields: customFields,
+                        cats: cats,
+                        replace: replace,
+                        skipTriggers: skipTriggers
+                    ) { result in
+                        switch result {
+                        case .success:
+                            subRetryCount = 0
+                            self.enqueueStart()
+                            done()
+
+                        case .failure(let err):
+                            errorEvent(#function, error: err)
+                            done()
+                        }
                     }
                 }
             }
@@ -96,27 +99,47 @@ internal class PushSubscribe: NSObject {
     }
 
     /// Enqueues a subscription processing job into the serial command queue.
-    /// Creates a fresh background context via `getContext()` and starts a single
-    /// `startSubscribe` run. The queue guarantees that only one run executes at a time;
-    /// the queue is released only after the whole flow completes.
-    ///
-    /// - Parameter enableRetry: If `true`, schedules internal retry on failure
-    ///                          (e.g., no permission/network). If `false`, no retry is scheduled.
-    func enqueueStart(enableRetry: Bool = true) {
-        SubscribeQueues.startQueue.submit { done in
-            self.startSubscribe(context: getContext(), enableRetry: enableRetry) {
-                done()
-            }
-        }
-    }
-    
+      /// Creates a fresh background context via `getContext()` and starts a single
+      /// `startSubscribe` run. The queue guarantees that only one run executes at a time;
+      /// the queue is released only after the whole flow completes.
+      ///
+      /// - Parameter enableRetry: If `true`, schedules internal retry on failure
+      ///                          (e.g., no permission/network). If `false`, no retry is scheduled.
+      func enqueueStart(enableRetry: Bool = true) {
+          SubscribeQueues.startQueue.submit { done in
+              getConfig { configuration in
+                  let start: () -> Void = {
+                      self.startSubscribe(context: getContext(), enableRetry: enableRetry) {
+                          done()
+                      }
+                  }
+                  guard let rToken = configuration?.rToken, !rToken.isEmpty else {
+                      start()
+                      return
+                  }
+                  
+                  TokenUpdate.shared.tokenUpdate { update in
+                      if update {
+                          start()
+                          return
+                      }
+
+                      if enableRetry {
+                          self.retry()
+                      }
+                      done()
+                  }
+              }
+          }
+      }
+
     /// Starts the full subscription processing flow using the provided Core Data context.
-    /// Waits for network connectivity, then validates push authorization and proceeds with processing.
-    /// If authorization fails or processing indicates retry, a retry event can be scheduled.
+    /// Waits for network connectivity, then proceeds with processing.
+    /// If processing indicates retry, a retry event can be scheduled.
     ///
     /// - Parameters:
     ///   - context: Managed object context to use for the operation.
-    ///   - enableRetry: If `true`, schedules internal retry on failure (e.g., no permission/network).
+    ///   - enableRetry: If `true`, schedules internal retry on failure (e.g., network/processing failures).
     ///   - completion: Closure called after the operation completes (always invoked on `SubscribeQueues.syncQueue`).
     func startSubscribe(
         context: NSManagedObjectContext,
@@ -124,27 +147,17 @@ internal class PushSubscribe: NSObject {
         completion: @escaping () -> Void = {}
     ) {
         NetworkMonitor.shared.performActionWhenConnected {
-            UNUserNotificationCenter.current().getNotificationSettings { settings in
-                if settings.authorizationStatus != .authorized {
-                    retryEvent(#function, error: permissionDenied)
-                    if enableRetry { self.retry() }
-                    return SubscribeQueues.syncQueue.async {
-                        completion()
-                    }
+            self.processSubscriptions(context: context) { completed in
+                if !completed && enableRetry {
+                    self.retry()
                 }
-                
-                self.processSubscriptions(context: context) { completed in
-                    if !completed && enableRetry {
-                        self.retry()
-                    }
-                    SubscribeQueues.syncQueue.async {
-                        completion()
-                    }
+                SubscribeQueues.syncQueue.async {
+                    completion()
                 }
             }
         }
     }
-    
+
     /// Processes all stored subscriptions using the provided Core Data context.
     /// If no subscriptions are found, completes immediately. Triggers retry logic if any subscription fails.
     ///
@@ -198,7 +211,7 @@ internal class PushSubscribe: NSObject {
         }
         processNext()
     }
-    
+        
     /// Handles a single subscription: decides whether to finish or retry.
     ///
     /// - Parameters:
@@ -210,16 +223,41 @@ internal class PushSubscribe: NSObject {
         subscription: NSManagedObjectID,
         completion: @escaping (RequestResult) -> Void
     ) {
-        
         self.sendSubscribeRequest(context: context, objectID: subscription) { result in
-            if result is RetryEvent {
-                retryLimit(context: context, for: subscription){ limit in completion(limit ? .completed : .retry) }
-                return
+            
+            switch result {
+
+            case is RetryEvent:
+                retryLimit(context: context, for: subscription){
+                    limit in completion(limit ? .completed : .retry)
+                }
+                
+            case is ErrorEvent:
+                deleteEntity(context: context, objectID: subscription) {
+                    deleted in completion(deleted ? .completed : .retry)
+                }
+
+            default:
+                TokenManager.shared.getCurrentToken { currentToken in
+                    guard let currentToken = currentToken else {
+                        errorEvent(#function, error: pushTokenIsNil)
+                        completion(.retry)
+                        return
+                    }
+
+                    self.userDefault.setCurrentToken(
+                        provider: currentToken.provider,
+                        token: currentToken.token
+                    )
+
+                    deleteEntity(context: context, objectID: subscription) {
+                        deleted in completion(deleted ? .completed : .retry)
+                    }
+                }
             }
-            deleteEntity(context: context, objectID: subscription) { deleted in completion(deleted ? .completed : .retry) }
         }
     }
-    
+
     /// Executes the subscription flow for a single stored entity, including request preparation and network submission.
     ///
     /// - Parameters:
@@ -236,13 +274,30 @@ internal class PushSubscribe: NSObject {
                 completion(retryEvent(#function, error: subscribeRequestDataIsNil))
                 return
             }
-            guard let request = subscribeRequest(data: data) else {
-                completion(retryEvent(#function, error: failedCreateRequest))
-                return
+            
+            UNUserNotificationCenter.current().getNotificationSettings { settings in
+                if settings.authorizationStatus != .authorized &&
+                   data.status == Constants.SubStatus.subscribed.rawValue {
+                    completion(retryEvent(#function, error: permissionDenied))
+                    return
+                }
+                
+                guard let request = subscribeRequest(data: data) else {
+                    completion(retryEvent(#function, error: failedCreateRequest))
+                    return
+                }
+                
+                let requestName = switch data.status {
+                case Constants.SubStatus.suspended.rawValue: Constants.RequestName.suspend
+                case Constants.SubStatus.subscribed.rawValue: Constants.RequestName.subscribe
+                case Constants.SubStatus.unsubscribed.rawValue: Constants.RequestName.unsubscribe
+                default:Constants.RequestName.subscribe
+                }
+                
+                RequestManager.shared.sendRequest(
+                    request: request, requestName: requestName, completion: completion
+                )
             }
-            RequestManager.shared.sendRequest(
-                request: request, requestName: Constants.RequestName.subscribe, completion: completion
-            )
         }
     }
 }

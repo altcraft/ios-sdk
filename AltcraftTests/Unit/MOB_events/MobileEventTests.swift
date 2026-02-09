@@ -170,6 +170,7 @@ final class MobileEventTest: IsolatedTestCase {
     func test_5_createMobileEventRequest_builds_valid_multipart_request() throws {
         let data = MobileEventRequestData(
             url: "https://api.altcraft.test/mob",
+            requestId: "RID-\(UUID().uuidString)",
             sid: "SID-9",
             eventName: "open",
             parts: [
@@ -269,3 +270,4 @@ final class MobileEventTest: IsolatedTestCase {
         XCTAssertFalse(type(of: cliErr) == RetryEvent.self)
     }
 }
+

@@ -36,14 +36,13 @@ func addSubscribeEntity(
     cats: [CategoryData]?,
     replace: Bool?,
     skipTriggers: Bool?,
-    uid: String?,
     completion: @escaping (Result<Void, Error>) -> Void
 ) {
     withBackgroundContext { context in
         do {
             let newEntity = SubscribeEntity(context: context)
             newEntity.time = Int64(Date().timeIntervalSince1970 * 1000)
-            newEntity.uid = uid
+            newEntity.requestId = UUID().uuidString
             newEntity.userTag = userTag
             newEntity.status = status
             newEntity.sync = Int16(sync)

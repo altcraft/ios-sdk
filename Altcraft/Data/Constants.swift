@@ -42,7 +42,11 @@ public enum Constants {
     /// Centralized string constants for queue labels used in the SDK.
     /// Helps to avoid duplication and typos when creating DispatchQueue instances.
     enum Queues {
+        // === Init queues ===
         
+        /// Serial queue for SDK initialization.
+        static let initQueue = "com.altcraft.InitQueue"
+
         // === Subscribe queues ===
         
         /// Queue label for sequential creation of subscription entities.
@@ -91,6 +95,27 @@ public enum Constants {
         
         
         static let retryManagerSync = "com.altcraft.retry.manager.sync"
+        
+        // === InitBarrier queues === //
+
+        /// Serial queue protecting InitGate state.
+        static let initGateQueue = "com.altcraft.initGateQueue"
+
+        /// Serial queue protecting InitBarrier state .
+        static let initBarrierStateQueue = "com.altcraft.initBarrier.state"
+
+        /// Serial queue used to synchronize awaitInit completion/timeout so it fires only once.
+        static let initBarrierAwaitQueue = "com.altcraft.initBarrier.await"
+
+        // === UpdateBarrier queues === //
+
+        /// Serial queue protecting UpdateBarrier round state.
+        static let updateBarrierQueue = "com.altcraft.updateBarrierQueue"
+        
+        // === AccessToBackground == //
+        
+        /// Serial queue name used to synchronize background task start and end operations.
+        static let accessToBackgroundQueue = "com.altcraft.accessToBackgroundQueue"
     }
     
     /// A namespace for commonly used Core Data context names.
@@ -303,15 +328,15 @@ public enum Constants {
     }
     
     /// Subscription status values.
-    enum Status: String {
+    enum SubStatus: String {
         /// Active subscription.
-        case subscribe = "subscribed"
+        case subscribed = "subscribed"
         
         /// User manually unsubscribed.
-        case unsubscribe = "unsubscribed"
+        case unsubscribed = "unsubscribed"
         
         /// Subscription is temporarily suspended.
-        case suspend = "suspended"
+        case suspended = "suspended"
     }
     
     /// Defines event types for the push_event request.
@@ -413,11 +438,17 @@ public enum Constants {
     
     /// A namespace for predefined SDK request names.
     enum RequestName {
-        /// Request path for push unsuspend.
-        static let unsuspend = "push/unsuspend"
-        
         /// Request path for push subscribe.
         static let subscribe = "push/subscribe"
+        
+        /// Request path for push subscribe.
+        static let suspend = "push/suspend"
+        
+        /// Request path for push subscribe.
+        static let unsubscribe = "push/unsubscribe"
+        
+        /// Request path for push unsuspend.
+        static let unsuspend = "push/unsuspend"
         
         /// Request path for push status.
         static let status = "push/status"
@@ -436,6 +467,12 @@ public enum Constants {
     enum SDKSuccessMessage {
         /// Message for successful completion of the subscription request.
         static let subscribeSuccess = "successful request: \(RequestName.subscribe)"
+        
+        /// Message for successful completion of the push suspend request.
+        static let suspendSuccess = "successful request: \(RequestName.suspend)"
+        
+        /// Message for successful completion of the push unsubscribe request.
+        static let unsubscribeSuccess = "successful request: \(RequestName.unsubscribe)"
         
         /// Message for successful completion of the token update request.
         static let tokenUpdateSuccess = "successful request: \(RequestName.update)"

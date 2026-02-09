@@ -44,7 +44,7 @@ class DeviceInfo {
             deviceInfo["_os_tz"] = timeZone
             deviceInfo["_ad_track"] = adTrack
             deviceInfo["_os_language"] = language
-            deviceInfo["_device_type"] = "Mobile"
+            deviceInfo["_device_type"] = "mob"
             deviceInfo["_device_model"] = deviceModel
             deviceInfo["_device_name"] = deviceName
             deviceInfo["_os_ver"] = osVersion

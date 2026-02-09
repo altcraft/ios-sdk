@@ -33,11 +33,11 @@ Altcraft iOS SDK is a library for managing push notifications, user profiles, an
 
 **Cocoapods:**
 
-`pod 'Altcraft', '1.0.1'`
+`pod 'Altcraft', '1.0.2'`
 
 **Swift Package Manager:**
 
-`1.0.1`
+`1.0.2`
 
 ---
 

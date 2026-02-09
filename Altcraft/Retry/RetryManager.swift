@@ -28,7 +28,7 @@ final class RetryManager {
     let mobileEventQueue = DispatchQueue(label: Constants.Queues.retryMobileEventQueue, qos: .utility)
 
     /// Active retry tasks, stored by key.
-    private var tasks: [String: DispatchWorkItem] = [:]
+    var tasks: [String: DispatchWorkItem] = [:]
     private let sync = DispatchQueue(label: Constants.Queues.retryManagerSync)
 
     /// Stores a retry task for later cancellation.

@@ -42,7 +42,7 @@ public class PublicPushSubscriptionFunctions: NSObject {
         skipTriggers: Bool? = nil
     ) {
         PushSubscribe.shared.pushSubscribe(
-            status: Constants.Status.subscribe.rawValue,
+            status: Constants.SubStatus.subscribed.rawValue,
             sync: sync ? 1 : 0,
             profileFields: profileFields,
             customFields: customFields,
@@ -96,7 +96,7 @@ public class PublicPushSubscriptionFunctions: NSObject {
         skipTriggers: Bool? = nil
     ) {
         PushSubscribe.shared.pushSubscribe(
-            status: Constants.Status.unsubscribe.rawValue,
+            status: Constants.SubStatus.unsubscribed.rawValue,
             sync: sync ? 1 : 0,
             profileFields: profileFields,
             customFields: customFields,
@@ -150,7 +150,7 @@ public class PublicPushSubscriptionFunctions: NSObject {
         skipTriggers: Bool? = nil
     ) {
         PushSubscribe.shared.pushSubscribe(
-            status: Constants.Status.suspend.rawValue,
+            status: Constants.SubStatus.suspended.rawValue,
             sync: sync ? 1 : 0,
             profileFields: profileFields,
             customFields: customFields,

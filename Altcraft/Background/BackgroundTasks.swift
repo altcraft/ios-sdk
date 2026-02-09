@@ -72,7 +72,7 @@ public class BackgroundTask: NSObject {
         
         let context = getContext()
         
-        TokenUpdate.shared.tokenUpdate() {
+        TokenUpdate.shared.tokenUpdate() {_ in 
             PushSubscribe.shared.startSubscribe(context: context, enableRetry: false) {
                 MobileEvent.shared.startEventsSend(context: context, enableRetry: false) {
                     PushEvent.shared.sendAllPushEvents() {

@@ -13,11 +13,15 @@ import Foundation
 /// This class is used internally and accessed via the `shared` singleton.
 @available(iOSApplicationExtension, unavailable)
 class AltcraftInit: NSObject {
-    
+
     /// A shared singleton instance of `AltcraftInit`
     ///  used to access SDK initialization logic.
     internal static let shared = AltcraftInit()
-    
+
+    private let initQueue = DispatchQueue(
+        label: Constants.Queues.initQueue
+    )
+
     /// Initializes the Altcraft SDK with the provided configuration.
     ///
     /// - Parameters:
@@ -25,27 +29,50 @@ class AltcraftInit: NSObject {
     ///   - completion: Optional callback invoked on the **main** queue with `true` on success,
     ///                 `false` on failure (including `nil` configuration).
     func initSDK(
-        configuration: AltcraftConfiguration?, 
+        configuration: AltcraftConfiguration?,
         completion: ((Bool) -> Void)? = nil
     ) {
-        guard let config = configuration else {
-            errorEvent(#function, error: configIsNotSet)
-            completion?(false)
-            return
-        }
-        Logger.shared.setStatus(
-            status: config.getEnableLogging()
-        )
-        setConfig(
-            url: config.getApiUrl(),
-            rToken:config.getRToken(),
-            appInfo: config.getAppInfo(),
-            providerPriorityList: config.getProviderPriorityList()
-        ) { set in
-            if !set {completion?(false); return}
-            event(#function, event: configSet)
-            performRetryOperations()
-            completion?(true)
+        let reservedGate = InitBarrier.shared.reserve()
+
+        initQueue.async {
+            var didFinish = false
+
+            func finish(_ success: Bool) {
+                guard !didFinish else { return }
+                didFinish = true
+                DispatchQueue.main.async {
+                    completion?(success)
+                }
+                InitBarrier.shared.complete(
+                    reservedGate
+                )
+            }
+
+            guard let config = configuration else {
+                errorEvent(#function, error: configIsNotSet)
+                finish(false)
+                return
+            }
+
+            Logger.shared.setStatus(
+                status: config.getEnableLogging()
+            )
+            
+            setConfig(
+                url: config.getApiUrl(),
+                rToken: config.getRToken(),
+                appInfo: config.getAppInfo(),
+                providerPriorityList: config.getProviderPriorityList()
+            ) { set in
+                self.initQueue.async {
+                    guard set else {
+                        return finish(false)
+                    }
+                    event(#function, event: configSet)
+                    performInitOperations()
+                    finish(true)
+                }
+            }
         }
     }
 }

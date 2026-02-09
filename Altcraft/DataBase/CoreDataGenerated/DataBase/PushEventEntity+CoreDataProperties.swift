@@ -1,14 +1,16 @@
 //
 //  PushEventEntity+CoreDataProperties.swift
-//  Altcraft
+//  
 //
-//  Created by Andrey Pogodin.
+//  Created by andrey on 06.01.2026.
 //
-//  Copyright © 2025 Altcraft. All rights reserved.
+//
 
-import Foundation
-import CoreData
+public import Foundation
+public import CoreData
 
+
+public typealias PushEventEntityCoreDataPropertiesSet = NSSet
 
 extension PushEventEntity {
 
@@ -21,7 +23,6 @@ extension PushEventEntity {
     @NSManaged public var time: Int64
     @NSManaged public var type: String?
     @NSManaged public var uid: String?
+    @NSManaged public var requestId: String?
 
 }
-
-extension PushEventEntity : Identifiable {}

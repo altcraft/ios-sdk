@@ -1,14 +1,16 @@
 //
 //  MobileEventEntity+CoreDataProperties.swift
-//  Altcraft
+//  
 //
-//  Created by Andrey Pogodin.
+//  Created by andrey on 06.01.2026.
 //
-//  Copyright © 2025 Altcraft. All rights reserved.
+//
 
-import Foundation
-import CoreData
+public import Foundation
+public import CoreData
 
+
+public typealias MobileEventEntityCoreDataPropertiesSet = NSSet
 
 extension MobileEventEntity {
 
@@ -31,7 +33,5 @@ extension MobileEventEntity {
     @NSManaged public var timeZone: Int16
     @NSManaged public var userTag: String?
     @NSManaged public var utmTags: Data?
-
+    @NSManaged public var requestId: String?
 }
-
-extension MobileEventEntity : Identifiable {}

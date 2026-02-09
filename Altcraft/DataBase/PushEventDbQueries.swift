@@ -26,6 +26,7 @@ func addPushEventEntity(
     withBackgroundContext{ context in
         let entity = PushEventEntity(context: context)
         entity.time = Int64(Date().timeIntervalSince1970 * 1000)
+        entity.requestId = UUID().uuidString
         entity.uid = uid
         entity.type = type
         entity.retryCount = 0

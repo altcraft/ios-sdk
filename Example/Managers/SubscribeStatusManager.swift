@@ -28,19 +28,21 @@ class SubscribeStatusManager: ObservableObject {
     
     /// Update the status based on the provided event
     func updateStatus(with event: Event) {
-        let eventCode = event.eventCode ?? 0
+        let code = event.eventCode ?? 0
         let eventValue = event.value?["response_with_http_code"] as? ResponseWithHttp
-        
-        
-        if eventCode == 230 || eventCode == 233 {
-            self.status =  eventValue?.response?.profile?.subscription?.status ??
-            AppConstants.SubscriptionStatus.unsubscribed
+
+        let statusUpdateCodes: Set<Int> = [230, 231, 232, 235]
+
+        if statusUpdateCodes.contains(code) {
+            status = eventValue?.response?.profile?.subscription?.status
+                ?? AppConstants.SubscriptionStatus.unsubscribed
             UserDefaults.standard.set(status, forKey: "subscribeStatus")
+            return
         }
-        
-        if eventCode == 433 &&
-           (event.message?.range(of: "profile not found", options: [.caseInsensitive]) != nil) {
-            self.status = AppConstants.SubscriptionStatus.unsubscribed
+
+        if code == 433,
+           event.message?.range(of: "profile not found", options: [.caseInsensitive]) != nil {
+            status = AppConstants.SubscriptionStatus.unsubscribed
             UserDefaults.standard.set(status, forKey: "subscribeStatus")
         }
     }

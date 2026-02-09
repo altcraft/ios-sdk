@@ -172,7 +172,6 @@ struct MainView: View {
                                 ActionButton(label: "update device token", onClick: {
                                     
                                     AltcraftSDK.shared.pushTokenFunction.forcedTokenUpdate()
-                                    //Update
                                 }, customIcon: {
                                     AnyView(UShapedIcon())
                                 }).frame(maxWidth: .infinity)

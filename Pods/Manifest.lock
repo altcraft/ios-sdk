@@ -1,3 +1,32 @@
-PODFILE CHECKSUM: 865405774da67e62c59e739025ed4f3a6b6e7a73
+PODS:
+  - AGConnectCore (1.9.3.300):
+    - HMFoundation (~> 1.4)
+  - AGConnectCredential (1.9.3.300):
+    - AGConnectCore (~> 1.4)
+  - HiAnalytics (6.10.0.311):
+    - AGConnectCredential
+  - HMFoundation (1.9.3.300)
+  - HmsPushSDK (5.0.5.309):
+    - HiAnalytics
+
+DEPENDENCIES:
+  - HmsPushSDK
+
+SPEC REPOS:
+  trunk:
+    - AGConnectCore
+    - AGConnectCredential
+    - HiAnalytics
+    - HMFoundation
+    - HmsPushSDK
+
+SPEC CHECKSUMS:
+  AGConnectCore: c27ebd37c99416070c8b724a3b19758bbbc14c81
+  AGConnectCredential: 6a7cef0727278a7d5e41e1d0163986782d4e1b9a
+  HiAnalytics: 07a774c560885f699db1d25af9e0cfc3fcf315e3
+  HMFoundation: 0de865b8b37ec896a679efd6da548340b3c30a11
+  HmsPushSDK: 5557607599cb37f7dd9528c17c97def4e63f544d
+
+PODFILE CHECKSUM: d5111e9f6324554a9b131436dd8a22581b27adf5
 
 COCOAPODS: 1.16.2

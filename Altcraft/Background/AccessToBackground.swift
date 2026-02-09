@@ -10,44 +10,72 @@ import Foundation
 import BackgroundTasks
 import UIKit
 
-/// A singleton class that manages starting and ending background tasks,
-/// ensuring certain operations can continue running while the app is in the background.
+/// Manages a single background task lifecycle.
 @available(iOSApplicationExtension, unavailable)
-class AccessToBackground: NSObject {
-   /// The shared singleton instance of `AccessToBackground`.
-   public static let shared = AccessToBackground()
-   /// A set that keeps track of active background tasks by their names.
-   var activeBackgroundTasks: Set<String> = []
-   /// The name used for the background task.
-   let name = Constants.bgTaskName
+final class AccessToBackground: NSObject {
 
-    /// Begins a background task to allow specific operations to continue in the background.
-    ///
-    /// Requests additional time from the system and sets a timeout to end the task after 29 seconds.
-    private func beginBackground() {
-        let id = UIApplication.shared.beginBackgroundTask(withName: name)
-        DispatchQueue.main.asyncAfter(deadline: .now() + 29) { [weak self] in
-            self?.endBackgroundTask(id)
-        }
+    /// Shared singleton instance.
+    public static let shared = AccessToBackground()
+
+    /// Current background task identifier (`.invalid` if no task is active).
+    private var taskID: UIBackgroundTaskIdentifier = .invalid
+
+    /// Serial queue to synchronize access to `taskID`
+    /// and prevent parallel start/end of background tasks.
+    private let queue = DispatchQueue(
+        label: Constants.Queues.accessToBackgroundQueue
+    )
+
+    /// Queue-specific key to detect execution on `queue`
+    /// and avoid deadlocks when calling `queue.sync`.
+    private static let queueKey = DispatchSpecificKey<Void>()
+
+    /// Background task name used for system diagnostics.
+    private let name = Constants.bgTaskName
+
+    /// Sets up queue-specific context for safe synchronous access.
+    override init() {
+        super.init()
+        queue.setSpecific(key: Self.queueKey, value: ())
     }
 
-    /// Ends a background task with the given task identifier.
-    ///
-    /// - Parameter backgroundTaskID: The identifier of the task to be ended.
-    private func endBackgroundTask(_ backgroundTaskID: UIBackgroundTaskIdentifier) {
-        guard backgroundTaskID != .invalid else { return }
-        UIApplication.shared.endBackgroundTask(backgroundTaskID)
-        activeBackgroundTasks.remove(name)
-    }
-    
-    /// Grants access to background execution if not already active.
-    ///
-    /// Starts a new background task only if one with the same name isn't already running.
+    /// Starts a background task if none is currently active.
+    /// Safe to call from any thread.
     func accessToBackground() {
-        let backgroundTaskName = name
-        if !activeBackgroundTasks.contains(backgroundTaskName) {
-            activeBackgroundTasks.insert(backgroundTaskName)
-            beginBackground()
+        queue.async { [weak self] in
+            guard let self else {
+                return
+            }
+            if self.taskID == .invalid {
+                let id = UIApplication.shared.beginBackgroundTask(withName: self.name) {
+                    [weak self] in self?.endBackgroundTask()
+                }
+                guard id != .invalid else { return }; self.taskID = id
+                DispatchQueue.main.asyncAfter(deadline: .now() + 25) {
+                    [weak self] in self?.endBackgroundTask()
+                }
+            }
         }
+    }
+
+    /// Ends the currently active background task immediately.
+    /// Can be safely called from any thread, including expiration handler.
+    private func endBackgroundTask() {
+        if DispatchQueue.getSpecific(key: Self.queueKey) != nil {
+            endBackgroundTaskOnQueue()
+        } else {
+            queue.sync {
+                endBackgroundTaskOnQueue()
+            }
+        }
+    }
+
+    /// Performs the actual background task termination.
+    /// Must be executed on `queue`.
+    private func endBackgroundTaskOnQueue() {
+        let id = taskID
+        guard id != .invalid else {return}
+        taskID = .invalid
+        UIApplication.shared.endBackgroundTask(id)
     }
 }

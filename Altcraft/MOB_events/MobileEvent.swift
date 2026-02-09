@@ -10,7 +10,7 @@ import Foundation
 import CoreData
 
 class MobileEvent: NSObject {
-    
+
     static let shared = MobileEvent()
     let userDefault = StoredVariablesManager.shared
     
@@ -72,7 +72,6 @@ class MobileEvent: NSObject {
                     done()
                     return
                 }
-        
                 let timeZone = DeviceInfo().getTimeZone()
                 
                 addMobileEventEntity(
@@ -94,6 +93,7 @@ class MobileEvent: NSObject {
                         mobileEventRetryCount = 0
                         self.enqueueStart()
                         done()
+                        
                     case .failure(let error):
                         errorEvent(#function, error: error)
                         done()
@@ -102,7 +102,7 @@ class MobileEvent: NSObject {
             }
         }
     }
-    
+
     /// Enqueues the mobile event processing job into the serial start queue.
     /// Creates a fresh background context via `getContext()` and starts a single
     /// `startEventsSend` run. The queue guarantees that only one run executes at a time;
@@ -210,10 +210,14 @@ class MobileEvent: NSObject {
     ) {
         self.sendMobileEventRequest(context: context, event: event) { result in
             if result is RetryEvent {
-                retryLimit(context: context, for: event) { limit in completion(limit ? .completed : .retry) }
+                retryLimit(context: context, for: event) {
+                    limit in completion(limit ? .completed : .retry)
+                }
                 return
             }
-            deleteEntity(context: context, objectID: event) { deleted in completion(deleted ? .completed : .retry) }
+            deleteEntity(context: context, objectID: event) {
+                deleted in completion(deleted ? .completed : .retry)
+            }
         }
     }
     
@@ -239,11 +243,10 @@ class MobileEvent: NSObject {
                 return
             }
             
+            let name  = Constants.RequestName.mobileEvent
+            
             RequestManager().sendRequest(
-                request: request,
-                requestName: Constants.RequestName.mobileEvent,
-                name: requestData.eventName,   
-                completion: completion
+                request: request, requestName: name,  name: requestData.eventName, completion: completion
             )
         }
     }

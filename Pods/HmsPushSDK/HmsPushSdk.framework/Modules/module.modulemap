@@ -1,0 +1,6 @@
+framework module HmsPushSdk {
+  umbrella header "HmsPushSdk.h"
+
+  export *
+  module * { export * }
+}

@@ -1,14 +1,16 @@
 //
 //  ConfigurationEntity+CoreDataProperties.swift
-//  Altcraft
+//  
 //
-//  Created by Andrey Pogodin.
+//  Created by andrey on 06.01.2026.
 //
-//  Copyright © 2025 Altcraft. All rights reserved.
+//
 
-import Foundation
-import CoreData
+public import Foundation
+public import CoreData
 
+
+public typealias ConfigurationEntityCoreDataPropertiesSet = NSSet
 
 extension ConfigurationEntity {
 
@@ -20,7 +22,4 @@ extension ConfigurationEntity {
     @NSManaged public var providerPriorityList: Data?
     @NSManaged public var rToken: String?
     @NSManaged public var url: String?
-
 }
-
-extension ConfigurationEntity : Identifiable {}

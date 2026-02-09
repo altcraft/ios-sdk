@@ -74,7 +74,3 @@ func formatDateToTimestampString(_ date: Date) -> String {
     formatter.timeZone = TimeZone.current
     return formatter.string(from: date)
 }
-
-
-
-

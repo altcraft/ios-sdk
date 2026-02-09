@@ -38,24 +38,28 @@ import CoreData
     private func retry(event: NSManagedObjectID) {
         localPushEventRetry(objectID: event)
     }
-
-    /// Creates and stores a new push event based on received payload data.
-    ///
-    /// - Parameters:
-    ///   - userInfo: The dictionary received in the push notification payload.
-    ///   - type: A string representing the event type (e.g., "delivered", "opened").
-    func createPushEvent(userInfo: [String: Any], type: String) {
-        guard let uid = userInfo[Constants.UserInfoKeys.uid] as? String else {
-            errorEvent(#function, error: uidIsNil)
-            return
-        }
-        
-        addPushEventEntity(uid: uid, type: type) { objectID in
-            guard let entity = objectID else { return }
-            pushEventRetryCount = 0
-            self.sendPushEvent(objectID: entity)
-        }
-    }
+     
+     /// Creates and stores a new push event based on received payload data.
+     ///
+     /// - Parameters:
+     ///   - userInfo: The dictionary received in the push notification payload.
+     ///   - type: A string representing the event type (e.g., "delivered", "opened").
+     func createPushEvent(userInfo: [String: Any], type: String) {
+         DispatchQueue.global(qos: .background).async { [weak self] in
+             guard let self else { return }
+             guard let uid = userInfo[
+                Constants.UserInfoKeys.uid
+             ] as? String else {
+                 errorEvent(#function, error: uidIsNil)
+                 return
+             }
+             addPushEventEntity(uid: uid, type: type) { objectID in
+                 guard let entity = objectID else { return }
+                 pushEventRetryCount = 0
+                 self.sendPushEvent(objectID: entity)
+             }
+         }
+     }
      
     /// Sends a previously saved push event to the remote server.
     ///
@@ -90,10 +94,14 @@ import CoreData
     ) {
         self.sendPushEventRequest(context: context, objectID: objectId) { result in
             if result is RetryEvent {
-                retryLimit(context: context, for: objectId) { limit in completion(limit ? .completed : .retry) }
+                retryLimit(context: context, for: objectId) {
+                    limit in completion(limit ? .completed : .retry)
+                }
                 return
             }
-            deleteEntity(context: context, objectID: objectId) { deleted in completion(deleted ? .completed : .retry) }
+            deleteEntity(context: context, objectID: objectId) {
+                deleted in completion(deleted ? .completed : .retry)
+            }
         }
     }
      
@@ -119,12 +127,10 @@ import CoreData
                 return
             }
             
+            let name = Constants.RequestName.pushEvent
+            
             RequestManager.shared.sendRequest(
-                request: request,
-                requestName: Constants.RequestName.pushEvent,
-                uid: data.uid,
-                type: data.type,
-                completion: completion
+                request: request, requestName: name, uid: data.uid, type: data.type, completion: completion
             )
         }
     }
@@ -143,7 +149,8 @@ import CoreData
             clearOldPushEvents(context: context) {
                 getAllPushEvents(context: context) { events in
                     guard !events.isEmpty else {
-                        DispatchQueue.main.async { completion() }
+                        DispatchQueue.main.async {
+                            completion() }
                         return
                     }
 

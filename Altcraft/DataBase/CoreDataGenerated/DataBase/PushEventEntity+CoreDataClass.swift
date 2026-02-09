@@ -1,13 +1,17 @@
 //
 //  PushEventEntity+CoreDataClass.swift
-//  Altcraft
+//  
 //
-//  Created by Andrey Pogodin.
+//  Created by andrey on 06.01.2026.
 //
-//  Copyright © 2025 Altcraft. All rights reserved.
+//
 
-import Foundation
-import CoreData
+public import Foundation
+public import CoreData
+
+public typealias PushEventEntityCoreDataClassSet = NSSet
 
 @objc(PushEventEntity)
-class PushEventEntity: NSManagedObject {}
+public class PushEventEntity: NSManagedObject {
+
+}

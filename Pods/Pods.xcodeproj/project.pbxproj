@@ -6,39 +6,191 @@
 	objectVersion = 56;
 	objects = {
 
+/* Begin PBXAggregateTarget section */
+		050CD8D686878C1A3E4282F4BCA08E00 /* HMFoundation */ = {
+			isa = PBXAggregateTarget;
+			buildConfigurationList = B593250D437BE5FD3365792D5A7EFEA2 /* Build configuration list for PBXAggregateTarget "HMFoundation" */;
+			buildPhases = (
+				DA2FDB80738655A6BEC7646B8C2E64E7 /* [CP] Copy XCFrameworks */,
+			);
+			dependencies = (
+			);
+			name = HMFoundation;
+		};
+		2A070B3F458158122F5C2B948726944F /* HiAnalytics */ = {
+			isa = PBXAggregateTarget;
+			buildConfigurationList = 60EB9DB4CADA7F314C162F872713E6D3 /* Build configuration list for PBXAggregateTarget "HiAnalytics" */;
+			buildPhases = (
+				80CFDFAF235A9F4610C85C43E6F32EFA /* [CP] Copy XCFrameworks */,
+			);
+			dependencies = (
+				DBFA5FB3A8ABEE738484B2896DD67CB5 /* PBXTargetDependency */,
+			);
+			name = HiAnalytics;
+		};
+		32ACCC280C838779A9622A4E54C8025A /* AGConnectCore */ = {
+			isa = PBXAggregateTarget;
+			buildConfigurationList = 74605F8D1D6D6CAB859674D24A72F8C9 /* Build configuration list for PBXAggregateTarget "AGConnectCore" */;
+			buildPhases = (
+				EA05427BE1E0D19073CC7E0E96BF79BD /* [CP] Copy XCFrameworks */,
+			);
+			dependencies = (
+				20232CD9F56DCA9905DE29F1D9481817 /* PBXTargetDependency */,
+			);
+			name = AGConnectCore;
+		};
+		3688C08B8DBB2E0DAC0AAFB09207BDAA /* AGConnectCredential */ = {
+			isa = PBXAggregateTarget;
+			buildConfigurationList = 73A69B987A9E4DFBF4F6FFECC589E9FF /* Build configuration list for PBXAggregateTarget "AGConnectCredential" */;
+			buildPhases = (
+				805DF6986B47EA6F85E8A510263B8BD6 /* [CP] Copy XCFrameworks */,
+			);
+			dependencies = (
+				951AE40C6C5567E407C6E21514CA3396 /* PBXTargetDependency */,
+			);
+			name = AGConnectCredential;
+		};
+		C06DE589F1D4499C1661D73CD199B9D2 /* HmsPushSDK */ = {
+			isa = PBXAggregateTarget;
+			buildConfigurationList = 45E9EFA6DA02C9E91183DD59B68A8F7E /* Build configuration list for PBXAggregateTarget "HmsPushSDK" */;
+			buildPhases = (
+			);
+			dependencies = (
+				C7A17A8F95D7BA3E4C4059B21D0A5FE6 /* PBXTargetDependency */,
+			);
+			name = HmsPushSDK;
+		};
+/* End PBXAggregateTarget section */
+
 /* Begin PBXBuildFile section */
-		0F5C093FD56ABB4AA4FEB62E1F85F854 /* Pods-PushService-dummy.m in Sources */ = {isa = PBXBuildFile; fileRef = DDA0B4C7555B6DAEDE2AB8763F0A3609 /* Pods-PushService-dummy.m */; };
-		11D91002D1160FE74E06282C75F71C9B /* Pods-Example-umbrella.h in Headers */ = {isa = PBXBuildFile; fileRef = 1922B63D0060D99E7F3A875A2B881166 /* Pods-Example-umbrella.h */; settings = {ATTRIBUTES = (Public, ); }; };
-		1E9105730963B1E90ED6F538C03672CF /* Pods-Example-dummy.m in Sources */ = {isa = PBXBuildFile; fileRef = 30199F8CF22D26F0D3DA60436396061A /* Pods-Example-dummy.m */; };
+		0F5C093FD56ABB4AA4FEB62E1F85F854 /* Pods-PushService-dummy.m in Sources */ = {isa = PBXBuildFile; fileRef = E13530141A1EA8A65AC5BD03CFE98212 /* Pods-PushService-dummy.m */; };
 		2D8692ACF306A6437CBC3C0CA4CA9885 /* Foundation.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 384DDA2CB25005BD6479B5987C619DD4 /* Foundation.framework */; };
-		2DFC3108689AE659875E72DFAEBDED5B /* Pods-PushService-umbrella.h in Headers */ = {isa = PBXBuildFile; fileRef = 7035FFD43A8B92082B7DBD8008C12B66 /* Pods-PushService-umbrella.h */; settings = {ATTRIBUTES = (Public, ); }; };
-		AD08BA721A2825527F7105BA7E93D5F3 /* Foundation.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 384DDA2CB25005BD6479B5987C619DD4 /* Foundation.framework */; };
+		2DFC3108689AE659875E72DFAEBDED5B /* Pods-PushService-umbrella.h in Headers */ = {isa = PBXBuildFile; fileRef = EAB99B8F12A4D5EBB224767FD7B4E819 /* Pods-PushService-umbrella.h */; settings = {ATTRIBUTES = (Public, ); }; };
+		3A51240AFBF6A0BA4D7C89DED52146B5 /* Foundation.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 384DDA2CB25005BD6479B5987C619DD4 /* Foundation.framework */; };
+		72DD7DDC2FB0A38EB94CEF5FA9ADD243 /* Pods-Example-umbrella.h in Headers */ = {isa = PBXBuildFile; fileRef = F84A7CCF97B979BF8A8019CE0DBA1ECA /* Pods-Example-umbrella.h */; settings = {ATTRIBUTES = (Public, ); }; };
+		7AE9B16A2AF5CDF4517812F702288158 /* Pods-Example-dummy.m in Sources */ = {isa = PBXBuildFile; fileRef = 6B2FB5BE8B61BB537C2CA9FB359198A8 /* Pods-Example-dummy.m */; };
 /* End PBXBuildFile section */
 
+/* Begin PBXContainerItemProxy section */
+		13080751783B25ED7212DAE20D766F50 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = BFDFE7DC352907FC980B868725387E98 /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = 2A070B3F458158122F5C2B948726944F;
+			remoteInfo = HiAnalytics;
+		};
+		20733EAEED45AEB2EADBCA7125E03093 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = BFDFE7DC352907FC980B868725387E98 /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = 3688C08B8DBB2E0DAC0AAFB09207BDAA;
+			remoteInfo = AGConnectCredential;
+		};
+		316D541AF2FC8284CB96ACC2416A26EB /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = BFDFE7DC352907FC980B868725387E98 /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = 32ACCC280C838779A9622A4E54C8025A;
+			remoteInfo = AGConnectCore;
+		};
+		5555D7344B3FF6EC3CA96F49AA8ADEA6 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = BFDFE7DC352907FC980B868725387E98 /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = C06DE589F1D4499C1661D73CD199B9D2;
+			remoteInfo = HmsPushSDK;
+		};
+		567933EC1960E359562823681EEDE236 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = BFDFE7DC352907FC980B868725387E98 /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = 050CD8D686878C1A3E4282F4BCA08E00;
+			remoteInfo = HMFoundation;
+		};
+		6E661B9EC404182FCE597AAF543CE91E /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = BFDFE7DC352907FC980B868725387E98 /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = 050CD8D686878C1A3E4282F4BCA08E00;
+			remoteInfo = HMFoundation;
+		};
+		ABB9B50D7CDF67470C43370360667118 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = BFDFE7DC352907FC980B868725387E98 /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = 2A070B3F458158122F5C2B948726944F;
+			remoteInfo = HiAnalytics;
+		};
+		BC1B2A90A3EB327E3EA0D8DA0078807F /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = BFDFE7DC352907FC980B868725387E98 /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = 3688C08B8DBB2E0DAC0AAFB09207BDAA;
+			remoteInfo = AGConnectCredential;
+		};
+		F48266AE54BA58E32461657EF0E5BEA8 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = BFDFE7DC352907FC980B868725387E98 /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = 32ACCC280C838779A9622A4E54C8025A;
+			remoteInfo = AGConnectCore;
+		};
+/* End PBXContainerItemProxy section */
+
 /* Begin PBXFileReference section */
-		0084795F56C968BC7F203AFFEE5E2E06 /* Pods-Example.debug.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; path = "Pods-Example.debug.xcconfig"; sourceTree = "<group>"; };
-		06DADACEF4EABB6D27A7A95A3BDB5E06 /* Pods-PushService.modulemap */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.module; path = "Pods-PushService.modulemap"; sourceTree = "<group>"; };
-		0751E6CBD2E7AE5B04962B6965DD5911 /* Pods-PushService-acknowledgements.plist */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.plist.xml; path = "Pods-PushService-acknowledgements.plist"; sourceTree = "<group>"; };
-		1922B63D0060D99E7F3A875A2B881166 /* Pods-Example-umbrella.h */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.c.h; path = "Pods-Example-umbrella.h"; sourceTree = "<group>"; };
-		1C01CAE89709A692E381AFB067DB4CAF /* Pods-PushService-acknowledgements.markdown */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text; path = "Pods-PushService-acknowledgements.markdown"; sourceTree = "<group>"; };
+		0023F4D537C140B8C9C0AD74CED03A44 /* Pods-Example.debug.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; path = "Pods-Example.debug.xcconfig"; sourceTree = "<group>"; };
+		01A04DBCF30FA448EBCC20265E499DE7 /* HMFoundation-xcframeworks.sh */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.script.sh; path = "HMFoundation-xcframeworks.sh"; sourceTree = "<group>"; };
+		05C4DBF7277288D9841F0F81751145E1 /* HMFoundation.release.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; path = HMFoundation.release.xcconfig; sourceTree = "<group>"; };
+		1AFBC0F6371E1E7A45F944E8AE5CD4C2 /* AGConnectCore-xcframeworks.sh */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.script.sh; path = "AGConnectCore-xcframeworks.sh"; sourceTree = "<group>"; };
 		1F667CC0E19EAF34E5A4119E2121F585 /* Pods-Example */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; includeInIndex = 0; name = "Pods-Example"; path = Pods_Example.framework; sourceTree = BUILT_PRODUCTS_DIR; };
-		28F4B8896236E1BC5D0E9781A8865C5A /* Pods-Example-Info.plist */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.plist.xml; path = "Pods-Example-Info.plist"; sourceTree = "<group>"; };
-		30199F8CF22D26F0D3DA60436396061A /* Pods-Example-dummy.m */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.c.objc; path = "Pods-Example-dummy.m"; sourceTree = "<group>"; };
+		1F78C17988C8B94021E3F6C3A39A5255 /* AGConnectCredential.release.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; path = AGConnectCredential.release.xcconfig; sourceTree = "<group>"; };
 		384DDA2CB25005BD6479B5987C619DD4 /* Foundation.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Foundation.framework; path = Platforms/iPhoneOS.platform/Developer/SDKs/iPhoneOS18.0.sdk/System/Library/Frameworks/Foundation.framework; sourceTree = DEVELOPER_DIR; };
-		387E8C1C4525CCACDFFD29F5FA8F86B2 /* Pods-Example.release.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; path = "Pods-Example.release.xcconfig"; sourceTree = "<group>"; };
-		4D4C1B7AB51D6F21BF15D527D5364DEE /* Pods-PushService.debug.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; path = "Pods-PushService.debug.xcconfig"; sourceTree = "<group>"; };
-		6DD142B907974801C27B2F1508E92D80 /* Pods-Example-acknowledgements.markdown */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text; path = "Pods-Example-acknowledgements.markdown"; sourceTree = "<group>"; };
-		7035FFD43A8B92082B7DBD8008C12B66 /* Pods-PushService-umbrella.h */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.c.h; path = "Pods-PushService-umbrella.h"; sourceTree = "<group>"; };
+		427075896B24E91F4E268AEE39B727F8 /* Pods-PushService-acknowledgements.markdown */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text; path = "Pods-PushService-acknowledgements.markdown"; sourceTree = "<group>"; };
+		4A96B963E21BF1BD9A8618B75EABC517 /* HiAnalytics-xcframeworks.sh */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.script.sh; path = "HiAnalytics-xcframeworks.sh"; sourceTree = "<group>"; };
+		510101C32B8CDA460B1BF200F8CC8A2A /* Pods-Example-acknowledgements.plist */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.plist.xml; path = "Pods-Example-acknowledgements.plist"; sourceTree = "<group>"; };
+		53A9A58BC086D9BC3672E518A087FF5A /* HMFoundation.debug.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; path = HMFoundation.debug.xcconfig; sourceTree = "<group>"; };
+		6B2FB5BE8B61BB537C2CA9FB359198A8 /* Pods-Example-dummy.m */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.c.objc; path = "Pods-Example-dummy.m"; sourceTree = "<group>"; };
+		6D147A878C1746DE251DA5A8F7193075 /* Pods-PushService-acknowledgements.plist */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.plist.xml; path = "Pods-PushService-acknowledgements.plist"; sourceTree = "<group>"; };
+		6DD007C425065760F97523379105093B /* AGConnectCredential.xcframework */ = {isa = PBXFileReference; includeInIndex = 1; path = AGConnectCredential.xcframework; sourceTree = "<group>"; };
+		735AD26687D2232C5B4C0C3AB3BEE35F /* AGConnectCredential-xcframeworks.sh */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.script.sh; path = "AGConnectCredential-xcframeworks.sh"; sourceTree = "<group>"; };
 		7A3FC7EBA5F6A6A003A5C730F9ACE5BB /* Pods-PushService */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; includeInIndex = 0; name = "Pods-PushService"; path = Pods_PushService.framework; sourceTree = BUILT_PRODUCTS_DIR; };
-		8FCBF86765D94FF43D0CC6B348FC0F43 /* Pods-Example-acknowledgements.plist */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.plist.xml; path = "Pods-Example-acknowledgements.plist"; sourceTree = "<group>"; };
+		7EDE4A6050D3639766372E830650E7EC /* AGConnectCredential.debug.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; path = AGConnectCredential.debug.xcconfig; sourceTree = "<group>"; };
+		89B856D750D79549D1652E6AECE80A6D /* HiAnalytics.xcframework */ = {isa = PBXFileReference; includeInIndex = 1; path = HiAnalytics.xcframework; sourceTree = "<group>"; };
+		8C9457EFF63B7EFED19E1E5D88B02F97 /* AGCResources.bundle */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = "wrapper.plug-in"; path = AGCResources.bundle; sourceTree = "<group>"; };
+		983679EE0EF69785CC1BEC06946E1FAB /* Pods-PushService.debug.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; path = "Pods-PushService.debug.xcconfig"; sourceTree = "<group>"; };
+		98BEFCE6C55B52C7289A7837DDE66829 /* Pods-PushService.release.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; path = "Pods-PushService.release.xcconfig"; sourceTree = "<group>"; };
+		9A08E84A5BCD00B73BE6DDFAA9A8417D /* HmsPushSDK.debug.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; path = HmsPushSDK.debug.xcconfig; sourceTree = "<group>"; };
 		9D940727FF8FB9C785EB98E56350EF41 /* Podfile */ = {isa = PBXFileReference; explicitFileType = text.script.ruby; includeInIndex = 1; indentWidth = 2; lastKnownFileType = text; name = Podfile; path = ../Podfile; sourceTree = SOURCE_ROOT; tabWidth = 2; xcLanguageSpecificationIdentifier = xcode.lang.ruby; };
-		A1ECA84784BA2450F5214A6C662753C3 /* Pods-Example.modulemap */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.module; path = "Pods-Example.modulemap"; sourceTree = "<group>"; };
-		B7C42B51EC80567EB566BEF0653F4BE5 /* Pods-PushService.release.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; path = "Pods-PushService.release.xcconfig"; sourceTree = "<group>"; };
-		BC2C40D4ED1A38FD6E53BF63E9BAEB0E /* Pods-PushService-Info.plist */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.plist.xml; path = "Pods-PushService-Info.plist"; sourceTree = "<group>"; };
-		DDA0B4C7555B6DAEDE2AB8763F0A3609 /* Pods-PushService-dummy.m */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.c.objc; path = "Pods-PushService-dummy.m"; sourceTree = "<group>"; };
+		9D9EF58639599EA47C9A35DB8FDEC65B /* HMFoundation.xcframework */ = {isa = PBXFileReference; includeInIndex = 1; path = HMFoundation.xcframework; sourceTree = "<group>"; };
+		AA2E6CC29BA8D7C3A3AC65187CD40F48 /* AGConnectCore.release.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; path = AGConnectCore.release.xcconfig; sourceTree = "<group>"; };
+		B2321565F222B4D8E06DD8EC30D6EC6C /* Pods-Example.release.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; path = "Pods-Example.release.xcconfig"; sourceTree = "<group>"; };
+		B67EBEFED80A81E58A34AABD083FFEEC /* HmsPushSDK.release.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; path = HmsPushSDK.release.xcconfig; sourceTree = "<group>"; };
+		C55AD4DB06149E0DA97CB53B5F06A217 /* HiAnalytics.release.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; path = HiAnalytics.release.xcconfig; sourceTree = "<group>"; };
+		C8F3BDEA26387488462C3D0CA0609875 /* AGConnectCore.xcframework */ = {isa = PBXFileReference; includeInIndex = 1; path = AGConnectCore.xcframework; sourceTree = "<group>"; };
+		CAC075F679A0E2DC72A208856BF56969 /* AGConnectCore.debug.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; path = AGConnectCore.debug.xcconfig; sourceTree = "<group>"; };
+		CFA6F923CFAF042EF7DC21E104235DA3 /* Pods-Example-Info.plist */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.plist.xml; path = "Pods-Example-Info.plist"; sourceTree = "<group>"; };
+		D0102E65B4E65D99EF9EB5B45395CBFE /* HmsPushSdk.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; path = HmsPushSdk.framework; sourceTree = "<group>"; };
+		D5EB7D13FF27AEBD1D1751EAE5B1E305 /* PushGrsSettings.bundle */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = "wrapper.plug-in"; name = PushGrsSettings.bundle; path = HmsPushSdk.framework/PushGrsSettings.bundle; sourceTree = "<group>"; };
+		DF7B51AA8604EB5539DD2CFF98B1C851 /* Pods-Example-acknowledgements.markdown */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text; path = "Pods-Example-acknowledgements.markdown"; sourceTree = "<group>"; };
+		E13530141A1EA8A65AC5BD03CFE98212 /* Pods-PushService-dummy.m */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.c.objc; path = "Pods-PushService-dummy.m"; sourceTree = "<group>"; };
+		E2131D9EB2BF1D5DA53755CA7763B709 /* Pods-PushService.modulemap */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.module; path = "Pods-PushService.modulemap"; sourceTree = "<group>"; };
+		E48885229F39CB83C3F4B1AB337A0F7C /* HiAnalytics.debug.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; path = HiAnalytics.debug.xcconfig; sourceTree = "<group>"; };
+		E5A1C8A810A819E91CCDA1BEC8E07912 /* Pods-Example-resources.sh */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.script.sh; path = "Pods-Example-resources.sh"; sourceTree = "<group>"; };
+		EAB99B8F12A4D5EBB224767FD7B4E819 /* Pods-PushService-umbrella.h */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.c.h; path = "Pods-PushService-umbrella.h"; sourceTree = "<group>"; };
+		F216EED587E4BF7F34FADDCB6D832B42 /* Pods-Example.modulemap */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.module; path = "Pods-Example.modulemap"; sourceTree = "<group>"; };
+		F3B47AAFC44261753047DBCCC6FA3AC2 /* Pods-PushService-Info.plist */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.plist.xml; path = "Pods-PushService-Info.plist"; sourceTree = "<group>"; };
+		F84A7CCF97B979BF8A8019CE0DBA1ECA /* Pods-Example-umbrella.h */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.c.h; path = "Pods-Example-umbrella.h"; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
+		05435A0B214E78478DCEA56BEA8AF175 /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				3A51240AFBF6A0BA4D7C89DED52146B5 /* Foundation.framework in Frameworks */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 		431D50C966A1FF4D3E28494976AAC842 /* Frameworks */ = {
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
@@ -47,40 +199,186 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
-		EB545703A1CA41FE2116D9D66126754E /* Frameworks */ = {
-			isa = PBXFrameworksBuildPhase;
-			buildActionMask = 2147483647;
-			files = (
-				AD08BA721A2825527F7105BA7E93D5F3 /* Foundation.framework in Frameworks */,
-			);
-			runOnlyForDeploymentPostprocessing = 0;
-		};
 /* End PBXFrameworksBuildPhase section */
 
 /* Begin PBXGroup section */
-		024690D21FBBBA7FFECCF394280DE76F /* Targets Support Files */ = {
+		02578B24F7F329CFE9A13B7D9632673A /* Frameworks */ = {
 			isa = PBXGroup;
 			children = (
-				ADF8C202CBF7A8419D7012AE76BAE08A /* Pods-Example */,
-				C518EF73434E47ECCBC75203CA966A75 /* Pods-PushService */,
+				6DD007C425065760F97523379105093B /* AGConnectCredential.xcframework */,
+			);
+			name = Frameworks;
+			sourceTree = "<group>";
+		};
+		0B8ECE80166C14162866AF42188D36C1 /* Targets Support Files */ = {
+			isa = PBXGroup;
+			children = (
+				EFE4F2781BCC0F0E489422D2DB20E7AC /* Pods-Example */,
+				9F8B1CD380B57565507FB032B1A9E4E3 /* Pods-PushService */,
 			);
 			name = "Targets Support Files";
 			sourceTree = "<group>";
 		};
-		ADF8C202CBF7A8419D7012AE76BAE08A /* Pods-Example */ = {
+		0C46D46B165B7E5F00F6F848C33BB079 /* Support Files */ = {
 			isa = PBXGroup;
 			children = (
-				A1ECA84784BA2450F5214A6C662753C3 /* Pods-Example.modulemap */,
-				6DD142B907974801C27B2F1508E92D80 /* Pods-Example-acknowledgements.markdown */,
-				8FCBF86765D94FF43D0CC6B348FC0F43 /* Pods-Example-acknowledgements.plist */,
-				30199F8CF22D26F0D3DA60436396061A /* Pods-Example-dummy.m */,
-				28F4B8896236E1BC5D0E9781A8865C5A /* Pods-Example-Info.plist */,
-				1922B63D0060D99E7F3A875A2B881166 /* Pods-Example-umbrella.h */,
-				0084795F56C968BC7F203AFFEE5E2E06 /* Pods-Example.debug.xcconfig */,
-				387E8C1C4525CCACDFFD29F5FA8F86B2 /* Pods-Example.release.xcconfig */,
+				9A08E84A5BCD00B73BE6DDFAA9A8417D /* HmsPushSDK.debug.xcconfig */,
+				B67EBEFED80A81E58A34AABD083FFEEC /* HmsPushSDK.release.xcconfig */,
 			);
-			name = "Pods-Example";
-			path = "Target Support Files/Pods-Example";
+			name = "Support Files";
+			path = "../Target Support Files/HmsPushSDK";
+			sourceTree = "<group>";
+		};
+		1C7E5CB0A74B566D672D143D4325D1EC /* Resources */ = {
+			isa = PBXGroup;
+			children = (
+				D5EB7D13FF27AEBD1D1751EAE5B1E305 /* PushGrsSettings.bundle */,
+			);
+			name = Resources;
+			sourceTree = "<group>";
+		};
+		20C74F01FE77B4387DD71352414D85FF /* Frameworks */ = {
+			isa = PBXGroup;
+			children = (
+				9D9EF58639599EA47C9A35DB8FDEC65B /* HMFoundation.xcframework */,
+			);
+			name = Frameworks;
+			sourceTree = "<group>";
+		};
+		26B615F2F8BA961BE9FC86F6112D99D2 /* Support Files */ = {
+			isa = PBXGroup;
+			children = (
+				4A96B963E21BF1BD9A8618B75EABC517 /* HiAnalytics-xcframeworks.sh */,
+				E48885229F39CB83C3F4B1AB337A0F7C /* HiAnalytics.debug.xcconfig */,
+				C55AD4DB06149E0DA97CB53B5F06A217 /* HiAnalytics.release.xcconfig */,
+			);
+			name = "Support Files";
+			path = "../Target Support Files/HiAnalytics";
+			sourceTree = "<group>";
+		};
+		36C3A145ED2E2DFDAFB9D7C84D849E1E /* Pods */ = {
+			isa = PBXGroup;
+			children = (
+				F20798FFD34AE3DDCAC0075B4314570E /* AGConnectCore */,
+				784F3553C38A9886ED477416DCBF3211 /* AGConnectCredential */,
+				D00F6E85E85EC3B022A4C32B2B96A43F /* HiAnalytics */,
+				8AB79882055EA48BAE548A24334F39AB /* HMFoundation */,
+				56B3526D0CCFAD7D0E5F1E958F7D44EB /* HmsPushSDK */,
+			);
+			name = Pods;
+			sourceTree = "<group>";
+		};
+		44C991752457F8AD2A7137B1224AA9C9 /* Support Files */ = {
+			isa = PBXGroup;
+			children = (
+				735AD26687D2232C5B4C0C3AB3BEE35F /* AGConnectCredential-xcframeworks.sh */,
+				7EDE4A6050D3639766372E830650E7EC /* AGConnectCredential.debug.xcconfig */,
+				1F78C17988C8B94021E3F6C3A39A5255 /* AGConnectCredential.release.xcconfig */,
+			);
+			name = "Support Files";
+			path = "../Target Support Files/AGConnectCredential";
+			sourceTree = "<group>";
+		};
+		4B70E00ECBF116AE542B4F456D982E99 /* Frameworks */ = {
+			isa = PBXGroup;
+			children = (
+				C8F3BDEA26387488462C3D0CA0609875 /* AGConnectCore.xcframework */,
+			);
+			name = Frameworks;
+			sourceTree = "<group>";
+		};
+		56B3526D0CCFAD7D0E5F1E958F7D44EB /* HmsPushSDK */ = {
+			isa = PBXGroup;
+			children = (
+				6CBF6F340F2E36503D18D74B23A2C9E2 /* Frameworks */,
+				1C7E5CB0A74B566D672D143D4325D1EC /* Resources */,
+				0C46D46B165B7E5F00F6F848C33BB079 /* Support Files */,
+			);
+			name = HmsPushSDK;
+			path = HmsPushSDK;
+			sourceTree = "<group>";
+		};
+		6CBF6F340F2E36503D18D74B23A2C9E2 /* Frameworks */ = {
+			isa = PBXGroup;
+			children = (
+				D0102E65B4E65D99EF9EB5B45395CBFE /* HmsPushSdk.framework */,
+			);
+			name = Frameworks;
+			sourceTree = "<group>";
+		};
+		784F3553C38A9886ED477416DCBF3211 /* AGConnectCredential */ = {
+			isa = PBXGroup;
+			children = (
+				02578B24F7F329CFE9A13B7D9632673A /* Frameworks */,
+				A715018BDC7FC2F09FC7C7CB80D770AF /* Resources */,
+				44C991752457F8AD2A7137B1224AA9C9 /* Support Files */,
+			);
+			name = AGConnectCredential;
+			path = AGConnectCredential;
+			sourceTree = "<group>";
+		};
+		7D480533C65BFB270352371155AC7E51 /* Support Files */ = {
+			isa = PBXGroup;
+			children = (
+				1AFBC0F6371E1E7A45F944E8AE5CD4C2 /* AGConnectCore-xcframeworks.sh */,
+				CAC075F679A0E2DC72A208856BF56969 /* AGConnectCore.debug.xcconfig */,
+				AA2E6CC29BA8D7C3A3AC65187CD40F48 /* AGConnectCore.release.xcconfig */,
+			);
+			name = "Support Files";
+			path = "../Target Support Files/AGConnectCore";
+			sourceTree = "<group>";
+		};
+		8AB79882055EA48BAE548A24334F39AB /* HMFoundation */ = {
+			isa = PBXGroup;
+			children = (
+				20C74F01FE77B4387DD71352414D85FF /* Frameworks */,
+				B4132F08FC185FE2E952C10C1A8655F3 /* Support Files */,
+			);
+			name = HMFoundation;
+			path = HMFoundation;
+			sourceTree = "<group>";
+		};
+		8EED2CD1334556994E8A3ABDB0DAFB29 /* Frameworks */ = {
+			isa = PBXGroup;
+			children = (
+				89B856D750D79549D1652E6AECE80A6D /* HiAnalytics.xcframework */,
+			);
+			name = Frameworks;
+			sourceTree = "<group>";
+		};
+		9F8B1CD380B57565507FB032B1A9E4E3 /* Pods-PushService */ = {
+			isa = PBXGroup;
+			children = (
+				E2131D9EB2BF1D5DA53755CA7763B709 /* Pods-PushService.modulemap */,
+				427075896B24E91F4E268AEE39B727F8 /* Pods-PushService-acknowledgements.markdown */,
+				6D147A878C1746DE251DA5A8F7193075 /* Pods-PushService-acknowledgements.plist */,
+				E13530141A1EA8A65AC5BD03CFE98212 /* Pods-PushService-dummy.m */,
+				F3B47AAFC44261753047DBCCC6FA3AC2 /* Pods-PushService-Info.plist */,
+				EAB99B8F12A4D5EBB224767FD7B4E819 /* Pods-PushService-umbrella.h */,
+				983679EE0EF69785CC1BEC06946E1FAB /* Pods-PushService.debug.xcconfig */,
+				98BEFCE6C55B52C7289A7837DDE66829 /* Pods-PushService.release.xcconfig */,
+			);
+			name = "Pods-PushService";
+			path = "Target Support Files/Pods-PushService";
+			sourceTree = "<group>";
+		};
+		A715018BDC7FC2F09FC7C7CB80D770AF /* Resources */ = {
+			isa = PBXGroup;
+			children = (
+				8C9457EFF63B7EFED19E1E5D88B02F97 /* AGCResources.bundle */,
+			);
+			name = Resources;
+			sourceTree = "<group>";
+		};
+		B4132F08FC185FE2E952C10C1A8655F3 /* Support Files */ = {
+			isa = PBXGroup;
+			children = (
+				01A04DBCF30FA448EBCC20265E499DE7 /* HMFoundation-xcframeworks.sh */,
+				53A9A58BC086D9BC3672E518A087FF5A /* HMFoundation.debug.xcconfig */,
+				05C4DBF7277288D9841F0F81751145E1 /* HMFoundation.release.xcconfig */,
+			);
+			name = "Support Files";
+			path = "../Target Support Files/HMFoundation";
 			sourceTree = "<group>";
 		};
 		B4499FE818545B5AD336F5B448304FAB /* Products */ = {
@@ -92,30 +390,25 @@
 			name = Products;
 			sourceTree = "<group>";
 		};
-		C518EF73434E47ECCBC75203CA966A75 /* Pods-PushService */ = {
-			isa = PBXGroup;
-			children = (
-				06DADACEF4EABB6D27A7A95A3BDB5E06 /* Pods-PushService.modulemap */,
-				1C01CAE89709A692E381AFB067DB4CAF /* Pods-PushService-acknowledgements.markdown */,
-				0751E6CBD2E7AE5B04962B6965DD5911 /* Pods-PushService-acknowledgements.plist */,
-				DDA0B4C7555B6DAEDE2AB8763F0A3609 /* Pods-PushService-dummy.m */,
-				BC2C40D4ED1A38FD6E53BF63E9BAEB0E /* Pods-PushService-Info.plist */,
-				7035FFD43A8B92082B7DBD8008C12B66 /* Pods-PushService-umbrella.h */,
-				4D4C1B7AB51D6F21BF15D527D5364DEE /* Pods-PushService.debug.xcconfig */,
-				B7C42B51EC80567EB566BEF0653F4BE5 /* Pods-PushService.release.xcconfig */,
-			);
-			name = "Pods-PushService";
-			path = "Target Support Files/Pods-PushService";
-			sourceTree = "<group>";
-		};
 		CF1408CF629C7361332E53B88F7BD30C = {
 			isa = PBXGroup;
 			children = (
 				9D940727FF8FB9C785EB98E56350EF41 /* Podfile */,
 				D210D550F4EA176C3123ED886F8F87F5 /* Frameworks */,
+				36C3A145ED2E2DFDAFB9D7C84D849E1E /* Pods */,
 				B4499FE818545B5AD336F5B448304FAB /* Products */,
-				024690D21FBBBA7FFECCF394280DE76F /* Targets Support Files */,
+				0B8ECE80166C14162866AF42188D36C1 /* Targets Support Files */,
 			);
+			sourceTree = "<group>";
+		};
+		D00F6E85E85EC3B022A4C32B2B96A43F /* HiAnalytics */ = {
+			isa = PBXGroup;
+			children = (
+				8EED2CD1334556994E8A3ABDB0DAFB29 /* Frameworks */,
+				26B615F2F8BA961BE9FC86F6112D99D2 /* Support Files */,
+			);
+			name = HiAnalytics;
+			path = HiAnalytics;
 			sourceTree = "<group>";
 		};
 		D210D550F4EA176C3123ED886F8F87F5 /* Frameworks */ = {
@@ -134,6 +427,33 @@
 			name = iOS;
 			sourceTree = "<group>";
 		};
+		EFE4F2781BCC0F0E489422D2DB20E7AC /* Pods-Example */ = {
+			isa = PBXGroup;
+			children = (
+				F216EED587E4BF7F34FADDCB6D832B42 /* Pods-Example.modulemap */,
+				DF7B51AA8604EB5539DD2CFF98B1C851 /* Pods-Example-acknowledgements.markdown */,
+				510101C32B8CDA460B1BF200F8CC8A2A /* Pods-Example-acknowledgements.plist */,
+				6B2FB5BE8B61BB537C2CA9FB359198A8 /* Pods-Example-dummy.m */,
+				CFA6F923CFAF042EF7DC21E104235DA3 /* Pods-Example-Info.plist */,
+				E5A1C8A810A819E91CCDA1BEC8E07912 /* Pods-Example-resources.sh */,
+				F84A7CCF97B979BF8A8019CE0DBA1ECA /* Pods-Example-umbrella.h */,
+				0023F4D537C140B8C9C0AD74CED03A44 /* Pods-Example.debug.xcconfig */,
+				B2321565F222B4D8E06DD8EC30D6EC6C /* Pods-Example.release.xcconfig */,
+			);
+			name = "Pods-Example";
+			path = "Target Support Files/Pods-Example";
+			sourceTree = "<group>";
+		};
+		F20798FFD34AE3DDCAC0075B4314570E /* AGConnectCore */ = {
+			isa = PBXGroup;
+			children = (
+				4B70E00ECBF116AE542B4F456D982E99 /* Frameworks */,
+				7D480533C65BFB270352371155AC7E51 /* Support Files */,
+			);
+			name = AGConnectCore;
+			path = AGConnectCore;
+			sourceTree = "<group>";
+		};
 /* End PBXGroup section */
 
 /* Begin PBXHeadersBuildPhase section */
@@ -145,11 +465,11 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
-		D8D4AD526B1703A3E011F7E5D4399C11 /* Headers */ = {
+		EFD504A099839D3AB27AB9ACEDBDD124 /* Headers */ = {
 			isa = PBXHeadersBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				11D91002D1160FE74E06282C75F71C9B /* Pods-Example-umbrella.h in Headers */,
+				72DD7DDC2FB0A38EB94CEF5FA9ADD243 /* Pods-Example-umbrella.h in Headers */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -158,16 +478,21 @@
 /* Begin PBXNativeTarget section */
 		0AEE99A309977BD12A049FF48AF9BA4B /* Pods-Example */ = {
 			isa = PBXNativeTarget;
-			buildConfigurationList = 75EECECF3B9ADA6D19A696FAD9D32D9F /* Build configuration list for PBXNativeTarget "Pods-Example" */;
+			buildConfigurationList = 96EBBEC2282B8E0114D6BB47DD7DAF7E /* Build configuration list for PBXNativeTarget "Pods-Example" */;
 			buildPhases = (
-				D8D4AD526B1703A3E011F7E5D4399C11 /* Headers */,
-				FE1218B112EB616431EE07F2CAE8F96A /* Sources */,
-				EB545703A1CA41FE2116D9D66126754E /* Frameworks */,
-				ED0527E43C2263AEB9E79E359834BBFC /* Resources */,
+				EFD504A099839D3AB27AB9ACEDBDD124 /* Headers */,
+				D87A1886811C080A978E49106FF3D6B5 /* Sources */,
+				05435A0B214E78478DCEA56BEA8AF175 /* Frameworks */,
+				316A754A2D0C17EE200359E1E19BCCE3 /* Resources */,
 			);
 			buildRules = (
 			);
 			dependencies = (
+				8E654B339A42B6667A6198B008D13311 /* PBXTargetDependency */,
+				3682E476DD85E24092B97DB65C06CBE8 /* PBXTargetDependency */,
+				E1D1D03DDA98E93AC30C478AA2FC839A /* PBXTargetDependency */,
+				944D7152AB9645D32836D11F044AF609 /* PBXTargetDependency */,
+				916CEA6C3AB7AD719A400641366BADBF /* PBXTargetDependency */,
 			);
 			name = "Pods-Example";
 			productName = Pods_Example;
@@ -216,6 +541,11 @@
 			projectDirPath = "";
 			projectRoot = "";
 			targets = (
+				32ACCC280C838779A9622A4E54C8025A /* AGConnectCore */,
+				3688C08B8DBB2E0DAC0AAFB09207BDAA /* AGConnectCredential */,
+				2A070B3F458158122F5C2B948726944F /* HiAnalytics */,
+				050CD8D686878C1A3E4282F4BCA08E00 /* HMFoundation */,
+				C06DE589F1D4499C1661D73CD199B9D2 /* HmsPushSDK */,
 				0AEE99A309977BD12A049FF48AF9BA4B /* Pods-Example */,
 				7AF36115E64A7EC196FE0C9AC6B485C2 /* Pods-PushService */,
 			);
@@ -223,6 +553,13 @@
 /* End PBXProject section */
 
 /* Begin PBXResourcesBuildPhase section */
+		316A754A2D0C17EE200359E1E19BCCE3 /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 		6901FB66B51BFC2243F6CAEE24795822 /* Resources */ = {
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
@@ -230,14 +567,78 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
-		ED0527E43C2263AEB9E79E359834BBFC /* Resources */ = {
-			isa = PBXResourcesBuildPhase;
+/* End PBXResourcesBuildPhase section */
+
+/* Begin PBXShellScriptBuildPhase section */
+		805DF6986B47EA6F85E8A510263B8BD6 /* [CP] Copy XCFrameworks */ = {
+			isa = PBXShellScriptBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
 			);
+			inputFileListPaths = (
+				"${PODS_ROOT}/Target Support Files/AGConnectCredential/AGConnectCredential-xcframeworks-input-files.xcfilelist",
+			);
+			name = "[CP] Copy XCFrameworks";
+			outputFileListPaths = (
+				"${PODS_ROOT}/Target Support Files/AGConnectCredential/AGConnectCredential-xcframeworks-output-files.xcfilelist",
+			);
 			runOnlyForDeploymentPostprocessing = 0;
+			shellPath = /bin/sh;
+			shellScript = "\"${PODS_ROOT}/Target Support Files/AGConnectCredential/AGConnectCredential-xcframeworks.sh\"\n";
+			showEnvVarsInLog = 0;
 		};
-/* End PBXResourcesBuildPhase section */
+		80CFDFAF235A9F4610C85C43E6F32EFA /* [CP] Copy XCFrameworks */ = {
+			isa = PBXShellScriptBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			inputFileListPaths = (
+				"${PODS_ROOT}/Target Support Files/HiAnalytics/HiAnalytics-xcframeworks-input-files.xcfilelist",
+			);
+			name = "[CP] Copy XCFrameworks";
+			outputFileListPaths = (
+				"${PODS_ROOT}/Target Support Files/HiAnalytics/HiAnalytics-xcframeworks-output-files.xcfilelist",
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+			shellPath = /bin/sh;
+			shellScript = "\"${PODS_ROOT}/Target Support Files/HiAnalytics/HiAnalytics-xcframeworks.sh\"\n";
+			showEnvVarsInLog = 0;
+		};
+		DA2FDB80738655A6BEC7646B8C2E64E7 /* [CP] Copy XCFrameworks */ = {
+			isa = PBXShellScriptBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			inputFileListPaths = (
+				"${PODS_ROOT}/Target Support Files/HMFoundation/HMFoundation-xcframeworks-input-files.xcfilelist",
+			);
+			name = "[CP] Copy XCFrameworks";
+			outputFileListPaths = (
+				"${PODS_ROOT}/Target Support Files/HMFoundation/HMFoundation-xcframeworks-output-files.xcfilelist",
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+			shellPath = /bin/sh;
+			shellScript = "\"${PODS_ROOT}/Target Support Files/HMFoundation/HMFoundation-xcframeworks.sh\"\n";
+			showEnvVarsInLog = 0;
+		};
+		EA05427BE1E0D19073CC7E0E96BF79BD /* [CP] Copy XCFrameworks */ = {
+			isa = PBXShellScriptBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			inputFileListPaths = (
+				"${PODS_ROOT}/Target Support Files/AGConnectCore/AGConnectCore-xcframeworks-input-files.xcfilelist",
+			);
+			name = "[CP] Copy XCFrameworks";
+			outputFileListPaths = (
+				"${PODS_ROOT}/Target Support Files/AGConnectCore/AGConnectCore-xcframeworks-output-files.xcfilelist",
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+			shellPath = /bin/sh;
+			shellScript = "\"${PODS_ROOT}/Target Support Files/AGConnectCore/AGConnectCore-xcframeworks.sh\"\n";
+			showEnvVarsInLog = 0;
+		};
+/* End PBXShellScriptBuildPhase section */
 
 /* Begin PBXSourcesBuildPhase section */
 		C4421AD272390621CB6FB4503E543E21 /* Sources */ = {
@@ -248,20 +649,187 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
-		FE1218B112EB616431EE07F2CAE8F96A /* Sources */ = {
+		D87A1886811C080A978E49106FF3D6B5 /* Sources */ = {
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				1E9105730963B1E90ED6F538C03672CF /* Pods-Example-dummy.m in Sources */,
+				7AE9B16A2AF5CDF4517812F702288158 /* Pods-Example-dummy.m in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
 /* End PBXSourcesBuildPhase section */
 
+/* Begin PBXTargetDependency section */
+		20232CD9F56DCA9905DE29F1D9481817 /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			name = HMFoundation;
+			target = 050CD8D686878C1A3E4282F4BCA08E00 /* HMFoundation */;
+			targetProxy = 6E661B9EC404182FCE597AAF543CE91E /* PBXContainerItemProxy */;
+		};
+		3682E476DD85E24092B97DB65C06CBE8 /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			name = AGConnectCredential;
+			target = 3688C08B8DBB2E0DAC0AAFB09207BDAA /* AGConnectCredential */;
+			targetProxy = 20733EAEED45AEB2EADBCA7125E03093 /* PBXContainerItemProxy */;
+		};
+		8E654B339A42B6667A6198B008D13311 /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			name = AGConnectCore;
+			target = 32ACCC280C838779A9622A4E54C8025A /* AGConnectCore */;
+			targetProxy = 316D541AF2FC8284CB96ACC2416A26EB /* PBXContainerItemProxy */;
+		};
+		916CEA6C3AB7AD719A400641366BADBF /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			name = HmsPushSDK;
+			target = C06DE589F1D4499C1661D73CD199B9D2 /* HmsPushSDK */;
+			targetProxy = 5555D7344B3FF6EC3CA96F49AA8ADEA6 /* PBXContainerItemProxy */;
+		};
+		944D7152AB9645D32836D11F044AF609 /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			name = HiAnalytics;
+			target = 2A070B3F458158122F5C2B948726944F /* HiAnalytics */;
+			targetProxy = ABB9B50D7CDF67470C43370360667118 /* PBXContainerItemProxy */;
+		};
+		951AE40C6C5567E407C6E21514CA3396 /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			name = AGConnectCore;
+			target = 32ACCC280C838779A9622A4E54C8025A /* AGConnectCore */;
+			targetProxy = F48266AE54BA58E32461657EF0E5BEA8 /* PBXContainerItemProxy */;
+		};
+		C7A17A8F95D7BA3E4C4059B21D0A5FE6 /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			name = HiAnalytics;
+			target = 2A070B3F458158122F5C2B948726944F /* HiAnalytics */;
+			targetProxy = 13080751783B25ED7212DAE20D766F50 /* PBXContainerItemProxy */;
+		};
+		DBFA5FB3A8ABEE738484B2896DD67CB5 /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			name = AGConnectCredential;
+			target = 3688C08B8DBB2E0DAC0AAFB09207BDAA /* AGConnectCredential */;
+			targetProxy = BC1B2A90A3EB327E3EA0D8DA0078807F /* PBXContainerItemProxy */;
+		};
+		E1D1D03DDA98E93AC30C478AA2FC839A /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			name = HMFoundation;
+			target = 050CD8D686878C1A3E4282F4BCA08E00 /* HMFoundation */;
+			targetProxy = 567933EC1960E359562823681EEDE236 /* PBXContainerItemProxy */;
+		};
+/* End PBXTargetDependency section */
+
 /* Begin XCBuildConfiguration section */
+		0315C1FFAF0811C0942AABD5F76C5A07 /* Release */ = {
+			isa = XCBuildConfiguration;
+			baseConfigurationReference = 05C4DBF7277288D9841F0F81751145E1 /* HMFoundation.release.xcconfig */;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
+				ENABLE_USER_SCRIPT_SANDBOXING = NO;
+				IPHONEOS_DEPLOYMENT_TARGET = 9.0;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+				);
+				SDKROOT = iphoneos;
+				TARGETED_DEVICE_FAMILY = "1,2";
+				VALIDATE_PRODUCT = YES;
+			};
+			name = Release;
+		};
+		14071832B73C7A9219E750FB04C7B694 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			baseConfigurationReference = 53A9A58BC086D9BC3672E518A087FF5A /* HMFoundation.debug.xcconfig */;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
+				ENABLE_USER_SCRIPT_SANDBOXING = NO;
+				IPHONEOS_DEPLOYMENT_TARGET = 9.0;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+				);
+				SDKROOT = iphoneos;
+				TARGETED_DEVICE_FAMILY = "1,2";
+			};
+			name = Debug;
+		};
+		162B85223683B76175709F8940B6559F /* Debug */ = {
+			isa = XCBuildConfiguration;
+			baseConfigurationReference = E48885229F39CB83C3F4B1AB337A0F7C /* HiAnalytics.debug.xcconfig */;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
+				ENABLE_USER_SCRIPT_SANDBOXING = NO;
+				IPHONEOS_DEPLOYMENT_TARGET = 9.0;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+				);
+				SDKROOT = iphoneos;
+				TARGETED_DEVICE_FAMILY = "1,2";
+			};
+			name = Debug;
+		};
+		187D83CC76759A709ED9826D8FABBEBD /* Debug */ = {
+			isa = XCBuildConfiguration;
+			baseConfigurationReference = 9A08E84A5BCD00B73BE6DDFAA9A8417D /* HmsPushSDK.debug.xcconfig */;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
+				CLANG_ENABLE_OBJC_WEAK = NO;
+				ENABLE_USER_SCRIPT_SANDBOXING = NO;
+				IPHONEOS_DEPLOYMENT_TARGET = 10.0;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+				);
+				SDKROOT = iphoneos;
+				TARGETED_DEVICE_FAMILY = "1,2";
+			};
+			name = Debug;
+		};
+		1EF77F773A20BBC247D0D4170B96BF95 /* Release */ = {
+			isa = XCBuildConfiguration;
+			baseConfigurationReference = B2321565F222B4D8E06DD8EC30D6EC6C /* Pods-Example.release.xcconfig */;
+			buildSettings = {
+				ALWAYS_EMBED_SWIFT_STANDARD_LIBRARIES = NO;
+				CLANG_ENABLE_OBJC_WEAK = NO;
+				"CODE_SIGN_IDENTITY[sdk=appletvos*]" = "";
+				"CODE_SIGN_IDENTITY[sdk=iphoneos*]" = "";
+				"CODE_SIGN_IDENTITY[sdk=watchos*]" = "";
+				CURRENT_PROJECT_VERSION = 1;
+				DEFINES_MODULE = YES;
+				DYLIB_COMPATIBILITY_VERSION = 1;
+				DYLIB_CURRENT_VERSION = 1;
+				DYLIB_INSTALL_NAME_BASE = "@rpath";
+				ENABLE_MODULE_VERIFIER = NO;
+				ENABLE_USER_SCRIPT_SANDBOXING = NO;
+				INFOPLIST_FILE = "Target Support Files/Pods-Example/Pods-Example-Info.plist";
+				INSTALL_PATH = "$(LOCAL_LIBRARY_DIR)/Frameworks";
+				IPHONEOS_DEPLOYMENT_TARGET = 13.0;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+					"@loader_path/Frameworks",
+				);
+				MACH_O_TYPE = staticlib;
+				MODULEMAP_FILE = "Target Support Files/Pods-Example/Pods-Example.modulemap";
+				OTHER_LDFLAGS = "";
+				OTHER_LIBTOOLFLAGS = "";
+				PODS_ROOT = "$(SRCROOT)";
+				PRODUCT_BUNDLE_IDENTIFIER = "org.cocoapods.${PRODUCT_NAME:rfc1034identifier}";
+				PRODUCT_NAME = "$(TARGET_NAME:c99extidentifier)";
+				SDKROOT = iphoneos;
+				SKIP_INSTALL = YES;
+				TARGETED_DEVICE_FAMILY = "1,2";
+				VALIDATE_PRODUCT = YES;
+				VERSIONING_SYSTEM = "apple-generic";
+				VERSION_INFO_PREFIX = "";
+			};
+			name = Release;
+		};
 		4E2B55411C7AC15905B4EE39B5A443E3 /* Release */ = {
 			isa = XCBuildConfiguration;
-			baseConfigurationReference = B7C42B51EC80567EB566BEF0653F4BE5 /* Pods-PushService.release.xcconfig */;
+			baseConfigurationReference = 98BEFCE6C55B52C7289A7837DDE66829 /* Pods-PushService.release.xcconfig */;
 			buildSettings = {
 				ALWAYS_EMBED_SWIFT_STANDARD_LIBRARIES = NO;
 				CLANG_ENABLE_OBJC_WEAK = NO;
@@ -299,43 +867,21 @@
 			};
 			name = Release;
 		};
-		617BD69ED04809AFF5863DDA14085319 /* Release */ = {
+		504FEA9FAA7E444F38D34F6E2ED9F63D /* Release */ = {
 			isa = XCBuildConfiguration;
-			baseConfigurationReference = 387E8C1C4525CCACDFFD29F5FA8F86B2 /* Pods-Example.release.xcconfig */;
+			baseConfigurationReference = 1F78C17988C8B94021E3F6C3A39A5255 /* AGConnectCredential.release.xcconfig */;
 			buildSettings = {
-				ALWAYS_EMBED_SWIFT_STANDARD_LIBRARIES = NO;
-				CLANG_ENABLE_OBJC_WEAK = NO;
-				"CODE_SIGN_IDENTITY[sdk=appletvos*]" = "";
-				"CODE_SIGN_IDENTITY[sdk=iphoneos*]" = "";
-				"CODE_SIGN_IDENTITY[sdk=watchos*]" = "";
-				CURRENT_PROJECT_VERSION = 1;
-				DEFINES_MODULE = YES;
-				DYLIB_COMPATIBILITY_VERSION = 1;
-				DYLIB_CURRENT_VERSION = 1;
-				DYLIB_INSTALL_NAME_BASE = "@rpath";
-				ENABLE_MODULE_VERIFIER = NO;
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
 				ENABLE_USER_SCRIPT_SANDBOXING = NO;
-				INFOPLIST_FILE = "Target Support Files/Pods-Example/Pods-Example-Info.plist";
-				INSTALL_PATH = "$(LOCAL_LIBRARY_DIR)/Frameworks";
-				IPHONEOS_DEPLOYMENT_TARGET = 13.0;
+				IPHONEOS_DEPLOYMENT_TARGET = 9.0;
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
 					"@executable_path/Frameworks",
-					"@loader_path/Frameworks",
 				);
-				MACH_O_TYPE = staticlib;
-				MODULEMAP_FILE = "Target Support Files/Pods-Example/Pods-Example.modulemap";
-				OTHER_LDFLAGS = "";
-				OTHER_LIBTOOLFLAGS = "";
-				PODS_ROOT = "$(SRCROOT)";
-				PRODUCT_BUNDLE_IDENTIFIER = "org.cocoapods.${PRODUCT_NAME:rfc1034identifier}";
-				PRODUCT_NAME = "$(TARGET_NAME:c99extidentifier)";
 				SDKROOT = iphoneos;
-				SKIP_INSTALL = YES;
 				TARGETED_DEVICE_FAMILY = "1,2";
 				VALIDATE_PRODUCT = YES;
-				VERSIONING_SYSTEM = "apple-generic";
-				VERSION_INFO_PREFIX = "";
 			};
 			name = Release;
 		};
@@ -405,6 +951,25 @@
 			};
 			name = Debug;
 		};
+		96546ECC066A44D61A42F384102F6B28 /* Release */ = {
+			isa = XCBuildConfiguration;
+			baseConfigurationReference = B67EBEFED80A81E58A34AABD083FFEEC /* HmsPushSDK.release.xcconfig */;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
+				CLANG_ENABLE_OBJC_WEAK = NO;
+				ENABLE_USER_SCRIPT_SANDBOXING = NO;
+				IPHONEOS_DEPLOYMENT_TARGET = 10.0;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+				);
+				SDKROOT = iphoneos;
+				TARGETED_DEVICE_FAMILY = "1,2";
+				VALIDATE_PRODUCT = YES;
+			};
+			name = Release;
+		};
 		9E406C6AAF85E580207CD97B0044DEAB /* Release */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
@@ -467,9 +1032,27 @@
 			};
 			name = Release;
 		};
+		A9F4F24BE6868115589C0A3DD7F695D2 /* Release */ = {
+			isa = XCBuildConfiguration;
+			baseConfigurationReference = C55AD4DB06149E0DA97CB53B5F06A217 /* HiAnalytics.release.xcconfig */;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
+				ENABLE_USER_SCRIPT_SANDBOXING = NO;
+				IPHONEOS_DEPLOYMENT_TARGET = 9.0;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+				);
+				SDKROOT = iphoneos;
+				TARGETED_DEVICE_FAMILY = "1,2";
+				VALIDATE_PRODUCT = YES;
+			};
+			name = Release;
+		};
 		BE4560EC5CCF96D3CBA9D009F20697A8 /* Debug */ = {
 			isa = XCBuildConfiguration;
-			baseConfigurationReference = 4D4C1B7AB51D6F21BF15D527D5364DEE /* Pods-PushService.debug.xcconfig */;
+			baseConfigurationReference = 983679EE0EF69785CC1BEC06946E1FAB /* Pods-PushService.debug.xcconfig */;
 			buildSettings = {
 				ALWAYS_EMBED_SWIFT_STANDARD_LIBRARIES = NO;
 				CLANG_ENABLE_OBJC_WEAK = NO;
@@ -506,9 +1089,61 @@
 			};
 			name = Debug;
 		};
-		EFCEFFF97EFB038E98BD9C86297035FF /* Debug */ = {
+		CBDC0F03E387A2EEA2ACBB27150E6997 /* Release */ = {
 			isa = XCBuildConfiguration;
-			baseConfigurationReference = 0084795F56C968BC7F203AFFEE5E2E06 /* Pods-Example.debug.xcconfig */;
+			baseConfigurationReference = AA2E6CC29BA8D7C3A3AC65187CD40F48 /* AGConnectCore.release.xcconfig */;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
+				ENABLE_USER_SCRIPT_SANDBOXING = NO;
+				IPHONEOS_DEPLOYMENT_TARGET = 9.0;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+				);
+				SDKROOT = iphoneos;
+				TARGETED_DEVICE_FAMILY = "1,2";
+				VALIDATE_PRODUCT = YES;
+			};
+			name = Release;
+		};
+		D6645696342BC62D603CA4FC50F6AB53 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			baseConfigurationReference = 7EDE4A6050D3639766372E830650E7EC /* AGConnectCredential.debug.xcconfig */;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
+				ENABLE_USER_SCRIPT_SANDBOXING = NO;
+				IPHONEOS_DEPLOYMENT_TARGET = 9.0;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+				);
+				SDKROOT = iphoneos;
+				TARGETED_DEVICE_FAMILY = "1,2";
+			};
+			name = Debug;
+		};
+		D8F7765FB0C525E0D15E3C8DBB0D256A /* Debug */ = {
+			isa = XCBuildConfiguration;
+			baseConfigurationReference = CAC075F679A0E2DC72A208856BF56969 /* AGConnectCore.debug.xcconfig */;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
+				ENABLE_USER_SCRIPT_SANDBOXING = NO;
+				IPHONEOS_DEPLOYMENT_TARGET = 9.0;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+				);
+				SDKROOT = iphoneos;
+				TARGETED_DEVICE_FAMILY = "1,2";
+			};
+			name = Debug;
+		};
+		DB7D9CBA027FEC59285C1A660AEDB01E /* Debug */ = {
+			isa = XCBuildConfiguration;
+			baseConfigurationReference = 0023F4D537C140B8C9C0AD74CED03A44 /* Pods-Example.debug.xcconfig */;
 			buildSettings = {
 				ALWAYS_EMBED_SWIFT_STANDARD_LIBRARIES = NO;
 				CLANG_ENABLE_OBJC_WEAK = NO;
@@ -548,6 +1183,15 @@
 /* End XCBuildConfiguration section */
 
 /* Begin XCConfigurationList section */
+		45E9EFA6DA02C9E91183DD59B68A8F7E /* Build configuration list for PBXAggregateTarget "HmsPushSDK" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				187D83CC76759A709ED9826D8FABBEBD /* Debug */,
+				96546ECC066A44D61A42F384102F6B28 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
 		4821239608C13582E20E6DA73FD5F1F9 /* Build configuration list for PBXProject "Pods" */ = {
 			isa = XCConfigurationList;
 			buildConfigurations = (
@@ -557,11 +1201,47 @@
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Release;
 		};
-		75EECECF3B9ADA6D19A696FAD9D32D9F /* Build configuration list for PBXNativeTarget "Pods-Example" */ = {
+		60EB9DB4CADA7F314C162F872713E6D3 /* Build configuration list for PBXAggregateTarget "HiAnalytics" */ = {
 			isa = XCConfigurationList;
 			buildConfigurations = (
-				EFCEFFF97EFB038E98BD9C86297035FF /* Debug */,
-				617BD69ED04809AFF5863DDA14085319 /* Release */,
+				162B85223683B76175709F8940B6559F /* Debug */,
+				A9F4F24BE6868115589C0A3DD7F695D2 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		73A69B987A9E4DFBF4F6FFECC589E9FF /* Build configuration list for PBXAggregateTarget "AGConnectCredential" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				D6645696342BC62D603CA4FC50F6AB53 /* Debug */,
+				504FEA9FAA7E444F38D34F6E2ED9F63D /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		74605F8D1D6D6CAB859674D24A72F8C9 /* Build configuration list for PBXAggregateTarget "AGConnectCore" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				D8F7765FB0C525E0D15E3C8DBB0D256A /* Debug */,
+				CBDC0F03E387A2EEA2ACBB27150E6997 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		96EBBEC2282B8E0114D6BB47DD7DAF7E /* Build configuration list for PBXNativeTarget "Pods-Example" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				DB7D9CBA027FEC59285C1A660AEDB01E /* Debug */,
+				1EF77F773A20BBC247D0D4170B96BF95 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		B593250D437BE5FD3365792D5A7EFEA2 /* Build configuration list for PBXAggregateTarget "HMFoundation" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				14071832B73C7A9219E750FB04C7B694 /* Debug */,
+				0315C1FFAF0811C0942AABD5F76C5A07 /* Release */,
 			);
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Release;

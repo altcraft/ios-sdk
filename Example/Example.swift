@@ -1,7 +1,7 @@
 //
-//  IOSAPNsExampleApp.swift
+//  ExampleApp.swift
 //
-//  IOSAPNsExample
+//  Example
 //
 //  Created by Andrey Pogodin.
 //
@@ -20,6 +20,7 @@ let anonJWT: String? = nil
  
 ///set the JWT value for the registered user as regJWT or in the application IU interface (config)
 let regJWT: String? = nil
+
 
 @main
 struct IOSAPNsExampleApp: App {
@@ -63,7 +64,16 @@ class AppDelegate: UIResponder, UIApplicationDelegate, UNUserNotificationCenterD
         AltcraftSDK.shared.pushTokenFunction.setAPNSTokenProvider(APNSProvider())
         AltcraftSDK.shared.notificationManager.registerForPushNotifications(for: application)
     
+        
         initSDK(config: getConfigFromUserDefault())
+
+    
+        /// Optional: enable app-level push callbacks.
+        /// The SDK already posts `.altcraftPushWillPresent` / `.altcraftPushDidReceive` notifications
+        /// and performs default presentation + open-event tracking.
+        /// Uncomment only if you want to take over foreground display or tap handling
+        /// via `customPushProcessing` / `customClickProcessing` and the closure hooks.
+        //setupAltcraftPushCallbacks()
 
         return true
     }

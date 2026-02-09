@@ -32,6 +32,7 @@ import CoreData
 final class RepositoryTests: IsolatedTestCase {
     
     private func createMobileEventEntity(
+        requestId: String? = "req-mob-1",
         sid: String = "test-sid",
         eventName: String = "test-event",
         time: Int64 = 1_725_000_000,
@@ -46,6 +47,7 @@ final class RepositoryTests: IsolatedTestCase {
         profileFields: Data? = nil
     ) -> MobileEventEntity {
         let entity = MobileEventEntity(context: viewContext)
+        entity.requestId = requestId
         entity.sid = sid
         entity.eventName = eventName
         entity.time = time
@@ -80,15 +82,15 @@ final class RepositoryTests: IsolatedTestCase {
     func test_2_SubscribeRequestData_isValid_success() {
         let req = SubscribeRequestData(
             url: "https://api.example.com/subscribe",
+            requestId: "uuid-1",
             time: 1_725_000_000,
             rToken: "r123",
-            requestId: "uuid-1",
             authHeader: "Bearer abc",
             matchingMode: "abc",
             provider: "ios-apns",
             deviceToken: "token-xyz",
             status: "active",
-            sync: 1,
+            sync: true,
             profileFields: ["p": "v"],
             customFields: ["c": "v"],
             cats: nil,
@@ -102,15 +104,15 @@ final class RepositoryTests: IsolatedTestCase {
     func test_5_SubscribeRequestData_isValid_missingMandatoryFields() {
         var req = SubscribeRequestData(
             url: "https://api.example.com/subscribe",
+            requestId: "",
             time: 1_725_000_000,
             rToken: nil,
-            requestId: "",
             authHeader: "Bearer abc",
             matchingMode: "abc",
             provider: "ios-apns",
             deviceToken: "token-xyz",
             status: "active",
-            sync: 0,
+            sync: false,
             profileFields: nil,
             customFields: [:],
             cats: nil,
@@ -121,15 +123,15 @@ final class RepositoryTests: IsolatedTestCase {
 
         req = SubscribeRequestData(
             url: "https://api.example.com/subscribe",
+            requestId: "uuid-1",
             time: 0,
             rToken: nil,
-            requestId: "uuid-1",
             authHeader: "Bearer abc",
             matchingMode: "abc",
             provider: "ios-apns",
             deviceToken: "token-xyz",
             status: "active",
-            sync: 0,
+            sync: false,
             profileFields: nil,
             customFields: [:],
             cats: nil,
@@ -140,15 +142,15 @@ final class RepositoryTests: IsolatedTestCase {
 
         req = SubscribeRequestData(
             url: "https://api.example.com/subscribe",
+            requestId: "uuid-1",
             time: 1_725_000_000,
             rToken: nil,
-            requestId: "uuid-1",
             authHeader: "",
             matchingMode: "abc",
             provider: "ios-apns",
             deviceToken: "token-xyz",
             status: "active",
-            sync: 0,
+            sync: false,
             profileFields: nil,
             customFields: [:],
             cats: nil,
@@ -159,15 +161,15 @@ final class RepositoryTests: IsolatedTestCase {
 
         req = SubscribeRequestData(
             url: "https://api.example.com/subscribe",
+            requestId: "uuid-1",
             time: 1_725_000_000,
             rToken: nil,
-            requestId: "uuid-1",
             authHeader: "Bearer abc",
             matchingMode: "",
             provider: "ios-apns",
             deviceToken: "token-xyz",
             status: "active",
-            sync: 0,
+            sync: false,
             profileFields: nil,
             customFields: [:],
             cats: nil,
@@ -178,15 +180,15 @@ final class RepositoryTests: IsolatedTestCase {
 
         req = SubscribeRequestData(
             url: "https://api.example.com/subscribe",
+            requestId: "uuid-1",
             time: 1_725_000_000,
             rToken: nil,
-            requestId: "uuid-1",
             authHeader: "Bearer abc",
             matchingMode: "abc",
             provider: "",
             deviceToken: "token-xyz",
             status: "active",
-            sync: 0,
+            sync: false,
             profileFields: nil,
             customFields: [:],
             cats: nil,
@@ -197,15 +199,15 @@ final class RepositoryTests: IsolatedTestCase {
 
         req = SubscribeRequestData(
             url: "https://api.example.com/subscribe",
+            requestId: "uuid-1",
             time: 1_725_000_000,
             rToken: nil,
-            requestId: "uuid-1",
             authHeader: "Bearer abc",
             matchingMode: "abc",
             provider: "ios-apns",
             deviceToken: "",
             status: "active",
-            sync: 0,
+            sync: false,
             profileFields: nil,
             customFields: [:],
             cats: nil,
@@ -216,15 +218,15 @@ final class RepositoryTests: IsolatedTestCase {
 
         req = SubscribeRequestData(
             url: "https://api.example.com/subscribe",
+            requestId: "uuid-1",
             time: 1_725_000_000,
             rToken: nil,
-            requestId: "uuid-1",
             authHeader: "Bearer abc",
             matchingMode: "abc",
             provider: "ios-apns",
             deviceToken: "token-xyz",
             status: "",
-            sync: 0,
+            sync: false,
             profileFields: nil,
             customFields: [:],
             cats: nil,
@@ -238,6 +240,7 @@ final class RepositoryTests: IsolatedTestCase {
     func test_3_PushEventRequestData_isValid_allowedTypes() {
         var req = PushEventRequestData(
             url: "https://api.example.com/push",
+            requestId: "req-1",
             time: 1_725_000_000,
             type: Constants.PushEvents.delivery,
             uid: "u1",
@@ -248,6 +251,7 @@ final class RepositoryTests: IsolatedTestCase {
 
         req = PushEventRequestData(
             url: "https://api.example.com/push",
+            requestId: "req-2",
             time: 1_725_000_000,
             type: Constants.PushEvents.open,
             uid: "u2",
@@ -261,6 +265,7 @@ final class RepositoryTests: IsolatedTestCase {
     func test_6_PushEventRequestData_isValid_invalidType() {
         var req = PushEventRequestData(
             url: "https://api.example.com/push",
+            requestId: "req-3",
             time: 1_725_000_000,
             type: "clicked",
             uid: "u3",
@@ -271,6 +276,7 @@ final class RepositoryTests: IsolatedTestCase {
 
         req = PushEventRequestData(
             url: "https://api.example.com/push",
+            requestId: "req-4",
             time: 0,
             type: Constants.PushEvents.open,
             uid: "u3",
@@ -281,6 +287,7 @@ final class RepositoryTests: IsolatedTestCase {
 
         req = PushEventRequestData(
             url: "https://api.example.com/push",
+            requestId: "req-5",
             time: 1_725_000_000,
             type: Constants.PushEvents.open,
             uid: "",
@@ -291,6 +298,7 @@ final class RepositoryTests: IsolatedTestCase {
 
         req = PushEventRequestData(
             url: "https://api.example.com/push",
+            requestId: "req-6",
             time: 1_725_000_000,
             type: Constants.PushEvents.delivery,
             uid: "u4",
@@ -301,6 +309,7 @@ final class RepositoryTests: IsolatedTestCase {
 
         req = PushEventRequestData(
             url: "https://api.example.com/push",
+            requestId: "req-7",
             time: 1_725_000_000,
             type: Constants.PushEvents.delivery,
             uid: "u4",
@@ -332,6 +341,7 @@ final class RepositoryTests: IsolatedTestCase {
         
         let requestData = MobileEventRequestData(
             url: "https://api.example.com/mobile-event",
+            requestId: "RID-M-1",
             sid: entity.sid!,
             eventName: entity.eventName!,
             parts: [],
@@ -342,6 +352,7 @@ final class RepositoryTests: IsolatedTestCase {
         XCTAssertEqual(requestData.eventName, "test-event")
         XCTAssertEqual(requestData.authHeader, "Bearer test-auth")
         XCTAssertEqual(requestData.url, "https://api.example.com/mobile-event")
+        XCTAssertEqual(requestData.requestId, "RID-M-1")
         XCTAssertTrue(requestData.parts.isEmpty)
     }
 
@@ -369,7 +380,6 @@ final class RepositoryTests: IsolatedTestCase {
         
         let profileDict = ["profile": "field"]
         let profileData = try? JSONSerialization.data(withJSONObject: profileDict)
-        
 
         let entity = createMobileEventEntity(
             time: 1_725_000,
@@ -431,14 +441,14 @@ final class RepositoryTests: IsolatedTestCase {
     
     /// test_10: Mobile event request data missing required fields returns nil
     func test_10_MobileEventRequestData_missingRequiredFields_returnsNil() {
-        let expectation = self.expectation(description: "Mobile event request completion")
+        let exp = self.expectation(description: "Mobile event request completion")
         
         let entity = createMobileEventEntity(sid: "")
         let objectID = entity.objectID
         
         getMobileEventRequestData(context: viewContext, objectID: objectID) { requestData in
             XCTAssertNil(requestData, "Expected nil when sid is empty")
-            expectation.fulfill()
+            exp.fulfill()
         }
         
         waitForExpectations(timeout: 1.0)
@@ -469,7 +479,7 @@ final class RepositoryTests: IsolatedTestCase {
 
     /// test_12: Mobile event request data invalid object ID returns nil
     func test_12_MobileEventRequestData_invalidObjectID_returnsNil() {
-        let expectation = self.expectation(description: "Mobile event request completion")
+        let exp = self.expectation(description: "Mobile event request completion")
         
         let entity = createMobileEventEntity()
         let invalidObjectID = entity.objectID
@@ -478,9 +488,10 @@ final class RepositoryTests: IsolatedTestCase {
         
         getMobileEventRequestData(context: differentContext, objectID: invalidObjectID) { requestData in
             XCTAssertNil(requestData, "Expected nil for invalid object ID")
-            expectation.fulfill()
+            exp.fulfill()
         }
         
         waitForExpectations(timeout: 1.0)
     }
 }
+
