@@ -80,7 +80,7 @@ final class StringBuilderTests: IsolatedTestCase {
 
     /// test_5: updateUrl with base URL builds correct update endpoint
     func test_5_updateUrl_buildsExpectedEndpoint() {
-        let result = updateUrl(baseURL)
+        let result = tokenUpdateUrl(baseURL)
         XCTAssertEqual(result, "\(baseURL)/subscription/push/update/")
     }
 
@@ -92,7 +92,7 @@ final class StringBuilderTests: IsolatedTestCase {
 
     /// test_7: profileUrl with base URL builds correct status endpoint
     func test_7_profileUrl_buildsExpectedEndpoint() {
-        let result = profileUrl(baseURL)
+        let result = profileStatusUrl(baseURL)
         XCTAssertEqual(result, "\(baseURL)/subscription/push/status/")
     }
 

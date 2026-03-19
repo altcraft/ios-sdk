@@ -5,6 +5,7 @@
 //  Created by Andrey Pogodin.
 //
 //  Copyright © 2025 Altcraft. All rights reserved.
+//
 
 import Foundation
 import CoreData
@@ -17,28 +18,27 @@ import CoreData
 /// - Parameters:
 ///   - uid: The unique identifier of the push event.
 ///   - type: The type of the push event (e.g., "delivery", "open").
-///   - completion: A closure called with the created entity's `NSManagedObjectID` or `nil` if saving failed.
+/// - Returns: The created entity's `NSManagedObjectID` or `nil` if saving failed.
 func addPushEventEntity(
     uid: String,
-    type: String,
-    completion: @escaping (NSManagedObjectID?) -> Void
-) {
-    withBackgroundContext{ context in
-        let entity = PushEventEntity(context: context)
-        entity.time = Int64(Date().timeIntervalSince1970 * 1000)
-        entity.requestId = UUID().uuidString
-        entity.uid = uid
-        entity.type = type
-        entity.retryCount = 0
-        entity.maxRetryCount = 15
+    type: String
+) async -> NSManagedObjectID? {
+    do {
+        return try await CoreDataManager.shared.performBackgroundTask { context in
+            let entity = PushEventEntity(context: context)
+            entity.time = Int64(Date().timeIntervalSince1970 * 1000)
+            entity.requestId = UUID().uuidString
+            entity.uid = uid
+            entity.type = type
+            entity.retryCount = 0
+            entity.maxRetryCount = 15
 
-        do {
             try context.save()
-            completion(entity.objectID)
-        } catch {
-            errorEvent(#function, error: error)
-            completion(nil)
+            return entity.objectID
         }
+    } catch {
+        errorEvent(#function, error: error)
+        return nil
     }
 }
 
@@ -46,24 +46,22 @@ func addPushEventEntity(
 ///
 /// - Parameters:
 ///   - context: The `NSManagedObjectContext` used to perform the fetch.
-///   - completion: Callback with fetched object IDs (empty on failure).
+/// - Returns: Fetched object IDs (empty on failure).
 func getAllPushEvents(
-    context: NSManagedObjectContext,
-    completion: @escaping ([NSManagedObjectID]) -> Void
-) {
-    context.perform {
-        let request = NSFetchRequest<NSManagedObjectID>(
-            entityName: Constants.EntityNames.pushEvent
-        )
-        request.resultType = .managedObjectIDResultType
-        request.sortDescriptors = [NSSortDescriptor(key: "time", ascending: true)]
-        do {
-            let ids = try context.fetch(request)
-            completion(ids)
-        } catch {
-            errorEvent(#function, error: error)
-            completion([])
+    context: NSManagedObjectContext
+) async -> [NSManagedObjectID] {
+    do {
+        return try await context.performAsync {
+            let request = NSFetchRequest<NSManagedObjectID>(
+                entityName: Constants.EntityNames.pushEventEntity
+            )
+            request.resultType = .managedObjectIDResultType
+            request.sortDescriptors = [NSSortDescriptor(key: "time", ascending: true)]
+            return try context.fetch(request)
         }
+    } catch {
+        errorEvent(#function, error: error)
+        return []
     }
 }
 
@@ -73,17 +71,13 @@ func getAllPushEvents(
 ///   - context: Managed object context used for the operation.
 ///   - threshold: Maximum allowed number of records before cleanup starts (default: 500).
 ///   - purgeCount: Number of oldest records to delete when threshold is exceeded (default: 100).
-///   - completion: Called when the operation finishes, regardless of outcome.
 func clearOldPushEvents(
     context: NSManagedObjectContext,
     threshold: Int = 500,
-    purgeCount: Int = 100,
-    completion: @escaping () -> Void
-) {
-    context.perform {
-        defer { completion() }
-
-        do {
+    purgeCount: Int = 100
+) async {
+    do {
+        try await context.performAsync {
             let countReq: NSFetchRequest<PushEventEntity> = PushEventEntity.fetchRequest()
             let total = try context.count(for: countReq)
             guard total > threshold else { return }
@@ -95,11 +89,10 @@ func clearOldPushEvents(
             let oldest = try context.fetch(fetchReq)
             guard !oldest.isEmpty else { return }
 
-            oldest.forEach { context.delete($0) }
+            oldest.forEach(context.delete)
             try context.save()
-
-        } catch {
-            errorEvent(#function, error: error)
         }
+    } catch {
+        errorEvent(#function, error: error)
     }
 }

@@ -4,7 +4,8 @@
 //
 //  Created by Andrey Pogodin.
 //
-//  © 2025 Altcraft. All rights reserved.
+//  © 2026 Altcraft. All rights reserved.
+//
 
 import XCTest
 @testable import Altcraft
@@ -13,200 +14,267 @@ import XCTest
  * SubscribeCommandQueueTests
  *
  * Positive scenarios:
- *  - test_1: FIFO → executes jobs in submit order when each calls done.
- *  - test_2: nextJob → starts only after done is called.
- *  - test_3: reset without epoch dropCurrent false → drops pending but lets current finish.
- *  - test_4: reset with epoch dropCurrent true → stops continuation and drops pending.
- *  - test_5: reset with epoch dropCurrent false → drops pending but continues after current if any.
+ *  - test_1: FIFO → executes jobs in submit order.
+ *  - test_2: nextJob → starts only after previous job finishes.
+ *  - test_3: reset without epoch dropCurrent false → keeps current and pending jobs.
+ *  - test_4: reset with epoch dropCurrent true → drops pending jobs from old generation.
+ *  - test_5: reset with epoch dropCurrent false and epoch queue → keeps current generation jobs.
  *  - test_6: concurrent submissions → are serialized with no overlap.
  */
-final class SubscribeCommandQueueTests: XCTestCase {
+final class SubscribeCommandQueueTests: IsolatedTestCase {
 
-    private func asyncAfter(_ seconds: TimeInterval, _ block: @escaping () -> Void) {
-        DispatchQueue.global().asyncAfter(deadline: .now() + seconds, execute: block)
+    actor IntRecorder {
+        private var values: [Int] = []
+
+        func append(_ value: Int) {
+            values.append(value)
+        }
+
+        func snapshot() -> [Int] {
+            values
+        }
     }
 
-    /// test_1: FIFO executes jobs in submit order when each calls done
-    func test_1_FIFO_executesJobsInSubmitOrder_whenEachCallsDone() {
-        let q = SubscribeCommandQueue(label: "test.queue.fifo", usesEpoch: false)
+    actor OverlapTracker {
+        private var active = 0
+        private var overlaps = 0
 
-        var order: [Int] = []
-        let lock = NSLock()
+        func begin() {
+            if active != 0 {
+                overlaps += 1
+            }
+            active += 1
+        }
+
+        func end() {
+            active -= 1
+        }
+
+        func overlapCount() -> Int {
+            overlaps
+        }
+    }
+
+    /// test_1: FIFO executes jobs in submit order
+    func test_1_FIFO_executesJobsInSubmitOrder() async {
+        let queue = SubscribeCommandQueue(
+            label: "test.queue.fifo",
+            usesEpoch: false
+        )
+
+        let recorder = IntRecorder()
         let exp = expectation(description: "fifo")
         exp.expectedFulfillmentCount = 3
 
         for i in 1...3 {
-            q.submit { done in
-                lock.lock(); order.append(i); lock.unlock()
+            queue.submit {
+                await recorder.append(i)
                 exp.fulfill()
-                done()
             }
         }
 
-        wait(for: [exp], timeout: 1.0)
+        await fulfillment(of: [exp], timeout: 1.0)
+        let order = await recorder.snapshot()
         XCTAssertEqual(order, [1, 2, 3], "Jobs must run in FIFO order")
     }
 
-    /// test_2: nextJob starts only after done is called
-    func test_2_nextJob_startsOnlyAfter_done_isCalled() {
-        let q = SubscribeCommandQueue(label: "test.queue.done.gating", usesEpoch: false)
+    /// test_2: nextJob starts only after previous job finishes
+    func test_2_nextJob_startsOnlyAfter_previousJob_finishes() async {
+        let queue = SubscribeCommandQueue(
+            label: "test.queue.next.gating",
+            usesEpoch: false
+        )
 
-        var started: [Int] = []
-        let lock = NSLock()
+        let recorder = IntRecorder()
         let exp = expectation(description: "two jobs")
         exp.expectedFulfillmentCount = 2
 
-        q.submit { done in
-            lock.lock(); started.append(1); lock.unlock()
-            self.asyncAfter(0.15) {
-                exp.fulfill()
-                done()
-            }
-        }
-
-        q.submit { done in
-            lock.lock(); started.append(2); lock.unlock()
+        queue.submit {
+            await recorder.append(1)
+            try? await Task.sleep(nanoseconds: 150_000_000)
             exp.fulfill()
-            done()
         }
 
-        wait(for: [exp], timeout: 2.0)
-        XCTAssertEqual(started, [1, 2], "Second job must not start before the first calls done()")
+        queue.submit {
+            await recorder.append(2)
+            exp.fulfill()
+        }
+
+        await fulfillment(of: [exp], timeout: 2.0)
+        let started = await recorder.snapshot()
+        XCTAssertEqual(started, [1, 2], "Second job must not start before the first finishes")
     }
 
-    /// test_3: reset without epoch dropCurrent false drops pending but lets current finish
-    func test_3_reset_withoutEpoch_dropCurrentFalse_dropsPending_but_letsCurrentFinish() {
-        let q = SubscribeCommandQueue(label: "test.queue.reset.noepoch", usesEpoch: false)
+    /// test_3: reset without epoch dropCurrent false keeps current and pending jobs
+    func test_3_reset_withoutEpoch_dropCurrentFalse_keepsCurrentAndPending() async {
+        let queue = SubscribeCommandQueue(
+            label: "test.queue.reset.noepoch",
+            usesEpoch: false
+        )
 
-        let started = NSMutableArray()
-        let finished = NSMutableArray()
-        let exp1 = expectation(description: "first runs and finishes")
+        let started = IntRecorder()
+        let finished = IntRecorder()
 
-        q.submit { done in
-            started.add(1)
-            q.reset(dropCurrent: false)
-            self.asyncAfter(0.05) {
-                finished.add(1)
-                exp1.fulfill()
-                done()
-            }
+        let exp = expectation(description: "all jobs finished")
+        exp.expectedFulfillmentCount = 3
+
+        queue.submit {
+            await started.append(1)
+            queue.reset(dropCurrent: false)
+
+            try? await Task.sleep(nanoseconds: 50_000_000)
+
+            await finished.append(1)
+            exp.fulfill()
         }
 
-        q.submit { done in started.add(2); finished.add(2); done() }
-        q.submit { done in started.add(3); finished.add(3); done() }
+        queue.submit {
+            await started.append(2)
+            await finished.append(2)
+            exp.fulfill()
+        }
 
-        wait(for: [exp1], timeout: 1.0)
+        queue.submit {
+            await started.append(3)
+            await finished.append(3)
+            exp.fulfill()
+        }
 
-        XCTAssertEqual(started as? [Int], [1], "Only the current job should start")
-        XCTAssertEqual(finished as? [Int], [1], "Only the current job should finish")
+        await fulfillment(of: [exp], timeout: 1.0)
+
+        let startedSnapshot = await started.snapshot()
+        let finishedSnapshot = await finished.snapshot()
+
+        XCTAssertEqual(startedSnapshot, [1, 2, 3])
+        XCTAssertEqual(finishedSnapshot, [1, 2, 3])
     }
 
-    /// test_4: reset with epoch dropCurrent true stops continuation and drops pending
-    func test_4_reset_withEpoch_dropCurrentTrue_stopsContinuation_and_dropsPending() {
-        let q = SubscribeCommandQueue(label: "test.queue.reset.epoch.drop", usesEpoch: true)
+    /// test_4: reset with epoch dropCurrent true drops pending jobs from old generation
+    func test_4_reset_withEpoch_dropCurrentTrue_dropsPendingOldGeneration() async {
+        let queue = SubscribeCommandQueue(
+            label: "test.queue.reset.epoch.drop",
+            usesEpoch: true
+        )
 
-        let started = NSMutableArray()
-        let finished = NSMutableArray()
-        let exp1 = expectation(description: "first finishes; chain stops")
+        let started = IntRecorder()
+        let finished = IntRecorder()
 
-        q.submit { done in
-            started.add(1)
-            q.reset(dropCurrent: true)
-            self.asyncAfter(0.05) {
-                finished.add(1)
-                exp1.fulfill()
-                done()
-            }
-        }
-
-        q.submit { done in started.add(2); finished.add(2); done() }
-        q.submit { done in started.add(3); finished.add(3); done() }
-
-        wait(for: [exp1], timeout: 1.0)
-
-        XCTAssertEqual(started as? [Int], [1], "Only the current job should start")
-        XCTAssertEqual(finished as? [Int], [1], "Only the current job should finish")
-
-        let exp2 = expectation(description: "new generation runs")
-        q.submit { done in
-            started.add(4); finished.add(4)
-            exp2.fulfill(); done()
-        }
-        wait(for: [exp2], timeout: 1.0)
-
-        XCTAssertEqual(started as? [Int], [1, 4])
-        XCTAssertEqual(finished as? [Int], [1, 4])
-    }
-
-    /// test_5: reset with epoch dropCurrent false drops pending but continues after current if any
-    func test_5_reset_withEpoch_dropCurrentFalse_dropsPending_but_continuesAfterCurrentIfAny() {
-        let q = SubscribeCommandQueue(label: "test.queue.reset.epoch.keep", usesEpoch: true)
-
-        let started = NSMutableArray()
-        let finished = NSMutableArray()
         let exp1 = expectation(description: "first finishes")
+        let exp2 = expectation(description: "new generation runs")
 
-        q.submit { done in
-            started.add(1)
-            q.reset(dropCurrent: false)
-            self.asyncAfter(0.05) {
-                finished.add(1)
-                exp1.fulfill()
-                done()
-            }
+        queue.submit {
+            await started.append(1)
+            queue.reset(dropCurrent: true)
+
+            try? await Task.sleep(nanoseconds: 50_000_000)
+
+            await finished.append(1)
+            exp1.fulfill()
         }
 
-        q.submit { done in started.add(2); finished.add(2); done() }
-        q.submit { done in started.add(3); finished.add(3); done() }
-
-        wait(for: [exp1], timeout: 1.0)
-
-        XCTAssertEqual(started as? [Int], [1], "Pending jobs should be dropped")
-        XCTAssertEqual(finished as? [Int], [1], "Pending jobs should be dropped")
-
-        let exp2 = expectation(description: "new submit after keep-current")
-        q.submit { done in
-            started.add(4); finished.add(4)
-            exp2.fulfill(); done()
+        queue.submit {
+            await started.append(2)
+            await finished.append(2)
         }
-        wait(for: [exp2], timeout: 1.0)
 
-        XCTAssertEqual(started as? [Int], [1, 4])
-        XCTAssertEqual(finished as? [Int], [1, 4])
+        queue.submit {
+            await started.append(3)
+            await finished.append(3)
+        }
+
+        await fulfillment(of: [exp1], timeout: 1.0)
+
+        let startedAfterFirst = await started.snapshot()
+        let finishedAfterFirst = await finished.snapshot()
+
+        XCTAssertEqual(startedAfterFirst, [1], "Only current job should run from old generation")
+        XCTAssertEqual(finishedAfterFirst, [1], "Only current job should finish from old generation")
+
+        queue.submit {
+            await started.append(4)
+            await finished.append(4)
+            exp2.fulfill()
+        }
+
+        await fulfillment(of: [exp2], timeout: 1.0)
+
+        let startedFinal = await started.snapshot()
+        let finishedFinal = await finished.snapshot()
+
+        XCTAssertEqual(startedFinal, [1, 4])
+        XCTAssertEqual(finishedFinal, [1, 4])
+    }
+
+    /// test_5: reset with epoch dropCurrent false keeps current generation jobs
+    func test_5_reset_withEpoch_dropCurrentFalse_keepsCurrentGenerationJobs() async {
+        let queue = SubscribeCommandQueue(
+            label: "test.queue.reset.epoch.keep",
+            usesEpoch: true
+        )
+
+        let started = IntRecorder()
+        let finished = IntRecorder()
+
+        let exp = expectation(description: "all current generation jobs finished")
+        exp.expectedFulfillmentCount = 3
+
+        queue.submit {
+            await started.append(1)
+            queue.reset(dropCurrent: false)
+
+            try? await Task.sleep(nanoseconds: 50_000_000)
+
+            await finished.append(1)
+            exp.fulfill()
+        }
+
+        queue.submit {
+            await started.append(2)
+            await finished.append(2)
+            exp.fulfill()
+        }
+
+        queue.submit {
+            await started.append(3)
+            await finished.append(3)
+            exp.fulfill()
+        }
+
+        await fulfillment(of: [exp], timeout: 1.0)
+
+        let startedSnapshot = await started.snapshot()
+        let finishedSnapshot = await finished.snapshot()
+
+        XCTAssertEqual(startedSnapshot, [1, 2, 3])
+        XCTAssertEqual(finishedSnapshot, [1, 2, 3])
     }
 
     /// test_6: concurrent submissions are serialized with no overlap
-    func test_6_concurrentSubmissions_areSerialized_noOverlap() {
-        let q = SubscribeCommandQueue(label: "test.queue.serialized", usesEpoch: false)
+    func test_6_concurrentSubmissions_areSerialized_noOverlap() async {
+        let queue = SubscribeCommandQueue(
+            label: "test.queue.serialized",
+            usesEpoch: false
+        )
 
+        let tracker = OverlapTracker()
         let exp = expectation(description: "five serialized jobs")
         exp.expectedFulfillmentCount = 5
 
-        let guardLock = NSLock()
-        var active = 0
-        var overlaps = 0
-
         for _ in 0..<5 {
             DispatchQueue.global().async {
-                q.submit { done in
-                    guardLock.lock()
-                    if active != 0 { overlaps += 1 }
-                    active += 1
-                    guardLock.unlock()
+                queue.submit {
+                    await tracker.begin()
 
-                    Thread.sleep(forTimeInterval: 0.03)
+                    try? await Task.sleep(nanoseconds: 30_000_000)
 
-                    guardLock.lock()
-                    active -= 1
-                    guardLock.unlock()
-
+                    await tracker.end()
                     exp.fulfill()
-                    done()
                 }
             }
         }
 
-        wait(for: [exp], timeout: 2.0)
+        await fulfillment(of: [exp], timeout: 2.0)
+        let overlaps = await tracker.overlapCount()
         XCTAssertEqual(overlaps, 0, "Jobs must never overlap; queue must serialize execution")
     }
 }

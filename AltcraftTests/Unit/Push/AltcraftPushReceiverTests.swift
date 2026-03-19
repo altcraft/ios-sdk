@@ -4,63 +4,30 @@
 //
 //  Created by Andrey Pogodin.
 //
-//  © 2025 Altcraft. All rights reserved.
+//  Copyright © 2025 Altcraft. All rights reserved.
+//
 
 import XCTest
 import UserNotifications
 @testable import Altcraft
 
 /**
- * AltcraftPushReceiverTests
- *
- * Positive scenarios:
- *  - test_1: isAltcraftPush → detects flag correctly.
- *  - test_2: applyImageAttachment → creates JPG attachment from temp JPEG.
- *  - test_3: applyImageAttachment with unknown format → uses JPG fallback.
- */
+* AltcraftPushReceiverTests
+*
+* Positive scenarios:
+* - test_1: isAltcraftPush detects flag correctly.
+* - test_2: applyImageAttachment creates JPG attachment from JPEG data.
+* - test_3: applyImageAttachment with unknown format uses JPG fallback.
+*
+*/
 final class AltcraftPushReceiverTests: XCTestCase {
-
-    // MARK: - Helpers
-
-    private func makeTempDir(_ name: String = UUID().uuidString) -> URL {
-        URL(fileURLWithPath: NSTemporaryDirectory())
-            .appendingPathComponent(name, isDirectory: true)
-    }
-
-    /// Minimal JPEG data (same idea as in the previous tests).
-    private func makeSampleJPEGData() -> Data {
-        Data(
-            [0xFF,0xD8,0xFF,0xE0, 0x00,0x10, 0x4A,0x46,0x49,0x46,0x00,0x01]
-            + Array(repeating: 0, count: 64)
-        )
-    }
-
-    /// Just random bytes so the format is most likely not recognized.
-    private func makeRandomData() -> Data {
-        Data(Array(repeating: 0xAB, count: 32))
-    }
-
-    @discardableResult
-    private func writeTempFile(
-        data: Data,
-        ext: String? = nil,
-        fileName: String = UUID().uuidString
-    ) throws -> URL {
-        let dir = makeTempDir("AltcraftPushReceiverTests-\(UUID().uuidString)")
-        try FileManager.default.createDirectory(at: dir, withIntermediateDirectories: true)
-        let url = dir.appendingPathComponent(
-            fileName + (ext.map { ".\($0)" } ?? ""),
-            isDirectory: false
-        )
-        try data.write(to: url, options: .atomic)
-        return url
-    }
 
     private func makeRequest(userInfo: [AnyHashable: Any]) -> UNNotificationRequest {
         let content = UNMutableNotificationContent()
         content.userInfo = userInfo
-        content.title = "t"
-        content.body = "b"
+        content.title = "title"
+        content.body = "body"
+
         return UNNotificationRequest(
             identifier: UUID().uuidString,
             content: content,
@@ -68,57 +35,60 @@ final class AltcraftPushReceiverTests: XCTestCase {
         )
     }
 
-    // MARK: - Tests
-
-    /// test_1: isAltcraftPush detects flag correctly
-    func test_1_isAltcraftPush_detectsFlag_correctly() {
-        let svc = AltcraftPushReceiver()
-        let reqYes = makeRequest(userInfo: ["_ac_push": true])
-        let reqNo  = makeRequest(userInfo: ["something": 1])
-
-        XCTAssertTrue(svc.isAltcraftPush(reqYes))
-        XCTAssertFalse(svc.isAltcraftPush(reqNo))
+    private func makeSampleJPEGData() -> Data {
+        Data(
+            [0xFF, 0xD8, 0xFF, 0xE0, 0x00, 0x10, 0x4A, 0x46, 0x49, 0x46, 0x00, 0x01]
+            + Array(repeating: 0, count: 64)
+        )
     }
 
-    /// test_2: applyImageAttachment from temp JPEG creates JPG attachment
-    ///
-    /// This is the analogue of the previous "createNotificationAttachment" test.
-    /// We verify that:
-    ///  - a single attachment is created;
-    ///  - the file actually exists on disk;
-    ///  - the extension is "jpg".
-    func test_2_applyImageAttachment_fromTempJPEG_createsJPGAttachment() throws {
-        let svc = AltcraftPushReceiver()
-        let tmp = try writeTempFile(data: makeSampleJPEGData(), ext: "tmp")
+    private func makeRandomData() -> Data {
+        Data(Array(repeating: 0xAB, count: 32))
+    }
+
+    /// test_1: isAltcraftPush detects flag correctly
+    func test_1_is_altcraft_push_detects_flag_correctly() {
+        let receiver = AltcraftPushReceiver()
+        let altcraftRequest = makeRequest(userInfo: ["_ac_push": true])
+        let regularRequest = makeRequest(userInfo: ["other_key": 1])
+
+        XCTAssertTrue(receiver.isAltcraftPush(altcraftRequest))
+        XCTAssertFalse(receiver.isAltcraftPush(regularRequest))
+    }
+
+    /// test_2: applyImageAttachment creates JPG attachment from JPEG data
+    func test_2_apply_image_attachment_creates_jpg_attachment_from_jpeg_data() throws {
+        let receiver = AltcraftPushReceiver()
         let content = UNMutableNotificationContent()
 
-        try svc.applyImageAttachment(from: tmp, to: content)
+        try receiver.applyImageAttachment(
+            from: makeSampleJPEGData(),
+            to: content
+        )
 
         XCTAssertEqual(content.attachments.count, 1)
 
-        let att = content.attachments[0]
-        XCTAssertEqual(att.identifier, "img")
-        XCTAssertEqual(att.url.pathExtension, "jpg")
-        XCTAssertTrue(FileManager.default.fileExists(atPath: att.url.path))
+        let attachment = content.attachments[0]
+        XCTAssertEqual(attachment.identifier, "img")
+        XCTAssertEqual(attachment.url.pathExtension, "jpg")
+        XCTAssertTrue(FileManager.default.fileExists(atPath: attachment.url.path))
     }
 
     /// test_3: applyImageAttachment with unknown format uses JPG fallback
-    ///
-    /// We verify the fallback behaviour:
-    /// if the format is not recognized, the code uses `format?.fileExtension ?? "jpg"`,
-    /// so the resulting extension must be "jpg".
-    func test_3_applyImageAttachment_unknownFormat_usesJPGFallback() throws {
-        let svc = AltcraftPushReceiver()
-        let tmp = try writeTempFile(data: makeRandomData(), ext: "bin")
+    func test_3_apply_image_attachment_with_unknown_format_uses_jpg_fallback() throws {
+        let receiver = AltcraftPushReceiver()
         let content = UNMutableNotificationContent()
 
-        try svc.applyImageAttachment(from: tmp, to: content)
+        try receiver.applyImageAttachment(
+            from: makeRandomData(),
+            to: content
+        )
 
         XCTAssertEqual(content.attachments.count, 1)
 
-        let att = content.attachments[0]
-        XCTAssertEqual(att.identifier, "img")
-        XCTAssertEqual(att.url.pathExtension, "jpg")
-        XCTAssertTrue(FileManager.default.fileExists(atPath: att.url.path))
+        let attachment = content.attachments[0]
+        XCTAssertEqual(attachment.identifier, "img")
+        XCTAssertEqual(attachment.url.pathExtension, "jpg")
+        XCTAssertTrue(FileManager.default.fileExists(atPath: attachment.url.path))
     }
 }

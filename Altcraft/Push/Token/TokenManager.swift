@@ -3,40 +3,71 @@
 //  Altcraft
 //
 //  Created by Andrey Pogodin.
-//
 //  Copyright © 2025 Altcraft. All rights reserved.
+//
 
 import Foundation
 
-/// Handles push token operations — retrieving, validating, and deleting the device's push token.
-/// Supports integration with push notification providers (FCM, HMS, APNs).
-final class TokenManager {
+/// Handles push token operations — retrieving, validating, saving, and deleting tokens.
+///
+/// Supports integration with push notification providers:
+/// - APNs (`ios-apns`)
+/// - Firebase Cloud Messaging (`ios-firebase`)
+/// - Huawei Mobile Services (`ios-huawei`)
+///
+/// Also supports a manually provided token when no push provider is configured.
+public actor TokenManager {
     
-    static let shared = TokenManager()
-    
-    var fcmProvider: FCMInterface?
-    var hmsProvider: HMSInterface?
-    var apnsProvider: APNSInterface?
-    
-    var tokens = Array<String?>()
-    
-    let userDefault = StoredVariablesManager.shared
+    /// Shared singleton instance.
+    public static let shared = TokenManager()
 
-     let validProviders: Set<String> = [
+    /// Tracks previously observed token values to avoid duplicate token events.
+    var tokens = Array<String?>()
+
+    /// Registered Firebase token provider.
+    public var fcmProvider: FCMInterface?
+    
+    /// Registered Huawei token provider.
+    public var hmsProvider: HMSInterface?
+    
+    /// Registered APNs token provider.
+    public var apnsProvider: APNSInterface?
+
+    private let userDefault = StoredVariablesManager.shared
+
+    /// Supported provider identifiers.
+    let validProviders: [String] = [
         Constants.ProviderName.apns,
         Constants.ProviderName.firebase,
         Constants.ProviderName.huawei
     ]
+
+    private init() {}
     
-    /// Validates that all items in the given list are known push providers.
+    /// Clears internal token history used for duplicate tracking.
+    func clearTokens() { tokens.removeAll()}
+
+    /// Registers or clears the Firebase Cloud Messaging provider.
     ///
-    /// - Parameter providers: A list of provider identifiers to check.
-    /// - Returns: `true` if all values are valid, `false` otherwise.
-    func allProvidersValid(_ providers: [String]?) -> Bool {
-        guard let providers = providers else { return false }
-        return providers.allSatisfy { validProviders.contains($0.lowercased()) }
+    /// - Parameter provider: The FCM provider implementation, or `nil` to unset it.
+    public func setFCMProvider(_ provider: FCMInterface?) {
+        fcmProvider = provider
     }
 
+    /// Registers or clears the Huawei Mobile Services provider.
+    ///
+    /// - Parameter provider: The HMS provider implementation, or `nil` to unset it.
+    public func setHMSProvider(_ provider: HMSInterface?) {
+        hmsProvider = provider
+    }
+
+    /// Registers or clears the Apple Push Notification Service provider.
+    ///
+    /// - Parameter provider: The APNs provider implementation, or `nil` to unset it.
+    public func setAPNSProvider(_ provider: APNSInterface?) {
+        apnsProvider = provider
+    }
+    
     /// Deletes the FCM token.
     ///
     /// - Parameter completion: `true` on success, `false` otherwise.
@@ -50,231 +81,204 @@ final class TokenManager {
     func deleteHMSToken(completion: @escaping (Bool) -> Void) {
         hmsProvider?.deleteToken(completion: completion)
     }
-
-    /// Retrieves the APNs (Apple Push Notification Service) token if available and non-empty.
-    /// Tries up to 3 times with 1-second delays between attempts.
+    
+    /// Retrieves the APNs token if available and non-empty.
     ///
-    /// - Parameter completion: Callback with `TokenData` if successful, `nil` otherwise.
-    func getAPNsTokenData(completion: @escaping (TokenData?) -> Void) {
-        guard let provider = apnsProvider else {
-            return completion(nil)
-        }
-        getNonEmptyToken(
-            provider: Constants.ProviderName.apns, fetch: provider.getToken, completion: completion
+    /// Tries up to 3 times with a 1-second delay between attempts.
+    ///
+    /// - Returns: Token data for APNs, or `nil` if unavailable.
+    public func getAPNsTokenData() async -> TokenData? {
+        guard let provider = apnsProvider else { return nil }
+        return await getNonEmptyToken(
+            provider: Constants.ProviderName.apns,
+            fetch: provider.getToken
+        )
+    }
+
+    /// Retrieves the Firebase token if available and non-empty.
+    ///
+    /// Tries up to 3 times with a 1-second delay between attempts.
+    ///
+    /// - Returns: Token data for Firebase, or `nil` if unavailable.
+    public func getFCMTokenData() async -> TokenData? {
+        guard let provider = fcmProvider else { return nil }
+        return await getNonEmptyToken(
+            provider: Constants.ProviderName.firebase,
+            fetch: provider.getToken
+        )
+    }
+
+    /// Retrieves the Huawei token if available and non-empty.
+    ///
+    /// Tries up to 3 times with a 1-second delay between attempts.
+    ///
+    /// - Returns: Token data for Huawei, or `nil` if unavailable.
+    public func getHMSTokenData() async -> TokenData? {
+        guard let provider = hmsProvider else { return nil }
+        return await getNonEmptyToken(
+            provider: Constants.ProviderName.huawei,
+            fetch: provider.getToken
         )
     }
     
-    /// Retrieves the FCM (Firebase Cloud Messaging) token if available and non-empty.
-    /// Tries up to 3 times with 1-second delays between attempts.
+    /// Validates that all items in the given list are known push providers.
     ///
-    /// - Parameter completion: Callback with `TokenData` if successful, `nil` otherwise.
-    func getFCMTokenData(completion: @escaping (TokenData?) -> Void) {
-        guard let provider = fcmProvider else {
-            return completion(nil)
-        }
-        getNonEmptyToken(
-            provider: Constants.ProviderName.firebase, fetch: provider.getToken, completion: completion
-        )
+    /// - Parameter providers: A list of provider identifiers to validate.
+    /// - Returns: `true` if all providers are supported, otherwise `false`.
+    public nonisolated func allProvidersValid(_ providers: [String]?) -> Bool {
+        guard let providers else { return false }
+        return providers.allSatisfy { validProviders.contains($0.lowercased()) }
     }
     
-    /// Retrieves the HMS (Huawei Mobile Services) token if available and non-empty.
-    /// Tries up to 3 times with 1-second delays between attempts.
-    ///
-    /// - Parameter completion: Callback with `TokenData` if successful, `nil` otherwise.
-    func getHMSTokenData(completion: @escaping (TokenData?) -> Void) {
-        guard let provider = hmsProvider else {
-            return completion(nil)
-        }
-        getNonEmptyToken(
-            provider: Constants.ProviderName.huawei, fetch: provider.getToken, completion: completion
-        )
+    /// Returns `true` if any push provider is configured.
+    private func providersInstalled() -> Bool {
+        (fcmProvider != nil) || (hmsProvider != nil) || (apnsProvider != nil)
     }
     
-    /// Returns the device token based on configured provider priority.
+    /// Indicates whether the push module is currently active.
     ///
-    /// Tries to fetch tokens from APNs, FCM, and HMS. Uses the `providerPriorityList` from config
-    /// to determine which token to return first. Falls back to APNs → FCM → HMS if not set.
+    /// The module is considered active when:
+    /// - any push provider is configured, or
+    /// - a manual token becomes available within 5 seconds.
     ///
-    /// Logs the selected token on first use. Returns `nil` if token retrieval fails.
-    ///
-    /// - Parameter completion: Callback with the selected `TokenData`, or `nil` if no valid token was found.
-    func getCurrentToken(completion: @escaping (TokenData?) -> Void) {
-        if let manualToken = userDefault.getManualToken() {
-            if (self.tokens.ts_last() ?? nil) != manualToken.token {
-                 self.tokenEvent(token: manualToken)
-                 self.tokens.ts_append(manualToken.token)
-             }
-            completion(manualToken)
-            return
+    /// - Returns: `true` if the push module is active, otherwise `false`.
+    func pushModuleIsActive() async -> Bool {
+        if (providersInstalled()) { return true } else {
+            return await userDefault.getManualToken() != nil
         }
+    }
 
-        getConfig { [weak self] (config: Configuration?) in
-            guard let self = self else {
-                completion(nil)
-                return
-            }
-
-            let priorityList = config?.providerPriorityList ?? []
-
-            let providers: [(type: String, fetch: (
-                @escaping (TokenData?) -> Void) -> Void)
-            ] = [
-                (Constants.ProviderName.apns, self.getAPNsTokenData),
-                (Constants.ProviderName.firebase, self.getFCMTokenData),
-                (Constants.ProviderName.huawei, self.getHMSTokenData)
-            ]
-
-            let orderedProviders = self.sortProvidersByPriority(
-                providers: providers,
-                priorityList: priorityList
-            )
-
-            self.fetchTokensSequentially(providers: orderedProviders) { token in
-                if let t = token, (self.tokens.ts_last() ?? nil) != t.token {
-                     self.tokenEvent(token: t)
-                     self.tokens.ts_append(t.token)
-                 }
-                completion(token)
+    /// Returns the current device token according to configured provider priority.
+    ///
+    /// Behavior:
+    /// - If no providers are configured, returns the manual token (waiting up to 5 seconds).
+    /// - Otherwise fetches tokens from configured providers in priority order.
+    ///
+    /// Emits a token event when the resulting token changes.
+    ///
+    /// - Returns: The selected token data, or `nil` if no token is available.
+    func getCurrentToken() async -> TokenData? {
+        func trackIfNeeded(_ token: TokenData?) {
+            guard let token else { return }
+            if tokens.ts_last() != token.token {
+                tokenEvent(token: token)
+                tokens.ts_append(token.token)
             }
         }
+        
+        if !providersInstalled() {
+            let token = await userDefault.getManualToken()
+            trackIfNeeded(token)
+            return token
+        }
+
+        let priorityList = await getConfig()?.providerPriorityList ?? []
+        for fetch in orderedProviderFetchers(priorityList: priorityList) {
+            if let token = await fetch() {
+                trackIfNeeded(token)
+                return token
+            }
+        }
+
+        return nil
     }
-    
-    /// Sorts the list of token providers according to a given priority list.
+
+    /// Builds provider fetchers ordered by the configured priority list.
     ///
-    /// If the `priorityList` is empty, the original provider order is preserved (up to 3 items).
+    /// Any missing providers are appended in the default fallback order:
+    /// APNs, Firebase, Huawei.
     ///
-    /// - Parameters:
-    ///   - providers: A list of available providers with their identifiers and fetch functions.
-    ///   - priorityList: A list of provider identifiers indicating fetch priority.
-    /// - Returns: A sorted list of up to 3 providers in the defined priority order.
-    private func sortProvidersByPriority(
-        providers: [(type: String, fetch: (@escaping (TokenData?) -> Void) -> Void)],
+    /// - Parameter priorityList: Provider priority from configuration.
+    /// - Returns: Ordered async token fetch closures.
+    private func orderedProviderFetchers(
         priorityList: [String]
-    ) -> [(type: String, fetch: (@escaping (TokenData?) -> Void) -> Void)] {
-        guard !priorityList.isEmpty else {
-            return Array(providers.prefix(3))
-        }
+    ) -> [() async -> TokenData?] {
+        let providers = validProviders
 
-        var sorted = providers
-        sorted.sort { a, b in
-            let indexA = priorityList.firstIndex(of: a.type) ?? Int.max
-            let indexB = priorityList.firstIndex(of: b.type) ?? Int.max
-            return indexA < indexB
+        let map: [String: () async -> TokenData?] = [
+            providers[0]: { [weak self] in await self?.getAPNsTokenData() },
+            providers[1]: { [weak self] in await self?.getFCMTokenData() },
+            providers[2]: { [weak self] in await self?.getHMSTokenData() }
+        ]
+
+        let orderedNames = priorityList.isEmpty ? providers : priorityList
+
+        var seen = Set<String>()
+
+        return orderedNames.compactMap { name in
+            guard seen.insert(name).inserted else { return nil }
+            return map[name]
         }
-        return Array(sorted.prefix(priorityList.count))
     }
-    
-    /// Emits an event indicating which push provider is set and which token is currently in use.
+
+
+    /// Attempts to fetch a non-empty token with retries.
+    //
+    /// - Parameters:
+    ///   - provider: Provider name to store in the resulting `TokenData`.
+    ///   - fetch: Callback-based token fetcher.
+    /// - Returns: Token data if a non-empty token is obtained, otherwise `nil`.
+    private func getNonEmptyToken(
+        provider: String,
+        fetch: @escaping (@escaping (String?) -> Void) -> Void
+    ) async -> TokenData? {
+        for attempt in 0..<3 {
+            let token = await withCheckedContinuation { с in
+                fetch { token in
+                    с.resume(returning: token)
+                }
+            }
+            if let token, !token.isEmpty {
+                return TokenData(provider: provider, token: token)
+            }
+            if attempt < 2 {
+                try? await Task.sleep(nanoseconds: 1_000_000_000)
+            }
+        }
+        return nil
+    }
+
+    /// Emits an event describing the currently selected push provider and token.
     ///
-    /// - Parameter token: The `TokenData` containing the provider and token to log.
+    /// - Parameter token: The token data to report.
     private func tokenEvent(token: TokenData) {
         event(
             #function,
-            event: (pushProviderSet.0, "\(pushProviderSet.1)\(token.provider). token: \(token.token)"),
-            value: [Constants.MapKeys.provider: token.provider,Constants.MapKeys.token: token.token]
+            event: (
+                pushProviderSet.0, "\(pushProviderSet.1)\(token.provider). token: \(token.token)"
+            ),
+            value: [
+                Constants.MapKeys.provider: token.provider, Constants.MapKeys.token: token.token
+            ]
         )
     }
+}
 
-    /// Fetches tokens sequentially from a list of providers until a valid token is found.
+// MARK: - Unit Test Hooks
+
+extension TokenManager {
+    
+    /// Test hook: returns currently assigned push token providers.
     ///
-    /// - Parameters:
-    ///   - providers: A list of providers to query for a token.
-    ///   - currentIndex: Index of the current provider being queried (defaults to 0).
-    ///   - completion: Called with the first non-nil `TokenData`, or `nil` if all providers failed.
-    private func fetchTokensSequentially(
-        providers: [(type: String, fetch: (@escaping (TokenData?) -> Void) -> Void)],
-        currentIndex: Int = 0,
-        completion: @escaping (TokenData?) -> Void
+    /// Used to safely access actor-isolated provider state in unit tests
+    /// without violating Sendable rules in Swift 6.
+    internal func test_getProviders() -> (
+        fcm: FCMInterface?, hms: HMSInterface?, apns: APNSInterface?
     ) {
-        guard currentIndex < providers.count else {
-            completion(nil)
-            return
-        }
-        
-        let provider = providers[currentIndex]
-        
-        provider.fetch { [weak self] (token: TokenData?) in
-            if let token = token {
-                completion(token)
-            } else {
-                self?.fetchTokensSequentially(
-                    providers: providers, currentIndex: currentIndex + 1, completion: completion
-                )
-            }
-        }
+        (fcmProvider, hmsProvider, apnsProvider)
     }
     
-    /// Attempts to fetch a non-empty token up to 3 times, retrying every second.
+    /// Test hook: appends a token into internal history.
     ///
-    /// - Parameters:
-    ///   - provider: The name of the provider for metadata purposes.
-    ///   - fetch: A function that asynchronously fetches a token string.
-    ///   - completion: Called with a valid `TokenData` or `nil` after retries fail.
-    private func getNonEmptyToken(
-        provider: String,
-        fetch: @escaping (@escaping (String?) -> Void) -> Void,
-        completion: @escaping (TokenData?) -> Void
-    ) {
-        var attempts = 3
-
-        func tryFetch() {
-            fetch { token in
-                if let token = token, !token.isEmpty {
-                    completion(TokenData(provider: provider, token: token))
-                } else if attempts > 1 {
-                    attempts -= 1
-                    DispatchQueue.global().asyncAfter(deadline: .now() + 1) {
-                        tryFetch()
-                    }
-                } else {
-                    completion(nil)
-                }
-            }
-        }
-        tryFetch()
+    /// Used to prepare duplicate-tracking state in unit tests.
+    internal func test_append_token(_ token: String?) {
+        tokens.append(token)
     }
-    
-    /// Checks whether the push module is active **without touching the main thread**.
-    ///
-    /// **Behavior**
-    /// - Performs up to **3 attempts** in total:
-    ///   - Attempt 1 runs **immediately**.
-    ///   - Attempts 2–3 run with a **1s** delay each.
-    /// - On every attempt, considers the module active if either:
-    ///   - a manual token exists, **or**
-    ///   - any provider (`FCM`/`HMS`/`APNs`) is available.
-    /// - Runs entirely on a background queue; the `completion` is also invoked **off the main thread**.
-    ///
-    /// - Parameter completion: Called with `true` as soon as an attempt detects activity;
-    ///   called with `false` after all attempts fail.
-    ///
-    /// - Note: If you need to update UI, dispatch to `DispatchQueue.main` in the caller.
-    public func pushModuleIsActive(_ completion: @escaping (Bool) -> Void) {
-        let workQueue = DispatchQueue.global(qos: .utility)
 
-        workQueue.async { [self] in
-            func isCurrentlyActive() -> Bool {
-                (StoredVariablesManager.shared.getManualToken() != nil) ||
-                (self.fcmProvider != nil) ||
-                (self.hmsProvider != nil) ||
-                (self.apnsProvider != nil)
-            }
-
-            let maxAttempts = 3
-            let delay: TimeInterval = 1.0
-
-            func attempt(_ index: Int) {
-                let when: DispatchTime = (index == 1) ? .now() : (.now() + delay)
-                
-                workQueue.asyncAfter(deadline: when) {
-                    if isCurrentlyActive() {
-                        completion(true)
-                    } else if index < maxAttempts { attempt(index + 1) } else {
-                        completion(false)
-                    }
-                }
-            }
-            attempt(1)
-        }
+    /// Test hook: returns internal token history snapshot.
+    ///
+    /// Used to verify token history reset in unit tests.
+    internal func test_tokens_snapshot() -> [String?] {
+        tokens
     }
 }

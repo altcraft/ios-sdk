@@ -9,7 +9,7 @@
 import Foundation
 
 /// Singleton manager for handling JWT authentication.
-class JWTManager {
+class JWTManager: @unchecked Sendable {
 
     /// Shared instance of JWTManager.
     static let shared = JWTManager()

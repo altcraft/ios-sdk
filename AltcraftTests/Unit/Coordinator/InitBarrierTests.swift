@@ -4,7 +4,7 @@
 //
 //  Created by Andrey Pogodin.
 //
-//  © 2025 Altcraft. All rights reserved.
+//  Copyright © 2026 Altcraft. All rights reserved.
 //
 
 import XCTest
@@ -14,209 +14,267 @@ import XCTest
  * InitBarrierTests
  *
  * Positive scenarios:
- *  - test_1: InitGate → completes and runs all waiters exactly once.
- *  - test_2: InitBarrier.reserve → returns same gate while initialization is not completed.
- *  - test_3: InitBarrier.reserve → returns new gate after previous gate is completed.
- *  - test_4: awaitInit → completes immediately when gate is already completed.
- *  - test_5: awaitInit → waits and completes when gate completes before timeout.
- *  - test_6: awaitInit → completes on timeout when gate is not completed.
- *  - test_7: withInitReady → executes block after gate completion.
- *  - test_8: withInitReady → executes block immediately when gate is already completed.
+ * - test_1: InitGate.complete completes gate and resumes all waiters exactly once.
+ * - test_2: InitBarrier.reserve returns same gate while current gate is not completed.
+ * - test_3: InitBarrier.reserve returns new gate after previous gate is completed.
+ * - test_4: awaitInit completes immediately when gate is already completed.
+ * - test_5: awaitInit waits and completes when gate completes before timeout.
+ * - test_6: awaitInit returns after timeout when gate is not completed.
+ * - test_7: withInitReady executes block after gate completion.
+ * - test_8: withInitReady executes block immediately when gate is already completed.
+ *
  */
-final class InitBarrierTests: XCTestCase {
+final class InitBarrierTests: IsolatedTestCase {
 
-    // MARK: - Helpers
-
-    private func waitShort(
-        _ seconds: TimeInterval = 0.05,
-        file: StaticString = #filePath,
-        line: UInt = #line
-    ) {
-        let exp = expectation(description: "waitShort")
-        DispatchQueue.global().asyncAfter(deadline: .now() + seconds) { exp.fulfill() }
-        wait(for: [exp], timeout: seconds + 1.0)
+    override func setUp() async throws {
+        try await super.setUp()
+        _ = await resetSharedBarrierToFreshGate()
     }
 
-    private func gateCompletedSync(_ gate: InitGate) -> Bool {
-        let sem = DispatchSemaphore(value: 0)
-        var done = false
-        gate.completedSnapshot { v in
-            done = v
-            sem.signal()
-        }
-        _ = sem.wait(timeout: .now() + 1.0)
-        return done
+    private func waitShort(_ seconds: TimeInterval = 0.05) async {
+        let nanoseconds = UInt64(seconds * 1_000_000_000)
+        try? await Task.sleep(nanoseconds: nanoseconds)
     }
 
-    /// Brings `InitBarrier.shared` to a predictable state before a test:
-    /// completes the current gate and reserves a new gate that is not completed.
+    private func gateCompleted(_ gate: InitGate) async -> Bool {
+        await gate.completed()
+    }
+
     @discardableResult
-    private func resetSharedBarrierToFreshGate(
-        file: StaticString = #filePath,
-        line: UInt = #line
-    ) -> InitGate {
-        let current = InitBarrier.shared.current()
-        InitBarrier.shared.complete(current)
-        waitShort(0.01)
+    private func resetSharedBarrierToFreshGate() async -> InitGate {
+        let current = await InitBarrier.shared.current()
+        await InitBarrier.shared.complete(current)
+        await waitShort(0.01)
 
-        var fresh = InitBarrier.shared.reserve()
-
+        var fresh = await InitBarrier.shared.reserve()
         var attempts = 0
-        while gateCompletedSync(fresh) && attempts < 5 {
-            InitBarrier.shared.complete(fresh)
-            waitShort(0.01)
-            fresh = InitBarrier.shared.reserve()
+
+        while attempts < 5 {
+            let isCompleted = await gateCompleted(fresh)
+            if !isCompleted {
+                break
+            }
+
+            await InitBarrier.shared.complete(fresh)
+            await waitShort(0.01)
+            fresh = await InitBarrier.shared.reserve()
             attempts += 1
         }
 
+        let finalCompleted = await gateCompleted(fresh)
         XCTAssertFalse(
-            gateCompletedSync(fresh),
-            "resetSharedBarrierToFreshGate(): expected fresh gate to be NOT completed",
-            file: file,
-            line: line
+            finalCompleted,
+            "resetSharedBarrierToFreshGate(): expected fresh gate to be NOT completed"
         )
+
         return fresh
     }
 
-    // MARK: - XCTest lifecycle
-
-    override func setUp() {
-        super.setUp()
-        _ = resetSharedBarrierToFreshGate()
-    }
-
-    // MARK: - Tests
-
-    /// test_1: InitGate completes and runs waiters once
-    func test_1_InitGate_complete_runsWaitersOnce() {
+    /// test_1: InitGate.complete completes gate and resumes all waiters exactly once
+    func test_1_InitGate_complete_completesGate_andResumesAllWaitersExactlyOnce() async {
         let gate = InitGate()
+        let counter = Counter()
 
-        let exp1 = expectation(description: "waiter1")
-        let exp2 = expectation(description: "waiter2")
+        await withTaskGroup(of: Void.self) { group in
+            group.addTask {
+                await gate.wait()
+                await counter.increment()
+            }
 
-        gate.addWaiter { exp1.fulfill() }
-        gate.addWaiter { exp2.fulfill() }
+            group.addTask {
+                await gate.wait()
+                await counter.increment()
+            }
 
-        gate.complete()
-        wait(for: [exp1, exp2], timeout: 1.0)
-
-        XCTAssertTrue(gateCompletedSync(gate))
-
-        var fired = 0
-        let exp3 = expectation(description: "waiterAfterComplete")
-        gate.addWaiter {
-            fired += 1
-            exp3.fulfill()
+            await waitShort(0.01)
+            await gate.complete()
         }
-        wait(for: [exp3], timeout: 1.0)
-        XCTAssertEqual(fired, 1)
 
-        gate.complete()
-        waitShort()
-        XCTAssertEqual(fired, 1)
+        let isCompleted = await gateCompleted(gate)
+        let resumedCount = await counter.value()
+
+        XCTAssertTrue(isCompleted)
+        XCTAssertEqual(resumedCount, 2)
+
+        let before = await counter.value()
+        await gate.wait()
+        let afterImmediateWait = await counter.value()
+
+        XCTAssertEqual(before, afterImmediateWait)
+
+        await gate.complete()
+        let finalCount = await counter.value()
+        XCTAssertEqual(finalCount, 2)
     }
 
-    /// test_2: InitBarrier reserve returns same gate while not completed
-    func test_2_InitBarrier_reserve_returnsSameGate_whenNotCompleted() {
-        let base = resetSharedBarrierToFreshGate()
-        XCTAssertFalse(gateCompletedSync(base))
+    /// test_2: InitBarrier.reserve returns same gate while current gate is not completed
+    func test_2_InitBarrier_reserve_returnsSameGate_whileCurrentGateIsNotCompleted() async {
+        let base = await resetSharedBarrierToFreshGate()
+        let baseCompleted = await gateCompleted(base)
+        XCTAssertFalse(baseCompleted)
 
-        let g1 = InitBarrier.shared.current()
-        let r1 = InitBarrier.shared.reserve()
+        let current = await InitBarrier.shared.current()
+        let reserved1 = await InitBarrier.shared.reserve()
+        let reserved2 = await InitBarrier.shared.reserve()
+        let reserved1Completed = await gateCompleted(reserved1)
 
-        XCTAssertTrue(g1 === r1, "Expected reserve() to return same gate while not completed")
-        XCTAssertTrue(g1 === base, "Expected current() to be the fresh baseline gate")
-        XCTAssertFalse(gateCompletedSync(r1))
-
-        let r2 = InitBarrier.shared.reserve()
-        XCTAssertTrue(r1 === r2, "Expected repeated reserve() to return same gate while not completed")
+        XCTAssertTrue(current === base)
+        XCTAssertTrue(current === reserved1)
+        XCTAssertTrue(reserved1 === reserved2)
+        XCTAssertFalse(reserved1Completed)
     }
 
-    /// test_3: InitBarrier reserve returns new gate after completion
-    func test_3_InitBarrier_reserve_returnsNewGate_afterCompletion() {
-        let g1 = resetSharedBarrierToFreshGate()
-        XCTAssertFalse(gateCompletedSync(g1))
+    /// test_3: InitBarrier.reserve returns new gate after previous gate is completed
+    func test_3_InitBarrier_reserve_returnsNewGate_afterPreviousGateIsCompleted() async {
+        let first = await resetSharedBarrierToFreshGate()
+        let firstCompletedBefore = await gateCompleted(first)
+        XCTAssertFalse(firstCompletedBefore)
 
-        InitBarrier.shared.complete(g1)
-        waitShort(0.02)
-        XCTAssertTrue(gateCompletedSync(g1))
+        await InitBarrier.shared.complete(first)
+        await waitShort(0.02)
 
-        let g2 = InitBarrier.shared.reserve()
-        XCTAssertFalse(g1 === g2, "Expected reserve() to return a NEW gate after completion of previous")
-        XCTAssertFalse(gateCompletedSync(g2))
+        let firstCompletedAfter = await gateCompleted(first)
+        XCTAssertTrue(firstCompletedAfter)
+
+        let second = await InitBarrier.shared.reserve()
+        let secondCompleted = await gateCompleted(second)
+
+        XCTAssertFalse(first === second)
+        XCTAssertFalse(secondCompleted)
     }
 
     /// test_4: awaitInit completes immediately when gate is already completed
-    func test_4_awaitInit_completesImmediately_whenGateCompleted() {
+    func test_4_awaitInit_completesImmediately_whenGateIsAlreadyCompleted() async {
         let gate = InitGate()
-        gate.complete()
-        waitShort(0.01)
+        await gate.complete()
+        await waitShort(0.01)
 
-        let exp = expectation(description: "awaitInit completion")
-        awaitInit(function: "test_4", gate: gate, timeoutMs: 200) {
-            exp.fulfill()
-        }
-        wait(for: [exp], timeout: 1.0)
+        let start = Date()
+        await awaitInit(
+            function: "test_4",
+            gate: gate,
+            timeoutMs: 200
+        )
+        let elapsed = Date().timeIntervalSince(start)
+
+        XCTAssertLessThan(elapsed, 1.0)
     }
 
     /// test_5: awaitInit waits and completes when gate completes before timeout
-    func test_5_awaitInit_completesAfterGateComplete_beforeTimeout() {
+    func test_5_awaitInit_waits_andCompletes_whenGateCompletesBeforeTimeout() async {
         let gate = InitGate()
 
-        let exp = expectation(description: "awaitInit completion")
-        awaitInit(function: "test_5", gate: gate, timeoutMs: 500) {
-            exp.fulfill()
-        }
+        async let waiter: Void = awaitInit(
+            function: "test_5",
+            gate: gate,
+            timeoutMs: 500
+        )
 
-        DispatchQueue.global().asyncAfter(deadline: .now() + 0.05) {
-            gate.complete()
-        }
+        try? await Task.sleep(nanoseconds: 50_000_000)
+        await gate.complete()
+        _ = await waiter
 
-        wait(for: [exp], timeout: 1.0)
-        XCTAssertTrue(gateCompletedSync(gate))
+        let isCompleted = await gateCompleted(gate)
+        XCTAssertTrue(isCompleted)
     }
 
-    /// test_6: awaitInit completes on timeout when gate not completed
-    func test_6_awaitInit_completesOnTimeout_whenGateNotCompleted() {
+    /// test_6: awaitInit returns after timeout when gate is not completed
+    func test_6_awaitInit_returnsAfterTimeout_whenGateIsNotCompleted() async {
         let gate = InitGate()
+        let finished = Flag()
 
-        let exp = expectation(description: "awaitInit completion")
-        awaitInit(function: "test_6", gate: gate, timeoutMs: 50) {
-            exp.fulfill()
+        let task = Task {
+            await awaitInit(
+                function: "test_6",
+                gate: gate,
+                timeoutMs: 50
+            )
+            await finished.setTrue()
         }
 
-        wait(for: [exp], timeout: 1.0)
-        XCTAssertFalse(gateCompletedSync(gate))
+        for _ in 0..<20 {
+            if await finished.value() {
+                break
+            }
+            try? await Task.sleep(nanoseconds: 25_000_000)
+        }
+
+        let didFinish = await finished.value()
+        task.cancel()
+
+        XCTAssertTrue(didFinish)
+
+        let isCompleted = await gateCompleted(gate)
+        XCTAssertFalse(isCompleted)
     }
 
-    /// test_7: withInitReady runs block after gate completion
-    func test_7_withInitReady_runsBlock_afterGateComplete() {
+    /// test_7: withInitReady executes block after gate completion
+    func test_7_withInitReady_executesBlock_afterGateCompletion() async {
         let gate = InitGate()
-        let exp = expectation(description: "withInitReady block")
+        let ran = Flag()
 
-        withInitReady(function: "test_7", gate: gate) {
-            exp.fulfill()
+        async let task: Void = withInitReady(
+            function: "test_7",
+            gate: gate
+        ) {
+            await ran.setTrue()
         }
 
-        DispatchQueue.global().asyncAfter(deadline: .now() + 0.05) {
-            gate.complete()
-        }
+        try? await Task.sleep(nanoseconds: 50_000_000)
 
-        wait(for: [exp], timeout: 1.0)
-        XCTAssertTrue(gateCompletedSync(gate))
+        let ranBeforeComplete = await ran.value()
+        XCTAssertFalse(ranBeforeComplete)
+
+        await gate.complete()
+        _ = await task
+
+        let isCompleted = await gateCompleted(gate)
+        let ranAfterComplete = await ran.value()
+
+        XCTAssertTrue(isCompleted)
+        XCTAssertTrue(ranAfterComplete)
     }
 
-    /// test_8: withInitReady runs block immediately when gate already completed
-    func test_8_withInitReady_runsBlockImmediately_whenGateCompleted() {
+    /// test_8: withInitReady executes block immediately when gate is already completed
+    func test_8_withInitReady_executesBlockImmediately_whenGateIsAlreadyCompleted() async {
         let gate = InitGate()
-        gate.complete()
-        waitShort(0.01)
+        let ran = Flag()
 
-        let exp = expectation(description: "withInitReady block")
-        withInitReady(function: "test_8", gate: gate) {
-            exp.fulfill()
+        await gate.complete()
+        await waitShort(0.01)
+
+        await withInitReady(
+            function: "test_8",
+            gate: gate
+        ) {
+            await ran.setTrue()
         }
-        wait(for: [exp], timeout: 1.0)
+
+        let didRun = await ran.value()
+        XCTAssertTrue(didRun)
     }
 }
 
+private actor Counter {
+    private var storage = 0
+
+    func increment() {
+        storage += 1
+    }
+
+    func value() -> Int {
+        storage
+    }
+}
+
+private actor Flag {
+    private var storage = false
+
+    func setTrue() {
+        storage = true
+    }
+
+    func value() -> Bool {
+        storage
+    }
+}

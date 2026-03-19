@@ -4,7 +4,8 @@
 //
 //  Created by Andrey Pogodin.
 //
-//  © 2025 Altcraft. All rights reserved.
+//  © 2026 Altcraft. All rights reserved.
+//
 
 import XCTest
 @testable import Altcraft
@@ -13,190 +14,329 @@ import XCTest
  * TokenManagerTests
  *
  * Positive scenarios:
- *  - test_1: All providers valid with various inputs.
- *  - test_2: Sort providers by priority honors priority and caps to 3.
- *  - test_3: Get non-empty token retries until value then stops.
- *  - test_4: Fetch tokens sequentially stops on first success.
- *  - test_5: Get current token uses manual token and emits single event per new token.
- *  - test_6: Get current token respects priority list and fallback order.
- *  - test_7: Delete tokens delegate called.
- *  - test_8: Push module is active detects immediate and delayed activity off main thread.
+ *  - test_1: allProvidersValid → accepts supported providers and rejects invalid input.
+ *  - test_2: getAPNsTokenData → retries until non-empty token is received.
+ *  - test_3: getCurrentToken → fetches sequentially and stops on first successful provider.
+ *  - test_4: getCurrentToken → uses manual token and emits a single token event for repeated value.
+ *  - test_5: getCurrentToken → respects fallback provider order.
+ *  - test_6: delete token methods → call provider delegates.
+ *  - test_7: pushModuleIsActive → detects inactive and active states.
+ *
  */
 final class TokenManagerTests: IsolatedTestCase {
-    private func makeManager(
-        fcm: FCMProviderLike? = nil,
-        hms: HMSProviderLike? = nil,
-        apns: APNSProviderLike? = nil,
-        manualToken: TokenData? = nil,
-        config: Configuration? = nil
-    ) -> (TokenManager_Isolated, EventSink, TestStoredVariablesManager) {
-        let sink = EventSink()
-        let storage = TestStoredVariablesManager(defaults: defaults)
-        storage.setManualToken(manualToken)
-        let manager = TokenManager_Isolated(
-            userDefaults: storage,
-            eventSink: sink,
-            getConfig: { completion in
-                completion(config)
+
+    private final class EventSpy {
+        private let lock = NSLock()
+        private(set) var events: [Event] = []
+
+        func start() {
+            SDKEvents.shared.subscribe { [weak self] event in
+                self?.lock.lock()
+                self?.events.append(event)
+                self?.lock.unlock()
             }
+        }
+
+        func stop() {
+            SDKEvents.shared.unsubscribe()
+        }
+
+        func fresh(since count: Int) -> [Event] {
+            lock.lock()
+            defer { lock.unlock() }
+            return Array(events.dropFirst(count))
+        }
+
+        var count: Int {
+            lock.lock()
+            defer { lock.unlock() }
+            return events.count
+        }
+    }
+
+    private final class MockFCM: FCMInterface {
+        var tokenToReturn: String?
+        var deleted = false
+
+        func getToken(completion: @escaping (String?) -> Void) {
+            completion(tokenToReturn)
+        }
+
+        func deleteToken(completion: @escaping (Bool) -> Void) {
+            deleted = true
+            completion(true)
+        }
+    }
+
+    private final class MockHMS: HMSInterface {
+        var tokenToReturn: String?
+        var deleted = false
+
+        func getToken(completion: @escaping (String?) -> Void) {
+            completion(tokenToReturn)
+        }
+
+        func deleteToken(completion: @escaping (Bool) -> Void) {
+            deleted = true
+            completion(true)
+        }
+    }
+
+    private final class MockAPNS: APNSInterface {
+        var tokenToReturn: String?
+
+        func getToken(completion: @escaping (String?) -> Void) {
+            completion(tokenToReturn)
+        }
+    }
+
+    private final class MockQueueProvider: APNSInterface, FCMInterface, HMSInterface {
+        private var queue: [String?]
+        var deleted = false
+
+        init(tokensQueue: [String?]) {
+            self.queue = tokensQueue
+        }
+
+        func getToken(completion: @escaping (String?) -> Void) {
+            if queue.isEmpty {
+                completion(nil)
+                return
+            }
+
+            completion(queue.removeFirst())
+        }
+
+        func deleteToken(completion: @escaping (Bool) -> Void) {
+            deleted = true
+            completion(true)
+        }
+    }
+
+    private func normalizeFunctionName(_ raw: String?) -> String {
+        guard let raw else { return "" }
+
+        if let index = raw.firstIndex(of: "(") {
+            return String(raw[..<index]).trimmingCharacters(in: .whitespacesAndNewlines)
+        }
+
+        if raw.hasSuffix("()") {
+            return String(raw.dropLast(2))
+        }
+
+        return raw
+    }
+
+    override func setUpWithError() throws {
+        try super.setUpWithError()
+        StoredVariablesManager.shared.setGroupsName(value: "AltcraftTests.TokenManager.\(UUID().uuidString)")
+    }
+
+    override func setUp() async throws {
+        try await super.setUp()
+
+        await StoredVariablesManager.shared.setPushToken(
+            provider: Constants.ProviderName.firebase,
+            token: nil
         )
-        manager.fcmProvider = fcm
-        manager.hmsProvider = hms
-        manager.apnsProvider = apns
-        return (manager, sink, storage)
+
+        await TokenManager.shared.clearTokens()
+        await TokenManager.shared.setFCMProvider(nil)
+        await TokenManager.shared.setHMSProvider(nil)
+        await TokenManager.shared.setAPNSProvider(nil)
     }
 
-    /// test_1: All providers valid with various inputs
-    func test_1_allProvidersValid_variousInputs() {
-        let (m, _, _) = makeManager()
-        XCTAssertTrue(m.allProvidersValid([Constants.ProviderName.apns, Constants.ProviderName.firebase, Constants.ProviderName.huawei]))
-        XCTAssertTrue(m.allProvidersValid(["ios-apns", "ios-firebase", "ios-huawei"]))
-        XCTAssertFalse(m.allProvidersValid(nil))
-        XCTAssertFalse(m.allProvidersValid(["unknown", Constants.ProviderName.apns]))
-    }
-
-    /// test_2: Sort providers by priority honors priority and caps to 3
-    func test_2_sortProvidersByPriority_honorsPriorityAndCapsTo3() {
-        let (m, _, _) = makeManager()
-        let providers: [(String, (@escaping (TokenData?) -> Void) -> Void)] = [
-            (Constants.ProviderName.apns, { _ in }),
-            (Constants.ProviderName.firebase, { _ in }),
-            (Constants.ProviderName.huawei, { _ in })
-        ]
-        let p1 = m.sortProvidersByPriority(providers: providers, priorityList: [])
-        XCTAssertEqual(p1.map { $0.type }, [Constants.ProviderName.apns, Constants.ProviderName.firebase, Constants.ProviderName.huawei])
-        let p2 = m.sortProvidersByPriority(providers: providers, priorityList: [Constants.ProviderName.firebase, Constants.ProviderName.huawei, Constants.ProviderName.apns])
-        XCTAssertEqual(p2.map { $0.type }, [Constants.ProviderName.firebase, Constants.ProviderName.huawei, Constants.ProviderName.apns])
-        let p3 = m.sortProvidersByPriority(providers: providers, priorityList: [Constants.ProviderName.huawei])
-        XCTAssertEqual(p3.map { $0.type }, [Constants.ProviderName.huawei])
-    }
-
-    /// test_3: Get non-empty token retries until value then stops
-    func test_3_getNonEmptyToken_retriesUntilValue_thenStops() {
-        let (m, _, _) = makeManager(apns: MockAPNSProvider(tokensQueue: [nil, "", "apns-token"]))
-        let exp = expectation(description: "apns token")
-        let start = Date()
-        m.getAPNsTokenData { token in
-            XCTAssertEqual(token?.provider, Constants.ProviderName.apns)
-            XCTAssertEqual(token?.token, "apns-token")
-            XCTAssertGreaterThanOrEqual(Date().timeIntervalSince(start), 2.0 - 0.2)
-            exp.fulfill()
-        }
-        wait(for: [exp], timeout: 3.5)
-    }
-
-    /// test_4: Fetch tokens sequentially stops on first success
-    func test_4_fetchTokensSequentially_stopsOnFirstSuccess() {
-        let (m, _, _) = makeManager()
-        let exp = expectation(description: "sequential fetch")
-        let providers: [(String, (@escaping (TokenData?) -> Void) -> Void)] = [
-            ("p1", { completion in completion(nil) }),
-            ("p2", { completion in completion(nil) }),
-            ("p3", { completion in completion(TokenData(provider: "p3", token: "t3")) })
-        ]
-        m.fetchTokensSequentially(providers: providers) { token in
-            XCTAssertEqual(token?.provider, "p3")
-            XCTAssertEqual(token?.token, "t3")
-            exp.fulfill()
-        }
-        wait(for: [exp], timeout: 1.0)
-    }
-
-    /// test_5: Get current token uses manual token and emits single event per new token
-    func test_5_getCurrentToken_usesManualToken_and_emitsSingleEventPerNewToken() {
-        let manual = TokenData(provider: Constants.ProviderName.firebase, token: "manual-1")
-        let (m, sink, _) = makeManager(
-            manualToken: manual,
-            config: Configuration(url: "", rToken: nil, appInfo: nil, providerPriorityList: nil)
+    override func tearDown() async throws {
+        await StoredVariablesManager.shared.setPushToken(
+            provider: Constants.ProviderName.firebase,
+            token: nil
         )
-        let e1 = expectation(description: "first")
-        m.getCurrentToken { token in
-            XCTAssertEqual(token?.provider, manual.provider)
-            XCTAssertEqual(token?.token, manual.token)
-            e1.fulfill()
-        }
-        wait(for: [e1], timeout: 0.5)
-        XCTAssertEqual(sink.events.count, 1)
-        let e2 = expectation(description: "second")
-        m.getCurrentToken { token in
-            XCTAssertEqual(token?.provider, manual.provider)
-            XCTAssertEqual(token?.token, manual.token)
-            e2.fulfill()
-        }
-        wait(for: [e2], timeout: 0.5)
-        XCTAssertEqual(sink.events.count, 1)
+
+        await TokenManager.shared.clearTokens()
+        await TokenManager.shared.setFCMProvider(nil)
+        await TokenManager.shared.setHMSProvider(nil)
+        await TokenManager.shared.setAPNSProvider(nil)
+
+        try await super.tearDown()
     }
 
-    /// test_6: Get current token respects priority list and fallback order
-    func test_6_getCurrentToken_respectsPriorityList_and_fallbackOrder() {
-        let fcm = MockFCMProvider(tokensQueue: [nil, "fcm-token"])
-        let apns = MockAPNSProvider(tokensQueue: [nil])
-        let hms = MockHMSProvider(tokensQueue: ["hms-token"])
-        let cfg1 = Configuration(url: "", rToken: nil, appInfo: nil, providerPriorityList: [Constants.ProviderName.huawei, Constants.ProviderName.firebase, Constants.ProviderName.apns])
-        let (m1, _, _) = makeManager(fcm: fcm, hms: hms, apns: apns, config: cfg1)
-        let e1 = expectation(description: "priority respects")
-        m1.getCurrentToken { token in
-            XCTAssertEqual(token?.provider, Constants.ProviderName.huawei)
-            XCTAssertEqual(token?.token, "hms-token")
-            e1.fulfill()
-        }
-        wait(for: [e1], timeout: 1.0)
+    /// test_1: allProvidersValid accepts supported providers and rejects invalid input
+    func test_1_allProvidersValid_acceptsSupportedProviders_andRejectsInvalidInput() {
+        let manager = TokenManager.shared
 
-        let fcm2 = MockFCMProvider(tokensQueue: ["fcm-token"])
-        let cfg2 = Configuration(url: "", rToken: nil, appInfo: nil, providerPriorityList: [])
-        let (m2, _, _) = makeManager(fcm: fcm2, hms: nil, apns: nil, config: cfg2)
-        let e2 = expectation(description: "fallback order")
-        m2.getCurrentToken { token in
-            XCTAssertEqual(token?.provider, Constants.ProviderName.firebase)
-            XCTAssertEqual(token?.token, "fcm-token")
-            e2.fulfill()
-        }
-        wait(for: [e2], timeout: 1.0)
+        let validCanonical = manager.allProvidersValid([
+            Constants.ProviderName.apns,
+            Constants.ProviderName.firebase,
+            Constants.ProviderName.huawei
+        ])
+
+        let validMixedCase = manager.allProvidersValid([
+            "ios-apns",
+            "IOS-FIREBASE",
+            "ios-huawei"
+        ])
+
+        let invalidNil = manager.allProvidersValid(nil)
+        let invalidUnknown = manager.allProvidersValid([
+            "unknown",
+            Constants.ProviderName.apns
+        ])
+
+        XCTAssertTrue(validCanonical)
+        XCTAssertTrue(validMixedCase)
+        XCTAssertFalse(invalidNil)
+        XCTAssertFalse(invalidUnknown)
     }
 
-    /// test_7: Delete tokens delegate called
-    func test_7_deleteTokens_delegateCalled() {
-        let fcm = MockFCMProvider(tokensQueue: [])
-        let hms = MockHMSProvider(tokensQueue: [])
-        let (m, _, _) = makeManager(fcm: fcm, hms: hms)
-        let e1 = expectation(description: "fcm delete")
-        m.deleteFCMToken { ok in
-            XCTAssertTrue(ok)
-            e1.fulfill()
-        }
-        let e2 = expectation(description: "hms delete")
-        m.deleteHMSToken { ok in
-            XCTAssertTrue(ok)
-            e2.fulfill()
-        }
-        wait(for: [e1, e2], timeout: 1.0)
-        XCTAssertTrue(fcm.deleteCalled)
-        XCTAssertTrue(hms.deleteCalled)
-    }
+    /// test_2: getAPNsTokenData retries until non-empty token is received
+    func test_2_getAPNsTokenData_retriesUntilNonEmptyToken_isReceived() async {
+        let apns = MockQueueProvider(tokensQueue: [nil, "", "apns-token"])
+        await TokenManager.shared.setAPNSProvider(apns)
 
-    /// test_8: Push module is active detects immediate and delayed activity off main thread
-    func test_8_pushModuleIsActive_detectsImmediateAndDelayedActivity_offMainThread() {
-        let (m1, _, _) = makeManager(fcm: nil, hms: nil, apns: nil)
-        let exp1 = expectation(description: "inactive after retries")
         let start = Date()
-        m1.pushModuleIsActive { active in
-            XCTAssertFalse(active)
-            XCTAssertGreaterThanOrEqual(Date().timeIntervalSince(start), 2.0 - 0.2)
-            XCTAssertFalse(Thread.isMainThread)
+        let token = await TokenManager.shared.getAPNsTokenData()
+
+        XCTAssertEqual(token?.provider, Constants.ProviderName.apns)
+        XCTAssertEqual(token?.token, "apns-token")
+        XCTAssertGreaterThanOrEqual(Date().timeIntervalSince(start), 2.0 - 0.2)
+    }
+
+    /// test_3: getCurrentToken fetches sequentially and stops on first successful provider
+    func test_3_getCurrentToken_fetchesSequentially_andStopsOnFirstSuccessfulProvider() async {
+        let hms = MockHMS()
+        hms.tokenToReturn = "hms-token"
+
+        await TokenManager.shared.setAPNSProvider(nil)
+        await TokenManager.shared.setFCMProvider(nil)
+        await TokenManager.shared.setHMSProvider(hms)
+
+        let token = await TokenManager.shared.getCurrentToken()
+
+        XCTAssertEqual(token?.provider, Constants.ProviderName.huawei)
+        XCTAssertEqual(token?.token, "hms-token")
+    }
+
+    /// test_4: getCurrentToken uses manual token and emits a single token event for repeated value
+    func test_4_getCurrentToken_usesManualToken_andEmitsSingleTokenEvent_forRepeatedValue() async {
+        await TokenManager.shared.setFCMProvider(nil)
+        await TokenManager.shared.setHMSProvider(nil)
+        await TokenManager.shared.setAPNSProvider(nil)
+
+        await StoredVariablesManager.shared.setPushToken(
+            provider: Constants.ProviderName.firebase,
+            token: "manual-1"
+        )
+
+        let spy = EventSpy()
+        spy.start()
+        defer { spy.stop() }
+
+        let before = spy.count
+
+        let token1 = await TokenManager.shared.getCurrentToken()
+        XCTAssertEqual(token1?.provider, Constants.ProviderName.firebase)
+        XCTAssertEqual(token1?.token, "manual-1")
+
+        var firstEventCount = 0
+
+        for _ in 0..<20 {
+            let freshAfterFirst = spy.fresh(since: before)
+            firstEventCount = freshAfterFirst.filter {
+                normalizeFunctionName($0.function) == "tokenEvent"
+            }.count
+
+            if firstEventCount == 1 {
+                break
+            }
+
+            try? await Task.sleep(nanoseconds: 50_000_000)
+        }
+
+        XCTAssertEqual(firstEventCount, 1)
+
+        let token2 = await TokenManager.shared.getCurrentToken()
+        XCTAssertEqual(token2?.provider, Constants.ProviderName.firebase)
+        XCTAssertEqual(token2?.token, "manual-1")
+
+        var secondEventCount = 0
+
+        for _ in 0..<20 {
+            let freshAfterSecond = spy.fresh(since: before)
+            secondEventCount = freshAfterSecond.filter {
+                normalizeFunctionName($0.function) == "tokenEvent"
+            }.count
+
+            if secondEventCount == 1 {
+                break
+            }
+
+            try? await Task.sleep(nanoseconds: 50_000_000)
+        }
+
+        XCTAssertEqual(secondEventCount, 1)
+    }
+
+    /// test_5: getCurrentToken respects fallback provider order
+    func test_5_getCurrentToken_respectsFallbackProviderOrder() async {
+        let apns = MockQueueProvider(tokensQueue: [nil])
+        let fcm = MockQueueProvider(tokensQueue: ["fcm-token"])
+        let hms = MockQueueProvider(tokensQueue: ["hms-token"])
+
+        await TokenManager.shared.setAPNSProvider(apns)
+        await TokenManager.shared.setFCMProvider(fcm)
+        await TokenManager.shared.setHMSProvider(hms)
+
+        let token = await TokenManager.shared.getCurrentToken()
+
+        XCTAssertEqual(token?.provider, Constants.ProviderName.firebase)
+        XCTAssertEqual(token?.token, "fcm-token")
+    }
+
+    /// test_6: delete token methods call provider delegates
+    func test_6_deleteTokenMethods_callProviderDelegates() async {
+        let fcm = MockQueueProvider(tokensQueue: [])
+        let hms = MockQueueProvider(tokensQueue: [])
+
+        await TokenManager.shared.setFCMProvider(fcm)
+        await TokenManager.shared.setHMSProvider(hms)
+
+        let exp1 = expectation(description: "fcm delete")
+        await TokenManager.shared.deleteFCMToken { ok in
+            XCTAssertTrue(ok)
             exp1.fulfill()
         }
-        wait(for: [exp1], timeout: 3.5)
 
-        let (m2, _, storage2) = makeManager(fcm: nil, hms: nil, apns: nil)
-        let exp2 = expectation(description: "becomes active")
-        DispatchQueue.global().asyncAfter(deadline: .now() + 1.1) {
-            storage2.setManualToken(TokenData(provider: Constants.ProviderName.apns, token: "x"))
-        }
-        m2.pushModuleIsActive { active in
-            XCTAssertTrue(active)
-            XCTAssertFalse(Thread.isMainThread)
+        let exp2 = expectation(description: "hms delete")
+        await TokenManager.shared.deleteHMSToken { ok in
+            XCTAssertTrue(ok)
             exp2.fulfill()
         }
-        wait(for: [exp2], timeout: 3.5)
+
+        await fulfillment(of: [exp1, exp2], timeout: 1.0)
+        XCTAssertTrue(fcm.deleted)
+        XCTAssertTrue(hms.deleted)
+    }
+
+    /// test_7: pushModuleIsActive detects inactive and active states
+    func test_7_pushModuleIsActive_detectsInactive_andActiveStates() async {
+        await TokenManager.shared.setFCMProvider(nil)
+        await TokenManager.shared.setHMSProvider(nil)
+        await TokenManager.shared.setAPNSProvider(nil)
+
+        await StoredVariablesManager.shared.setPushToken(
+            provider: Constants.ProviderName.firebase,
+            token: nil
+        )
+
+        let inactive = await TokenManager.shared.pushModuleIsActive()
+        XCTAssertFalse(inactive)
+
+        await StoredVariablesManager.shared.setPushToken(
+            provider: Constants.ProviderName.apns,
+            token: "x"
+        )
+
+        let active = await TokenManager.shared.pushModuleIsActive()
+        XCTAssertTrue(active)
     }
 }

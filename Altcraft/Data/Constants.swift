@@ -42,81 +42,57 @@ public enum Constants {
     /// Centralized string constants for queue labels used in the SDK.
     /// Helps to avoid duplication and typos when creating DispatchQueue instances.
     enum Queues {
-        // === Init queues ===
         
-        /// Serial queue for SDK initialization.
-        static let initQueue = "com.altcraft.InitQueue"
+        // === SDK state queues ===
+        
+        static let sdkStateQueue = "com.altcraft.sdk.stateQueue"
 
         // === Subscribe queues ===
-        
+
         /// Queue label for sequential creation of subscription entities.
         static let subscribeEntityQueue = "com.altcraft.subscribe.entityQueue"
-        
+
         /// Queue label for starting subscription processing with epoch reset support.
         static let subscribeStartQueue  = "com.altcraft.subscribe.startQueue"
-        
-        /// Queue label for synchronizing internal state and flags.
-        static let subscribeSyncQueue   = "com.altcraft.subscribe.syncQueue"
-        
-        // === Update queues ===
-        
-        /// Queue label for token update operations.
-        static let tokenUpdateQueue = "com.altcraft.tokenUpdateQueue"
-        
-        // === Push Event queues ===
-        
-        /// Queue label for push event processing.
-        static let pushEventQueue = "com.altcraft.pushEventQueue"
-        
+
         // === Mobile Event queues ===
-        
+
         /// Queue label for sequential creation of mobile event entities.
         static let mobileEventEntityQueue = "com.altcraft.mobileEvent.entityQueue"
-        
+
         /// Queue label for starting mobile event processing with epoch reset support.
         static let mobileEventStartQueue  = "com.altcraft.mobileEvent.startQueue"
-        
-        /// Queue label for synchronizing internal state and flags.
-        static let mobileEventSyncQueue   = "com.altcraft.mobileEvent.syncQueue"
-        
+
+        // === Profile Update queues ===
+
+        /// Queue label for sequential creation of profile update entities.
+        static let profileUpdateEntityQueue = "com.altcraft.profileUpdate.entityQueue"
+
+        /// Queue label for starting profile update processing with epoch reset support.
+        static let profileUpdateStartQueue  = "com.altcraft.profileUpdate.startQueue"
+
+
         // === Retry queues ===
-        
+
         /// Queue label for subscription retries.
         static let retrySubscribeQueue = "com.altcraft.retry.subscribe"
-        
+
         /// Queue label for token update retries.
         static let retryTokenUpdateQueue = "com.altcraft.retry.tokenUpdate"
-        
+
         /// Queue label for push event retries.
         static let retryPushEventQueue = "com.altcraft.retry.pushEvent"
-        
+
         /// Queue label for mobile event retries.
         static let retryMobileEventQueue = "com.altcraft.retry.mobileEvent"
-        
-        
+
+        /// Queue label for profile update retries.
+        static let retryProfileUpdateQueue = "com.altcraft.retry.profileUpdate"
+
+        /// Queue label for RetryManager internal synchronization.
         static let retryManagerSync = "com.altcraft.retry.manager.sync"
-        
-        // === InitBarrier queues === //
-
-        /// Serial queue protecting InitGate state.
-        static let initGateQueue = "com.altcraft.initGateQueue"
-
-        /// Serial queue protecting InitBarrier state .
-        static let initBarrierStateQueue = "com.altcraft.initBarrier.state"
-
-        /// Serial queue used to synchronize awaitInit completion/timeout so it fires only once.
-        static let initBarrierAwaitQueue = "com.altcraft.initBarrier.await"
-
-        // === UpdateBarrier queues === //
-
-        /// Serial queue protecting UpdateBarrier round state.
-        static let updateBarrierQueue = "com.altcraft.updateBarrierQueue"
-        
-        // === AccessToBackground == //
-        
-        /// Serial queue name used to synchronize background task start and end operations.
-        static let accessToBackgroundQueue = "com.altcraft.accessToBackgroundQueue"
     }
+
     
     /// A namespace for commonly used Core Data context names.
     enum ContextName {
@@ -328,15 +304,15 @@ public enum Constants {
     }
     
     /// Subscription status values.
-    enum SubStatus: String {
+    enum SubStatus {
         /// Active subscription.
-        case subscribed = "subscribed"
+        static let subscribed = "subscribed"
         
         /// User manually unsubscribed.
-        case unsubscribed = "unsubscribed"
+        static let unsubscribed = "unsubscribed"
         
         /// Subscription is temporarily suspended.
-        case suspended = "suspended"
+        static let suspended = "suspended"
     }
     
     /// Defines event types for the push_event request.
@@ -372,16 +348,19 @@ public enum Constants {
     enum EntityNames {
         
         /// The name of the configuration entity.
-        static let config = "ConfigurationEntity"
+        static let configurationEntity = "ConfigurationEntity"
         
         /// The name of the push subscription entity.
-        static let subscribe = "SubscribeEntity"
+        static let subscribeEntity = "SubscribeEntity"
         
         /// The name of the push event entity.
-        static let pushEvent = "PushEventEntity"
+        static let pushEventEntity = "PushEventEntity"
         
         /// The name of the mobile event entity.
-        static let mobileEvent = "MobileEventEntity"
+        static let mobileEventEntity = "MobileEventEntity"
+        
+        /// The name of the profile update entity.
+        static let profileUpdateEntity = "ProfileUpdateEntity"
     }
     
     /// Contains the string identifiers for UI buttons and system notification actions.
@@ -454,13 +433,16 @@ public enum Constants {
         static let status = "push/status"
         
         /// Request path for push token update.
-        static let update = "push/update"
+        static let tokenUpdate = "push/update"
         
         /// Request path for push event.
         static let pushEvent = "event/push"
         
         /// Request path for mobile event.
         static let mobileEvent = "event/post"
+        
+        /// Request path for profile update.
+        static let profileUpdate = "profile/update"
     }
     
     /// A namespace for predefined SDK success messages.
@@ -475,7 +457,7 @@ public enum Constants {
         static let unsubscribeSuccess = "successful request: \(RequestName.unsubscribe)"
         
         /// Message for successful completion of the token update request.
-        static let tokenUpdateSuccess = "successful request: \(RequestName.update)"
+        static let tokenUpdateSuccess = "successful request: \(RequestName.tokenUpdate)"
         
         /// Message for successful completion of the push unsuspend request.
         static let pushUnSuspendSuccess = "successful request: \(RequestName.unsuspend)"
@@ -488,6 +470,9 @@ public enum Constants {
         
         /// Message for successful delivery of the mobile event.
         static let mobileEventDelivered = "successful request: \(RequestName.mobileEvent). Name: "
+        
+        /// Message for successful completion of the token update request.
+        static let profileUpdateSuccess = "successful request: \(RequestName.profileUpdate)"
     }
     
     /// Notification names and userInfo keys used by the Altcraft SDK.
@@ -526,8 +511,8 @@ public enum Constants {
 
         /// One-time hint shown when logging is not configured.
         static let hintLog =
-            "Altcraft SDK is integrated into the project. Please configure " +
-            "log publishing using the `setEnableLogging` parameter in the "  +
-            "SDK configuration."
+            "Altcraft SDK is integrated into the project. " +
+            "You can enable SDK logs by setting the `enableLogging` parameter " +
+            "in the SDK configuration."
     }
 }

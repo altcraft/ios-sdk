@@ -22,7 +22,7 @@ import XCTest
  *  - test_5: build returns nil when apiUrl is empty.
  *  - test_6: build returns nil when providerPriorityList contains invalid providers.
  */
-final class AltcraftConfigurationTest: XCTestCase {
+final class AltcraftConfigurationTest: IsolatedTestCase {
 
     private let apiUrl      = "https://api.altcraft.example"
     private let emptyApiUrl = ""

@@ -28,7 +28,7 @@ import MobileCoreServices
  *  - test_10: Unknown format → returns nil for unrecognized signatures.
  *  - test_11: Partial signatures → returns nil for incomplete data.
  */
-final class ImageFormatTests: XCTestCase {
+final class ImageFormatTests: IsolatedTestCase {
     
     /// test_1: PNG signature detection returns .png format
     func test_1_png_signature_detection() {

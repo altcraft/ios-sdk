@@ -4,7 +4,8 @@
 //
 //  Created by Andrey Pogodin.
 //
-//  © 2025 Altcraft. All rights reserved.
+//  © 2026 Altcraft. All rights reserved.
+//
 
 import XCTest
 @testable import Altcraft
@@ -13,25 +14,29 @@ import XCTest
  * PublicPushTokenFunctionsTests
  *
  * Positive scenarios:
- *  - test_1: Set FCM, HMS, APNS provider setters assign into token manager.
- *  - test_2: Set push token with string stores manual token and no error event.
- *  - test_3: Set push token with APNS data hex encodes and stores manual token.
- *  - test_4: Set push token with invalid provider emits error event.
- *  - test_5: Get push token returns manual token when present.
- *  - test_6: Change push provider priority list invalid emits error event.
- *  - test_7: Delete device token firebase calls provider delete and completion.
- *  - test_8: Delete device token huawei calls provider delete and completion.
- *  - test_9: Delete device token apns emits error event and completion called.
- *  - test_10: Delete device token invalid emits error event and completion called.
+ *  - test_1: provider setters → assign providers into token manager.
+ *  - test_2: setPushToken with string → stores manual token and emits no error event.
+ *  - test_3: setPushToken with APNS data → hex encodes and stores manual token.
+ *  - test_4: setPushToken with invalid provider → emits error event.
+ *  - test_5: getPushToken → returns manual token when present.
+ *  - test_6: changePushProviderPriorityList with invalid list → emits error event.
+ *  - test_7: deleteDeviceToken firebase → calls provider delete and completion.
+ *  - test_8: deleteDeviceToken huawei → calls provider delete and completion.
+ *  - test_9: deleteDeviceToken apns → emits error event and calls completion.
+ *  - test_10: deleteDeviceToken invalid → emits error event and calls completion.
+ *
  */
-final class PublicPushTokenFunctionsTests: XCTestCase {
-    
+final class PublicPushTokenFunctionsTests: IsolatedTestCase {
+
     private final class EventSpy {
+        private let lock = NSLock()
         private(set) var events: [Event] = []
 
         func start() {
-            SDKEvents.shared.subscribe { [weak self] ev in
-                self?.events.append(ev)
+            SDKEvents.shared.subscribe { [weak self] event in
+                self?.lock.lock()
+                self?.events.append(event)
+                self?.lock.unlock()
             }
         }
 
@@ -39,10 +44,36 @@ final class PublicPushTokenFunctionsTests: XCTestCase {
             SDKEvents.shared.unsubscribe()
         }
 
+        func count() -> Int {
+            lock.lock()
+            defer { lock.unlock() }
+            return events.count
+        }
+
+        func snapshot() -> [Event] {
+            lock.lock()
+            defer { lock.unlock() }
+            return events
+        }
+
         func lastIsError(from functionName: String? = nil) -> Bool {
+            lock.lock()
+            defer { lock.unlock() }
+
             guard let last = events.last as? ErrorEvent else { return false }
-            guard let fn = functionName else { return true }
-            return normalizeFunctionName(last.function) == fn
+            guard let functionName else { return true }
+            return Self.normalizeFunctionName(last.function) == functionName
+        }
+
+        private static func normalizeFunctionName(_ raw: String?) -> String {
+            guard let raw else { return "" }
+            if let index = raw.firstIndex(of: "(") {
+                return String(raw[..<index]).trimmingCharacters(in: .whitespacesAndNewlines)
+            }
+            if raw.hasSuffix("()") {
+                return String(raw.dropLast(2))
+            }
+            return raw
         }
     }
 
@@ -53,6 +84,7 @@ final class PublicPushTokenFunctionsTests: XCTestCase {
         func getToken(completion: @escaping (String?) -> Void) {
             completion(tokenToReturn)
         }
+
         func deleteToken(completion: @escaping (Bool) -> Void) {
             deleted = true
             completion(true)
@@ -66,6 +98,7 @@ final class PublicPushTokenFunctionsTests: XCTestCase {
         func getToken(completion: @escaping (String?) -> Void) {
             completion(tokenToReturn)
         }
+
         func deleteToken(completion: @escaping (Bool) -> Void) {
             deleted = true
             completion(true)
@@ -81,44 +114,50 @@ final class PublicPushTokenFunctionsTests: XCTestCase {
     }
 
     private static func normalizeFunctionName(_ raw: String?) -> String {
-        guard let raw = raw else { return "" }
-        if let idx = raw.firstIndex(of: "(") {
-            return String(raw[..<idx]).trimmingCharacters(in: .whitespacesAndNewlines)
+        guard let raw else { return "" }
+        if let index = raw.firstIndex(of: "(") {
+            return String(raw[..<index]).trimmingCharacters(in: .whitespacesAndNewlines)
         }
-        if raw.hasSuffix("()") { return String(raw.dropLast(2)) }
+        if raw.hasSuffix("()") {
+            return String(raw.dropLast(2))
+        }
         return raw
     }
-    private func normalizeFunctionName(_ raw: String?) -> String {
-        Self.normalizeFunctionName(raw)
+
+    private func overwriteManualToken(provider: String, token: String) async {
+        await StoredVariablesManager.shared.setPushToken(
+            provider: provider,
+            token: token
+        )
     }
 
-    private func overwriteManualToken(provider: String, token: String) {
-        StoredVariablesManager.shared.setPushToken(provider: provider, token: token)
+    private func clearManualToken() async {
+        await StoredVariablesManager.shared.setPushToken(
+            provider: Constants.ProviderName.firebase,
+            token: nil
+        )
     }
 
-    private func bestEffortClearManualToken() {
-        let dummy = "DUMMY-\(UUID().uuidString)"
-        StoredVariablesManager.shared.setPushToken(provider: Constants.ProviderName.firebase, token: dummy)
+    override func setUp() async throws {
+        try await super.setUp()
+        await TokenManager.shared.setFCMProvider(nil)
+        await TokenManager.shared.setHMSProvider(nil)
+        await TokenManager.shared.setAPNSProvider(nil)
+        await TokenManager.shared.clearTokens()
+        await clearManualToken()
     }
 
-    override func setUp() {
-        super.setUp()
-        TokenManager.shared.fcmProvider = nil
-        TokenManager.shared.hmsProvider = nil
-        TokenManager.shared.apnsProvider = nil
-        TokenManager.shared.tokens.removeAll()
-        bestEffortClearManualToken()
+    override func tearDown() async throws {
+        await TokenManager.shared.setFCMProvider(nil)
+        await TokenManager.shared.setHMSProvider(nil)
+        await TokenManager.shared.setAPNSProvider(nil)
+        await TokenManager.shared.clearTokens()
+        await clearManualToken()
+        try await super.tearDown()
     }
 
-    override func tearDown() {
-        TokenManager.shared.fcmProvider = nil
-        TokenManager.shared.hmsProvider = nil
-        TokenManager.shared.apnsProvider = nil
-        super.tearDown()
-    }
-
-    /// test_1: Set FCM, HMS, APNS provider setters assign into token manager
-    func test_1_setFCM_HMS_APNS_Provider_setters_assignIntoTokenManager() {
+    /// test_1: provider setters assign providers into token manager
+    func test_1_providerSetters_assignProvidersIntoTokenManager() async {
         let fcm = MockFCM()
         let hms = MockHMS()
         let apns = MockAPNS()
@@ -127,170 +166,214 @@ final class PublicPushTokenFunctionsTests: XCTestCase {
         PublicPushTokenFunctions.shared.setHMSTokenProvider(hms)
         PublicPushTokenFunctions.shared.setAPNSTokenProvider(apns)
 
-        if let prov = TokenManager.shared.fcmProvider as? MockFCM {
-            XCTAssertTrue(prov === fcm)
+        try? await Task.sleep(nanoseconds: 100_000_000)
+
+        let providers = await TokenManager.shared.test_getProviders()
+
+        // Assert FCM
+        if let provider = providers.fcm as? MockFCM {
+            XCTAssertTrue(provider === fcm)
         } else {
             XCTFail("fcmProvider is not MockFCM")
         }
-        if let prov = TokenManager.shared.hmsProvider as? MockHMS {
-            XCTAssertTrue(prov === hms)
+
+        // Assert HMS
+        if let provider = providers.hms as? MockHMS {
+            XCTAssertTrue(provider === hms)
         } else {
             XCTFail("hmsProvider is not MockHMS")
         }
-        if let prov = TokenManager.shared.apnsProvider as? MockAPNS {
-            XCTAssertTrue(prov === apns)
+
+        // Assert APNS
+        if let provider = providers.apns as? MockAPNS {
+            XCTAssertTrue(provider === apns)
         } else {
             XCTFail("apnsProvider is not MockAPNS")
         }
 
-        XCTAssertTrue(TokenManager.shared.fcmProvider is MockFCM)
-        XCTAssertTrue(TokenManager.shared.hmsProvider is MockHMS)
-        XCTAssertTrue(TokenManager.shared.apnsProvider is MockAPNS)
+        // Type-level assertions
+        XCTAssertTrue(providers.fcm is MockFCM)
+        XCTAssertTrue(providers.hms is MockHMS)
+        XCTAssertTrue(providers.apns is MockAPNS)
     }
 
-    /// test_2: Set push token with string stores manual token and no error event
-    func test_2_setPushToken_withString_storesManualToken_andNoErrorEvent() {
-        let spy = EventSpy(); spy.start()
+    /// test_2: setPushToken with string stores manual token and emits no error event
+    func test_2_setPushToken_withString_storesManualToken_andEmitsNoErrorEvent() async {
+        let spy = EventSpy()
+        spy.start()
         defer { spy.stop() }
 
-        let before = spy.events.count
+        let before = spy.count()
 
         PublicPushTokenFunctions.shared.setPushToken(
             provider: Constants.ProviderName.firebase,
             pushToken: "abc123"
         )
 
-        let manual = StoredVariablesManager.shared.getManualToken()
+        let manual = await StoredVariablesManager.shared.getManualToken()
+
         XCTAssertNotNil(manual)
         XCTAssertEqual(manual?.provider, Constants.ProviderName.firebase)
         XCTAssertEqual(manual?.token, "abc123")
 
-        let newEvents = Array(spy.events.dropFirst(before))
+        let newEvents = Array(spy.snapshot().dropFirst(before))
         let hasSetPushTokenError = newEvents.contains {
-            ($0 is ErrorEvent) && (normalizeFunctionName($0.function) == "setPushToken")
+            ($0 is ErrorEvent) && (Self.normalizeFunctionName($0.function) == "setPushToken")
         }
-        XCTAssertFalse(hasSetPushTokenError, "No error expected for valid provider and String token")
+
+        XCTAssertFalse(hasSetPushTokenError)
     }
 
-    /// test_3: Set push token with APNS data hex encodes and stores manual token
-    func test_3_setPushToken_withAPNSData_hexEncodes_andStoresManualToken() {
-        let spy = EventSpy(); spy.start()
+    /// test_3: setPushToken with APNS data hex encodes and stores manual token
+    func test_3_setPushToken_withAPNSData_hexEncodes_andStoresManualToken() async {
+        let spy = EventSpy()
+        spy.start()
         defer { spy.stop() }
 
-        let before = spy.events.count
+        let before = spy.count()
+        let data = Data([0xDE, 0xAD, 0xBE, 0xEF])
 
-        let bytes: [UInt8] = [0xDE, 0xAD, 0xBE, 0xEF]
-        let data = Data(bytes)
         PublicPushTokenFunctions.shared.setPushToken(
             provider: Constants.ProviderName.apns,
             pushToken: data
         )
 
-        let manual = StoredVariablesManager.shared.getManualToken()
+        let manual = await StoredVariablesManager.shared.getManualToken()
+
         XCTAssertNotNil(manual)
         XCTAssertEqual(manual?.provider, Constants.ProviderName.apns)
         XCTAssertEqual(manual?.token.lowercased(), "deadbeef")
 
-        let newEvents = Array(spy.events.dropFirst(before))
+        let newEvents = Array(spy.snapshot().dropFirst(before))
         let hasSetPushTokenError = newEvents.contains {
-            ($0 is ErrorEvent) && (normalizeFunctionName($0.function) == "setPushToken")
+            ($0 is ErrorEvent) && (Self.normalizeFunctionName($0.function) == "setPushToken")
         }
-        XCTAssertFalse(hasSetPushTokenError, "No error expected for valid APNs Data token")
+
+        XCTAssertFalse(hasSetPushTokenError)
     }
 
-    /// test_4: Set push token with invalid provider emits error event
-    func test_4_setPushToken_invalidProvider_emitsErrorEvent() {
-        let spy = EventSpy(); spy.start()
+    /// test_4: setPushToken with invalid provider emits error event
+    func test_4_setPushToken_withInvalidProvider_emitsErrorEvent() {
+        let spy = EventSpy()
+        spy.start()
         defer { spy.stop() }
 
-        PublicPushTokenFunctions.shared.setPushToken(provider: "__invalid__", pushToken: "t")
+        PublicPushTokenFunctions.shared.setPushToken(
+            provider: "__invalid__",
+            pushToken: "t"
+        )
 
         XCTAssertTrue(spy.lastIsError(from: "setPushToken"))
-        if let ev = spy.events.last as? ErrorEvent {
-            XCTAssertEqual(normalizeFunctionName(ev.function), "setPushToken")
+
+        if let event = spy.snapshot().last as? ErrorEvent {
+            XCTAssertEqual(Self.normalizeFunctionName(event.function), "setPushToken")
         }
     }
 
-    /// test_5: Get push token returns manual token when present
-    func test_5_getPushToken_returnsManualToken_whenPresent() {
-        overwriteManualToken(provider: Constants.ProviderName.huawei, token: "MAN-777")
+    /// test_5: getPushToken returns manual token when present
+    func test_5_getPushToken_returnsManualToken_whenPresent() async {
+        await overwriteManualToken(
+            provider: Constants.ProviderName.huawei,
+            token: "MAN-777"
+        )
 
         let exp = expectation(description: "getPushToken completion")
+
         PublicPushTokenFunctions.shared.getPushToken { tokenData in
             XCTAssertNotNil(tokenData)
             XCTAssertEqual(tokenData?.provider, Constants.ProviderName.huawei)
             XCTAssertEqual(tokenData?.token, "MAN-777")
             exp.fulfill()
         }
-        waitForExpectations(timeout: 2.0)
+
+        await fulfillment(of: [exp], timeout: 2.0)
     }
 
-    /// test_6: Change push provider priority list invalid emits error event
-    func test_6_changePushProviderPriorityList_invalid_emitsErrorEvent() {
-        let spy = EventSpy(); spy.start()
+    /// test_6: changePushProviderPriorityList with invalid list emits error event
+    func test_6_changePushProviderPriorityList_withInvalidList_emitsErrorEvent() {
+        let spy = EventSpy()
+        spy.start()
         defer { spy.stop() }
 
-        PublicPushTokenFunctions.shared.changePushProviderPriorityList(["__bad__", "ios-firebase"])
+        PublicPushTokenFunctions.shared.changePushProviderPriorityList([
+            "__bad__",
+            Constants.ProviderName.firebase
+        ])
 
         XCTAssertTrue(spy.lastIsError(from: "changePushProviderPriorityList"))
-        if let ev = spy.events.last as? ErrorEvent {
-            XCTAssertEqual(normalizeFunctionName(ev.function), "changePushProviderPriorityList")
+
+        if let event = spy.snapshot().last as? ErrorEvent {
+            XCTAssertEqual(Self.normalizeFunctionName(event.function), "changePushProviderPriorityList")
         }
     }
 
-    /// test_7: Delete device token firebase calls provider delete and completion
-    func test_7_deleteDeviceToken_firebase_callsProviderDelete_andCompletion() {
+    /// test_7: deleteDeviceToken firebase calls provider delete and completion
+    func test_7_deleteDeviceToken_firebase_callsProviderDelete_andCompletion() async {
         let fcm = MockFCM()
-        TokenManager.shared.fcmProvider = fcm
+        await TokenManager.shared.setFCMProvider(fcm)
 
-        let done = expectation(description: "firebase delete completion")
-        PublicPushTokenFunctions.shared.deleteDeviceToken(provider: Constants.ProviderName.firebase) {
-            done.fulfill()
+        let exp = expectation(description: "firebase delete completion")
+
+        PublicPushTokenFunctions.shared.deleteDeviceToken(
+            provider: Constants.ProviderName.firebase
+        ) {
+            exp.fulfill()
         }
-        waitForExpectations(timeout: 1.0)
 
-        XCTAssertTrue(fcm.deleted, "FCM deleteToken must be called")
+        await fulfillment(of: [exp], timeout: 1.0)
+        XCTAssertTrue(fcm.deleted)
     }
 
-    /// test_8: Delete device token huawei calls provider delete and completion
-    func test_8_deleteDeviceToken_huawei_callsProviderDelete_andCompletion() {
+    /// test_8: deleteDeviceToken huawei calls provider delete and completion
+    func test_8_deleteDeviceToken_huawei_callsProviderDelete_andCompletion() async {
         let hms = MockHMS()
-        TokenManager.shared.hmsProvider = hms
+        await TokenManager.shared.setHMSProvider(hms)
 
-        let done = expectation(description: "huawei delete completion")
-        PublicPushTokenFunctions.shared.deleteDeviceToken(provider: Constants.ProviderName.huawei) {
-            done.fulfill()
+        let exp = expectation(description: "huawei delete completion")
+
+        PublicPushTokenFunctions.shared.deleteDeviceToken(
+            provider: Constants.ProviderName.huawei
+        ) {
+            exp.fulfill()
         }
-        waitForExpectations(timeout: 1.0)
 
-        XCTAssertTrue(hms.deleted, "HMS deleteToken must be called")
+        await fulfillment(of: [exp], timeout: 1.0)
+        XCTAssertTrue(hms.deleted)
     }
 
-    /// test_9: Delete device token apns emits error event and completion called
-    func test_9_deleteDeviceToken_apns_emitsErrorEvent_andCompletionCalled() {
-        let spy = EventSpy(); spy.start()
+    /// test_9: deleteDeviceToken apns emits error event and calls completion
+    func test_9_deleteDeviceToken_apns_emitsErrorEvent_andCallsCompletion() async {
+        let spy = EventSpy()
+        spy.start()
         defer { spy.stop() }
 
-        let done = expectation(description: "apns branch completion")
-        PublicPushTokenFunctions.shared.deleteDeviceToken(provider: Constants.ProviderName.apns) {
-            done.fulfill()
-        }
-        waitForExpectations(timeout: 1.0)
+        let exp = expectation(description: "apns branch completion")
 
+        PublicPushTokenFunctions.shared.deleteDeviceToken(
+            provider: Constants.ProviderName.apns
+        ) {
+            exp.fulfill()
+        }
+
+        await fulfillment(of: [exp], timeout: 1.0)
         XCTAssertTrue(spy.lastIsError(from: "deleteDeviceToken"))
     }
 
-    /// test_10: Delete device token invalid emits error event and completion called
-    func test_10_deleteDeviceToken_invalid_emitsErrorEvent_andCompletionCalled() {
-        let spy = EventSpy(); spy.start()
+    /// test_10: deleteDeviceToken invalid emits error event and calls completion
+    func test_10_deleteDeviceToken_invalid_emitsErrorEvent_andCallsCompletion() async {
+        let spy = EventSpy()
+        spy.start()
         defer { spy.stop() }
 
-        let done = expectation(description: "invalid provider completion")
-        PublicPushTokenFunctions.shared.deleteDeviceToken(provider: "__x__") {
-            done.fulfill()
-        }
-        waitForExpectations(timeout: 1.0)
+        let exp = expectation(description: "invalid provider completion")
 
+        PublicPushTokenFunctions.shared.deleteDeviceToken(
+            provider: "__x__"
+        ) {
+            exp.fulfill()
+        }
+
+        await fulfillment(of: [exp], timeout: 1.0)
         XCTAssertTrue(spy.lastIsError(from: "deleteDeviceToken"))
     }
 }

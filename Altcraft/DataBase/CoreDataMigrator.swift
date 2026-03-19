@@ -15,7 +15,7 @@ struct ModelStep {
 }
 
 /// Handles step-based Core Data migrations inside the SDK.
-final class CoreDataMigrator {
+final class CoreDataMigrator: @unchecked Sendable {
 
     static let shared = CoreDataMigrator()
     private init() {}

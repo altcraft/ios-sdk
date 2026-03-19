@@ -18,27 +18,38 @@ import Foundation
 /// - Parameter completion: A closure called after the cache has been successfully cleared.
 @available(iOSApplicationExtension, unavailable)
 func clearCache(completion: @escaping () -> Void) {
-    
     let clearingDb = ClearingDb.shared
     let userDefault = StoredVariablesManager.shared
+    let completionBox = ClosureBox(completion)
     
     RetryManager.shared.cancelAll()
     
-    if !userDefault.getDbErrorStatus() {
-        clearingDb.deleteAllEntitiesFromDb { _ in
-            
-            subRetryCount = 0
-            updateRetryCount = 0
-            pushEventRetryCount = 0
-            mobileEventRetryCount = 0
-            userDefault.clearSavedToken()
-            userDefault.clearManualToken()
-            TokenUpdate.shared.currentToken = nil
-            TokenManager.shared.tokens.ts_removeAll()
-            
-            event(#function, event: sdkCleared)
-            
-            completion()
+    Task {
+        let hasError = userDefault.getDbErrorStatus()
+        guard !hasError else {
+            event(#function, event: coreDataError)
+            await MainActor.run {
+                completionBox.invoke()
+            }
+            return
+        }
+        
+        userDefault.clearSavedToken()
+        await userDefault.clearManualToken()
+        _ = await clearingDb.deleteAllEntitiesFromDb()
+        
+        await TokenManager.shared.clearTokens()
+        
+        RetryCounters.shared.reset(RetryKey.subscribe)
+        RetryCounters.shared.reset(RetryKey.pushEvent)
+        RetryCounters.shared.reset(RetryKey.mobileEvent)
+        RetryCounters.shared.reset(RetryKey.tokenUpdate)
+        RetryCounters.shared.reset(RetryKey.profileUpdate)
+        
+        event(#function, event: sdkCleared)
+        
+        await MainActor.run {
+            completionBox.invoke()
         }
     }
 }

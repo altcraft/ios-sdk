@@ -11,18 +11,14 @@ import CryptoKit
 
 /// Retrieves the current user tag from configuration using either JWT or a resource token.
 ///
-/// - Parameter completion: A closure that receives the user tag string, or `nil` if unavailable.
-func getUserTag(completion: @escaping (String?) -> Void) {
-    getConfig { config in
-        guard let config = config else {
-            errorEvent(#function, error: configIsNil)
-            completion(nil)
-            return
-        }
-        completion(config.rToken ?? getMatchingFields(
-            jwt: JWTManager.shared.getJWT()
-        )?.hash)
+/// - Returns: User tag string, or `nil` if unavailable.
+func getUserTag() async -> String? {
+    guard let config = await getConfig() else {
+        errorEvent(#function, error: configIsNil)
+        return nil
     }
+    
+    return config.rToken ?? getMatchingFields(jwt: JWTManager.shared.getJWT() )?.hash
 }
 
 /// Computes a SHA-256 hash of the JSON string built from matching claim data.
@@ -137,12 +133,14 @@ private func validateMatchingFields(
     }
 }
 
-/// Retrieves the authentication header and the matching token.
+/// Retrieves the authentication header and identifier for authorized requests.
 ///
-/// - Parameters:
-///   - rToken: The resource token used if JWT is unavailable. This can be `nil` or a valid string.
-/// - Returns: A tuple containing the authentication header (Bearer token) and matching type (`matching`),
-///  or `nil` if both are unavailable.
+/// - Parameter rToken: Optional resource token. If it is non-empty, it is used
+///   with priority over JWT.
+/// - Returns: A tuple containing the authorization header and:
+///   - the resource token when `rToken` is used
+///   - the JWT matching value when JWT is used
+///   Returns `nil` if no auth data is available.
 func getAuthData(rToken: String?) -> (String, String)? {
     if let rToken = rToken, !rToken.isEmpty {
         return ("Bearer rtoken@\(rToken)", rToken)

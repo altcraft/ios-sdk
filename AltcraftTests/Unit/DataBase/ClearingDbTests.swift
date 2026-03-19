@@ -1,216 +1,228 @@
 //
-//  ClearingDbTests.swift
+//  CommonsDbQueriesTests.swift
 //  AltcraftTests
 //
 //  Created by Andrey Pogodin.
 //
-//  © 2025 Altcraft. All rights reserved.
+//  Copyright © 2025 Altcraft. All rights reserved.
+//
 
 import XCTest
 import CoreData
 @testable import Altcraft
 
 /**
- * ClearingDbTests
+ * CommonsDbQueriesTests
  *
  * Positive scenarios:
- *  - test_1: Delete entity with invalid name returns false and emits error.
- *  - test_2: Delete entity removes all rows for valid entity.
- *  - test_3: Delete all entities from DB wipes all predefined entities.
- *  - test_4: Delete entity on empty table returns true.
+ * - test_1: resolveObject returns materialized object for valid permanent ID in the same context.
+ * - test_2: resolveObject returns nil for temporary unsaved object ID.
+ * - test_3: deleteEntity deletes existing entity and returns true.
+ * - test_4: deleteEntity returns true when entity was already deleted.
+ * - test_5: deleteEntity returns true for temporary object ID.
+ * - test_6: retryLimit increments retryCount until max then deletes entity and returns true.
+ * - test_7: retryLimit returns true for invalid deleted object ID.
+ *
  */
-final class ClearingDbTests: IsolatedTestCase {
+final class CommonsDbQueriesTests: IsolatedTestCase {
 
-    private let container = CoreDataManager.shared.persistentContainer
+    @discardableResult
+    private func makeEvent(
+        userTag: String = "user-1",
+        timeZone: Int16 = 180,
+        time: Int64 = Int64(Date().timeIntervalSince1970 * 1000),
+        altcraftClientID: String? = "client-123",
+        eventName: String? = "open",
+        retryCount: Int16 = 0,
+        maxRetryCount: Int16 = 2
+    ) throws -> NSManagedObjectID {
+        var objectID: NSManagedObjectID?
 
-    private final class EventSpy {
-        private(set) var events: [Event] = []
-        func start() { SDKEvents.shared.subscribe { [weak self] ev in self?.events.append(ev) } }
-        func stop()  { SDKEvents.shared.unsubscribe() }
-        func fresh(since n: Int) -> [Event] { Array(events.dropFirst(n)) }
-    }
+        viewContext.performAndWait {
+            let entity = NSEntityDescription.insertNewObject(
+                forEntityName: Constants.EntityNames.mobileEventEntity,
+                into: viewContext
+            )
 
-    override func setUp() {
-        super.setUp()
-        sdkWipe([
-            Constants.EntityNames.config,
-            Constants.EntityNames.subscribe,
-            Constants.EntityNames.pushEvent,
-            Constants.EntityNames.mobileEvent
-        ])
-    }
+            entity.setValue(userTag, forKey: "userTag")
+            entity.setValue(timeZone, forKey: "timeZone")
+            entity.setValue(time, forKey: "time")
+            entity.setValue("pixel-777", forKey: "sid")
+            entity.setValue(altcraftClientID, forKey: "altcraftClientID")
+            entity.setValue(eventName, forKey: "eventName")
+            entity.setValue(retryCount, forKey: "retryCount")
+            entity.setValue(maxRetryCount, forKey: "maxRetryCount")
 
-    override func tearDown() {
-        sdkWipe([
-            Constants.EntityNames.config,
-            Constants.EntityNames.subscribe,
-            Constants.EntityNames.pushEvent,
-            Constants.EntityNames.mobileEvent
-        ])
-        super.tearDown()
-    }
-
-    private func sdkBG(_ block: @escaping (NSManagedObjectContext) -> Void) {
-        let ctx = container.newBackgroundContext()
-        ctx.mergePolicy = NSMergeByPropertyObjectTrumpMergePolicy
-        ctx.performAndWait { block(ctx) }
-    }
-
-    private func sdkCount(_ entityName: String) -> Int {
-        var n = 0
-        sdkBG { ctx in
-            let fr = NSFetchRequest<NSFetchRequestResult>(entityName: entityName)
-            n = (try? ctx.count(for: fr)) ?? 0
-        }
-        return n
-    }
-
-    private func sdkWipe(_ entityNames: [String]) {
-        sdkBG { ctx in
-            entityNames.forEach { name in
-                let fr = NSFetchRequest<NSFetchRequestResult>(entityName: name)
-                fr.includesPropertyValues = false
-                if let list = try? ctx.fetch(fr) as? [NSManagedObject] { list.forEach { ctx.delete($0) } }
+            do {
+                if entity.objectID.isTemporaryID {
+                    try viewContext.obtainPermanentIDs(for: [entity])
+                }
+                try viewContext.save()
+                objectID = entity.objectID
+            } catch {
+                XCTFail("Failed to save MobileEventEntity: \(error)")
             }
-            if ctx.hasChanges { try? ctx.save() }
         }
+
+        return try XCTUnwrap(objectID)
     }
 
-    private func seedSubscribe(count: Int) {
-        guard count > 0 else { return }
-        sdkBG { ctx in
-            for i in 0..<count {
-                let e = SubscribeEntity(context: ctx)
-                e.userTag = "u"
-                e.status = "subscribed"
-                e.sync = 1
-                e.time = Int64(1_700_000_000_000 + i)
-                e.retryCount = 0
-                e.maxRetryCount = 3
+    private func fetchAllEvents() throws -> [MobileEventEntity] {
+        var objects: [MobileEventEntity] = []
+
+        viewContext.performAndWait {
+            let request = NSFetchRequest<MobileEventEntity>(
+                entityName: Constants.EntityNames.mobileEventEntity
+            )
+            objects = (try? viewContext.fetch(request)) ?? []
+        }
+
+        return objects
+    }
+
+    private func fetchEvent(by objectID: NSManagedObjectID) throws -> MobileEventEntity? {
+        var object: MobileEventEntity?
+
+        viewContext.performAndWait {
+            object = resolveObject(in: viewContext, from: objectID) as? MobileEventEntity
+        }
+
+        return object
+    }
+
+    private func deleteFromContext(_ objectID: NSManagedObjectID) throws {
+        viewContext.performAndWait {
+            guard let object = resolveObject(in: viewContext, from: objectID) else {
+                return
             }
-            try? ctx.save()
-        }
-    }
 
-    private func seedPushEvents(count: Int) {
-        guard count > 0 else { return }
-        sdkBG { ctx in
-            for i in 0..<count {
-                let e = PushEventEntity(context: ctx)
-                e.uid = "uid-\(i)"
-                e.type = Constants.PushEvents.delivery
-                e.time = Int64(1_700_000_000_000 + i)
-                e.retryCount = 0
-                e.maxRetryCount = 3
+            viewContext.delete(object)
+
+            do {
+                if viewContext.hasChanges {
+                    try viewContext.save()
+                }
+            } catch {
+                XCTFail("Failed to delete MobileEventEntity: \(error)")
             }
-            try? ctx.save()
         }
     }
 
-    private func seedMobileEvents(count: Int) {
-        guard count > 0 else { return }
-        sdkBG { ctx in
-            for i in 0..<count {
-                let e = MobileEventEntity(context: ctx)
-                e.userTag = "u"
-                e.sid = "sid-\(i)"
-                e.eventName = "open"
-                e.time = Int64(1_700_000_000_000 + i)
-                e.timeZone = 180
-                e.retryCount = 0
-                e.maxRetryCount = 3
-            }
-            try? ctx.save()
+    /// test_1: resolveObject returns materialized object for valid permanent ID in the same context
+    func test_1_resolveObject_returns_materialized_object_for_valid_permanent_id_in_the_same_context() throws {
+        let objectID = try makeEvent()
+
+        var resolved: NSManagedObject?
+        viewContext.performAndWait {
+            resolved = resolveObject(in: viewContext, from: objectID)
         }
+
+        XCTAssertNotNil(resolved)
+        XCTAssertFalse(resolved?.objectID.isTemporaryID ?? true)
+        XCTAssertEqual((resolved as? MobileEventEntity)?.eventName, "open")
     }
 
-    private func seedConfig() {
-        sdkBG { ctx in
-            let e = ConfigurationEntity(context: ctx)
-            e.url = "https://api"
-            e.rToken = "T"
-            try? ctx.save()
+    /// test_2: resolveObject returns nil for temporary unsaved object ID
+    func test_2_resolveObject_returns_nil_for_temporary_unsaved_object_id() {
+        let temporary = NSEntityDescription.insertNewObject(
+            forEntityName: Constants.EntityNames.mobileEventEntity,
+            into: viewContext
+        )
+
+        var resolved: NSManagedObject?
+        viewContext.performAndWait {
+            resolved = resolveObject(in: viewContext, from: temporary.objectID)
         }
+
+        XCTAssertNil(resolved)
     }
 
-    /// test_1: Delete entity with invalid name returns false and emits error
-    func test_1_deleteEntity_invalidName_returnsFalse_and_emitsError() {
-        let spy = EventSpy(); spy.start()
-        defer { spy.stop() }
-        let before = spy.events.count
+    /// test_3: deleteEntity deletes existing entity and returns true
+    func test_3_deleteEntity_deletes_existing_entity_and_returns_true() async throws {
+        let objectID = try makeEvent()
 
-        let exp = expectation(description: "invalid entity completion")
-        var success = true
-        ClearingDb.shared.deleteEntity(entityName: "__nope__") {
-            success = $0
-            exp.fulfill()
-        }
-        wait(for: [exp], timeout: 1.0)
+        let result = await deleteEntity(
+            context: viewContext,
+            objectID: objectID
+        )
 
-        XCTAssertFalse(success)
+        XCTAssertTrue(result)
 
-        let fresh = spy.fresh(since: before)
-        let hasError = fresh.contains { ($0 is ErrorEvent) && $0.function.contains("deleteEntity") }
-        XCTAssertTrue(hasError)
+        let all = try fetchAllEvents()
+        XCTAssertTrue(all.isEmpty)
     }
 
-    /// test_2: Delete entity removes all rows for valid entity
-    func test_2_deleteEntity_removes_all_rows_for_valid_entity() {
-        seedSubscribe(count: 3)
-        XCTAssertEqual(sdkCount(Constants.EntityNames.subscribe), 3)
+    /// test_4: deleteEntity returns true when entity was already deleted
+    func test_4_deleteEntity_returns_true_when_entity_was_already_deleted() async throws {
+        let objectID = try makeEvent()
+        try deleteFromContext(objectID)
 
-        let exp = expectation(description: "delete subscribe")
-        var ok = false
-        ClearingDb.shared.deleteEntity(entityName: Constants.EntityNames.subscribe) {
-            ok = $0
-            exp.fulfill()
-        }
-        wait(for: [exp], timeout: 1.0)
+        let result = await deleteEntity(
+            context: viewContext,
+            objectID: objectID
+        )
 
-        XCTAssertTrue(ok)
-        XCTAssertEqual(sdkCount(Constants.EntityNames.subscribe), 0)
+        XCTAssertTrue(result)
     }
 
-    /// test_3: Delete all entities from DB wipes all predefined entities
-    func test_3_deleteAllEntitiesFromDb_wipes_all_predefined_entities() {
-        seedConfig()
-        seedSubscribe(count: 2)
-        seedPushEvents(count: 2)
-        seedMobileEvents(count: 2)
+    /// test_5: deleteEntity returns true for temporary object ID
+    func test_5_deleteEntity_returns_true_for_temporary_object_id() async {
+        let temporary = NSEntityDescription.insertNewObject(
+            forEntityName: Constants.EntityNames.mobileEventEntity,
+            into: viewContext
+        )
+        let objectID = temporary.objectID
 
-        XCTAssertEqual(sdkCount(Constants.EntityNames.config), 1)
-        XCTAssertEqual(sdkCount(Constants.EntityNames.subscribe), 2)
-        XCTAssertEqual(sdkCount(Constants.EntityNames.pushEvent), 2)
-        XCTAssertEqual(sdkCount(Constants.EntityNames.mobileEvent), 2)
+        let result = await deleteEntity(
+            context: viewContext,
+            objectID: objectID
+        )
 
-        let exp = expectation(description: "delete all")
-        var ok = false
-        ClearingDb.shared.deleteAllEntitiesFromDb {
-            ok = $0
-            exp.fulfill()
-        }
-        wait(for: [exp], timeout: 2.0)
-
-        XCTAssertTrue(ok)
-        XCTAssertEqual(sdkCount(Constants.EntityNames.config), 0)
-        XCTAssertEqual(sdkCount(Constants.EntityNames.subscribe), 0)
-        XCTAssertEqual(sdkCount(Constants.EntityNames.pushEvent), 0)
-        XCTAssertEqual(sdkCount(Constants.EntityNames.mobileEvent), 0)
+        XCTAssertTrue(result)
     }
 
-    /// test_4: Delete entity on empty table returns true
-    func test_4_deleteEntity_on_empty_table_returnsTrue() {
-        XCTAssertEqual(sdkCount(Constants.EntityNames.pushEvent), 0)
+    /// test_6: retryLimit increments retryCount until max then deletes entity and returns true
+    func test_6_retryLimit_increments_retry_count_until_max_then_deletes_entity_and_returns_true() async throws {
+        let objectID = try makeEvent(retryCount: 0, maxRetryCount: 2)
 
-        let exp = expectation(description: "delete empty")
-        var ok = false
-        ClearingDb.shared.deleteEntity(entityName: Constants.EntityNames.pushEvent) {
-            ok = $0
-            exp.fulfill()
-        }
-        wait(for: [exp], timeout: 1.0)
+        let firstResult = await retryLimit(
+            context: viewContext,
+            objectID: objectID
+        )
+        XCTAssertFalse(firstResult)
 
-        XCTAssertTrue(ok)
-        XCTAssertEqual(sdkCount(Constants.EntityNames.pushEvent), 0)
+        let firstEntity = try XCTUnwrap(fetchEvent(by: objectID))
+        XCTAssertEqual(firstEntity.retryCount, 1)
+
+        let secondResult = await retryLimit(
+            context: viewContext,
+            objectID: objectID
+        )
+        XCTAssertFalse(secondResult)
+
+        let secondEntity = try XCTUnwrap(fetchEvent(by: objectID))
+        XCTAssertEqual(secondEntity.retryCount, 2)
+
+        let thirdResult = await retryLimit(
+            context: viewContext,
+            objectID: objectID
+        )
+        XCTAssertTrue(thirdResult)
+
+        let all = try fetchAllEvents()
+        XCTAssertTrue(all.isEmpty)
+    }
+
+    /// test_7: retryLimit returns true for invalid deleted object ID
+    func test_7_retryLimit_returns_true_for_invalid_deleted_object_id() async throws {
+        let objectID = try makeEvent()
+        try deleteFromContext(objectID)
+
+        let result = await retryLimit(
+            context: viewContext,
+            objectID: objectID
+        )
+
+        XCTAssertTrue(result)
     }
 }

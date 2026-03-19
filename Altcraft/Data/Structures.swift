@@ -14,7 +14,7 @@ import CoreData
 /// Altcraft SDK configuration.
 ///
 /// Holds base parameters required to build requests and drive SDK behavior.
-struct Configuration {
+struct Configuration: Sendable {
     /// Base API URL.
     let url: String
     /// Resource token (optional).
@@ -37,6 +37,39 @@ struct JWTData {
     let matching: String
 }
 
+/// Sendable representation of device fields.
+struct DeviceFields: Sendable {
+    let os: String
+    let osTimeZone: String
+    let adTrack: Bool
+    let osLanguage: String
+    let deviceType: String
+    let deviceModel: String
+    let deviceName: String
+    let osVersion: String
+    let adId: String?
+
+    func asDictionary() -> [String: Any] {
+        var result: [String: Any] = [
+            "_os": os,
+            "_os_tz": osTimeZone,
+            "_ad_track": adTrack,
+            "_os_language": osLanguage,
+            "_device_type": deviceType,
+            "_device_model": deviceModel,
+            "_device_name": deviceName,
+            "_os_ver": osVersion
+        ]
+
+        if let adId {
+            result["_ad_id"] = adId
+        }
+
+        return result
+    }
+}
+
+
 /// Common data required to construct SDK network requests.
 struct RequestData {
     /// SDK configuration (optional).
@@ -49,7 +82,7 @@ struct RequestData {
 ///
 /// Converts a stored `SubscribeEntity` into a usable model with decoded fields,
 /// including profile data, custom fields, and categories.
-struct Subscribe {
+struct PushSubscribeData {
     let time: Int64?
     let requestId: String?
     let userTag: String?
@@ -87,14 +120,14 @@ struct Subscribe {
 }
 
 /// Data required to perform a `push/subscribe` request.
-struct SubscribeRequestData {
+struct PushSubscribeRequestData {
     /// Subscription API endpoint URL.
     let url: String
 
     /// Unique request identifier.
     let requestId: String
 
-    /// Timestamp in epoch milliseconds.
+    /// Timestamp in epoch seconds.
     let time: Int64
 
     /// Resource token (optional).
@@ -147,8 +180,22 @@ struct SubscribeRequestData {
     }
 }
 
+/// Immutable value snapshot of `SubscribeEntity` used to safely pass data outside `NSManagedObjectContext`.
+/// Contains only value types / `Data` to avoid Core Data thread confinement issues.
+struct PushSubscribeSnapshot {
+    let requestId: String
+    let timeSeconds: Int64
+    let status: String
+    let sync: Bool
+    let profileFieldsData: Data?
+    let customFieldsData: Data?
+    let catsData: Data?
+    let replace: Bool
+    let skipTriggers: Bool
+}
+
 /// Data required to perform a token update request.
-struct UpdateRequestData {
+struct TokenUpdateRequestData {
     let url: String
     let requestId: String
     let authHeader: String
@@ -200,7 +247,7 @@ struct UnSuspendRequestData {
 /// Data required to perform a profile request.
 ///
 /// Includes endpoint URL, headers, matching mode, and optional subscription details.
-struct ProfileRequestData {
+struct ProfileStatusRequestData {
     let url: String
     let requestId: String
     let authHeader: String
@@ -217,7 +264,7 @@ struct ProfileRequestData {
 ///   - sid: Pixel identifier (Altcraft client ID).
 ///   - eventName: Event name.
 ///   - parts: Event parts.
-///   - authHeader: Authorization header value (e.g., `"Bearer <token>"`).
+///   - authHeader: Authorization header value.
 struct MobileEventRequestData {
     let url: String
     let requestId: String
@@ -227,6 +274,24 @@ struct MobileEventRequestData {
     let authHeader: String
 }
 
+/// Data required to perform a profile update request.
+///
+/// Encapsulates parameters for a profile update API call.
+/// - Parameters:
+///   - url: Full API endpoint URL.
+///   - requestId: Unique request identifier.
+///   - authHeader: Authorization header value.
+///   - profileFields: Profile fields to update (optional).
+///   - skipTriggers: If `true`, automation triggers (e.g., autoresponders) will be skipped.
+struct ProfileUpdateRequestData {
+    let url: String
+    let requestId: String
+    let authHeader: String
+    let profileFields: [String: Any]?
+    let skipTriggers: Bool?
+}
+
+
 // MARK: - Public Structs
 
 /// Push token and provider.
@@ -234,7 +299,7 @@ struct MobileEventRequestData {
 /// Used to persist and restore the current device token in `UserDefaults`.
 /// - `provider`: Push provider (e.g., `"ios-apns"`, `"ios-firebase"`, `"ios-huawei"`).
 /// - `token`: Push token string.
-public struct TokenData: Codable {
+public struct TokenData: Codable, Sendable{
     public let provider: String
     public let token: String
 }
@@ -242,7 +307,7 @@ public struct TokenData: Codable {
 /// Application metadata used for analytics.
 ///
 /// Provides basic app identifiers attached to events for tracking and reporting.
-public struct AppInfo: Codable {
+public struct AppInfo: Codable, Sendable {
 
     /// Unique application identifier.
     public var appID: String
@@ -282,13 +347,13 @@ public struct AppInfo: Codable {
 }
 
 /// Wraps an API response together with an HTTP status code.
-public struct ResponseWithHttp {
+public struct ResponseWithHttp: Sendable {
     public let httpCode: Int?
     public let response: Response?
 }
 
 /// Synchronous subscribe response payload.
-public struct Response: Codable {
+public struct Response: Codable, Sendable {
     public let error: Int?
     public let errorText: String?
     public let profile: ProfileData?
@@ -301,7 +366,7 @@ public struct Response: Codable {
 }
 
 /// User profile payload, including status and subscription details.
-public struct ProfileData: Codable {
+public struct ProfileData: Codable, Sendable {
     public let id: String?
     public let status: String?
     public let isTest: Bool?
@@ -316,7 +381,7 @@ public struct ProfileData: Codable {
 }
 
 /// Subscription payload including provider, fields, and categories.
-public struct SubscriptionData: Codable {
+public struct SubscriptionData: Codable, Sendable {
     public let subscriptionId: String?
     public let hashId: String?
     public let provider: String?
@@ -335,7 +400,7 @@ public struct SubscriptionData: Codable {
 }
 
 /// Subscription category details.
-public struct CategoryData: Codable {
+public struct CategoryData: Codable, Sendable {
     public var name: String?
     public var title: String? = nil
     public var steady: Bool? = nil
@@ -357,7 +422,7 @@ public struct CategoryData: Codable {
 /// A type-safe representation of any JSON value.
 ///
 /// Supports strings, numbers, booleans, objects, arrays, and null.
-public enum JSONValue: Codable, CustomStringConvertible {
+public enum JSONValue: Codable, CustomStringConvertible, Sendable {
     case string(String)
     case number(Double)
     case bool(Bool)

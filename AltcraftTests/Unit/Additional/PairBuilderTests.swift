@@ -34,15 +34,21 @@ import XCTest
  *  - test_19: Mobile event success returns success code and message with appended event name.
  *  - test_20: Unknown request success returns zero code and unknown request message.
  *  - test_21: getRequestMessages returns both error and success pairs consistent with builders.
+ *  - test_22: Profile update request with 5xx error returns mapped 5xx code and base message.
+ *  - test_23: Profile update request with 4xx error returns mapped 4xx code and base message.
+ *  - test_24: Success pair for profile update returns code and message.
+ *  - test_25: getRequestMessages for mobile event returns both error and success.
+ *  - test_26: getRequestMessages for profile update returns both error and success.
  */
-final class PairBuilderTests: XCTestCase {
+final class PairBuilderTests: IsolatedTestCase {
 
     private let reqSubscribe = Constants.RequestName.subscribe
     private let reqSuspend = Constants.RequestName.suspend
     private let reqUnsubscribe = Constants.RequestName.unsubscribe
-    private let reqUpdate = Constants.RequestName.update
+    private let reqUpdate = Constants.RequestName.tokenUpdate
     private let reqPushEvent = Constants.RequestName.pushEvent
     private let reqMobileEvent = Constants.RequestName.mobileEvent
+    private let reqProfileUpdate = Constants.RequestName.profileUpdate
     private let reqUnsuspend = Constants.RequestName.unsuspend
     private let reqStatus = Constants.RequestName.status
     private let reqUnknown = "unknown/op"
@@ -208,6 +214,10 @@ final class PairBuilderTests: XCTestCase {
         let s6 = createSuccessPair(requestName: reqStatus, type: nil, name: nil)
         XCTAssertEqual(s6.0, 235)
         XCTAssertEqual(s6.1, Constants.SDKSuccessMessage.statusSuccess)
+
+        let s7 = createSuccessPair(requestName: reqProfileUpdate, type: nil, name: nil)
+        XCTAssertEqual(s7.0, 238)
+        XCTAssertEqual(s7.1, Constants.SDKSuccessMessage.profileUpdateSuccess)
     }
 
     /// test_18: Push event success returns success code and message with appended event type
@@ -242,6 +252,52 @@ final class PairBuilderTests: XCTestCase {
 
         XCTAssertEqual(m.success.0, 236)
         XCTAssertEqual(m.success.1, Constants.SDKSuccessMessage.pushEventDelivered + anyType)
+    }
+    
+    /// test_22: Profile update request with 5xx error returns mapped 5xx code and base message
+    func test_22_errorPair_profileUpdate_5xx_usesMapped5xxCode() {
+        let (code, msg) = createErrorPair(requestName: reqProfileUpdate, code: http5xx, response: nil, type: nil, name: nil)
+        XCTAssertEqual(code, 538)
+        expectBaseFragments(in: msg, request: reqProfileUpdate, http: http5xx)
+    }
+
+    /// test_23: Profile update request with 4xx error returns mapped 4xx code and base message
+    func test_23_errorPair_profileUpdate_4xx_usesMapped4xxCode() {
+        let (code, msg) = createErrorPair(requestName: reqProfileUpdate, code: http4xx, response: nil, type: nil, name: nil)
+        XCTAssertEqual(code, 438)
+        expectBaseFragments(in: msg, request: reqProfileUpdate, http: http4xx)
+    }
+
+    /// test_24: Success pair for profile update returns code and message
+    func test_24_successPair_profileUpdate_returns238() {
+        let result = createSuccessPair(requestName: reqProfileUpdate, type: nil, name: nil)
+        XCTAssertEqual(result.0, 238)
+        XCTAssertEqual(result.1, Constants.SDKSuccessMessage.profileUpdateSuccess)
+    }
+
+    /// test_25: getRequestMessages for mobile event returns both error and success
+    func test_25_getRequestMessages_mobileEvent_returnsBothPairs() {
+        let res = Response(error: 7, errorText: "oops", profile: nil)
+        let m = getRequestMessages(requestName: reqMobileEvent, code: http4xx, response: res, type: nil, name: anyName)
+
+        XCTAssertEqual(m.error.0, 437)
+        expectBaseFragments(in: m.error.1, request: reqMobileEvent, http: http4xx, error: 7, errorText: "oops")
+        XCTAssertTrue(m.error.1.contains("name: \(anyName)"))
+
+        XCTAssertEqual(m.success.0, 237)
+        XCTAssertEqual(m.success.1, Constants.SDKSuccessMessage.mobileEventDelivered + anyName)
+    }
+
+    /// test_26: getRequestMessages for profile update returns both error and success
+    func test_26_getRequestMessages_profileUpdate_returnsBothPairs() {
+        let res = Response(error: 9, errorText: "bad profile", profile: nil)
+        let m = getRequestMessages(requestName: reqProfileUpdate, code: http5xx, response: res, type: nil, name: nil)
+
+        XCTAssertEqual(m.error.0, 538)
+        expectBaseFragments(in: m.error.1, request: reqProfileUpdate, http: http5xx, error: 9, errorText: "bad profile")
+
+        XCTAssertEqual(m.success.0, 238)
+        XCTAssertEqual(m.success.1, Constants.SDKSuccessMessage.profileUpdateSuccess)
     }
 }
 

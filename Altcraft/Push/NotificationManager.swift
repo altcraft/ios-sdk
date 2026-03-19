@@ -1,5 +1,13 @@
+//
+//  NotificationManager.swift
+//  Altcraft
+//
+//  Created by Andrey Pogodin.
+//
+//  Copyright © 2025 Altcraft. All rights reserved.
+
 import Foundation
-import UserNotifications
+@preconcurrency import UserNotifications
 import UIKit
 
 public extension Notification.Name {
@@ -25,13 +33,13 @@ public extension Notification.Name {
 /// - Methods are exposed to Objective-C via `@objcMembers`.
 @objcMembers
 @available(iOSApplicationExtension, unavailable)
-public class NotificationManager: NSObject, UNUserNotificationCenterDelegate {
+public final class NotificationManager: NSObject, UNUserNotificationCenterDelegate, @unchecked Sendable {
 
     /// Shared singleton instance.
     /// Swift: `NotificationManager.shared`
     /// ObjC:  `[NotificationManager shared]` or `[NotificationManager sharedInstance]`
     public static let shared = NotificationManager()
-    
+
     private let pushEvent = PushEvent.shared
     private let pushAction = PushAction.shared
 
@@ -81,27 +89,26 @@ public class NotificationManager: NSObject, UNUserNotificationCenterDelegate {
         for application: UIApplication,
         completion: ((_ granted: Bool, _ error: Error?) -> Void)? = nil
     ) {
+        let completionBox = completion.map {
+            CallbackBox<(Bool, Error?)>($0)
+        }
+
         UNUserNotificationCenter.current().delegate = self
-        DispatchQueue.main.async {
-            UNUserNotificationCenter.current().requestAuthorization(
-                options: [.alert, .sound, .badge]
-            ) { granted, error in
-                if Thread.isMainThread {
-                    application.registerForRemoteNotifications()
-                } else {
-                    DispatchQueue.main.async {
-                        application.registerForRemoteNotifications()
-                    }
-                }
-                completion?(granted, error)
+
+        UNUserNotificationCenter.current().requestAuthorization(
+            options: [.alert, .sound, .badge]
+        ) { granted, error in
+            DispatchQueue.main.async {
+                application.registerForRemoteNotifications()
+                completionBox?.call((granted, error))
             }
         }
     }
-    
+
     /// Foreground presentation handler.
     ///
     /// Called when a notification arrives while the app is in the foreground.
-    /// On iOS 14+, presents as `.banner`; on earlier versions uses `.alert`.
+    /// Presents as `.banner` (iOS 14+); on earlier versions uses `.alert`.
     ///
     /// - Parameters:
     ///   - center: The current `UNUserNotificationCenter`.
@@ -115,10 +122,13 @@ public class NotificationManager: NSObject, UNUserNotificationCenterDelegate {
         ) -> Void
     ) {
         NotificationCenter.default.post(
-            name: .altcraftPushWillPresent, object: self, userInfo: [
+            name: .altcraftPushWillPresent,
+            object: self,
+            userInfo: [
                 Constants.NotificationCenter.notificationKey: notification
             ]
         )
+
         if customPushProcessing {
             if let handler = onForegroundNotification {
                 handler(notification, completionHandler)
@@ -127,9 +137,11 @@ public class NotificationManager: NSObject, UNUserNotificationCenterDelegate {
             }
             return
         }
+
         if let handler = onForegroundNotification {
             handler(notification, { _ in })
         }
+
         if #available(iOS 14.0, *) {
             completionHandler([.banner, .badge, .sound])
         } else {
@@ -137,26 +149,30 @@ public class NotificationManager: NSObject, UNUserNotificationCenterDelegate {
         }
     }
 
-    /// User response handler (tap/action on a delivered notification).
+    /// Handles user interaction with a delivered notification
+    /// (tap or action button).
     ///
-    /// Triggers an `"open"` push event and runs `pushClickAction` if the payload can be parsed
-    /// as `[String: AnyObject]`. Always calls `completionHandler` at the end
-    /// if the app did not take over click processing.
+    /// Posts `.altcraftPushDidReceive`, processes the click,
+    /// records an `"open"` push event, and calls `completionHandler`
+    /// when processing finishes unless custom handling is enabled.
     ///
     /// - Parameters:
-    ///   - center: The current `UNUserNotificationCenter`.
-    ///   - response: The user's response to the delivered notification.
-    ///   - completionHandler: Must be called when processing is finished.
+    ///   - center: The `UNUserNotificationCenter`.
+    ///   - response: The user's response to the notification.
+    ///   - completionHandler: Must be called when processing is complete.
     public func userNotificationCenter(
         _ center: UNUserNotificationCenter,
         didReceive response: UNNotificationResponse,
         withCompletionHandler completionHandler: @escaping () -> Void
     ) {
         NotificationCenter.default.post(
-            name: .altcraftPushDidReceive, object: self, userInfo: [
+            name: .altcraftPushDidReceive,
+            object: self,
+            userInfo: [
                 Constants.NotificationCenter.responseKey: response
             ]
         )
+        
         if customClickProcessing {
             if let handler = onNotificationClick {
                 handler(response, completionHandler)
@@ -166,11 +182,42 @@ public class NotificationManager: NSObject, UNUserNotificationCenterDelegate {
             return
         }
         
-        if let userInfo = response.notification.request.content.userInfo as? [String: AnyObject] {
-            pushAction.pushClickAction(userInfo: userInfo, Identifier: response.actionIdentifier)
-            self.pushEvent.createPushEvent(userInfo: userInfo, type: Constants.PushEvents.open)
-        }
+        let completionBox = ClosureBox(completionHandler)
         if let handler = onNotificationClick { handler(response, {}) }
-        completionHandler()
+       
+        Task { [ completionBox] in
+
+            await handleNotificationResponse(
+                response: response, completionBox: completionBox
+            )
+        }
+    }
+    
+    
+    /// Processes a notification click.
+    ///
+    /// Extracts payload fields, runs the click action,
+    /// records the `"open"` push event, and invokes
+    /// the completion handler on the main thread.
+    private func handleNotificationResponse(
+        response: UNNotificationResponse,
+        completionBox: ClosureBox
+    ) async {
+        let identifier = response.actionIdentifier
+        let info = response.notification.request.content.userInfo
+        
+        let uid = info[ Constants.UserInfoKeys.uid ] as? String
+        let url = info[ Constants.UserInfoKeys.clickUrl] as? String
+        let buttons = info[ Constants.UserInfoKeys.buttons ] as? String
+        
+        await pushAction.pushClickAction(
+            buttonsJSON: buttons, clickURL: url, identifier: identifier
+        )
+
+        await pushEvent.createPushEvent(
+            uid: uid, type: Constants.PushEvents.open
+        )
+
+        completeOnMain { completionBox.invoke() }
     }
 }

@@ -24,6 +24,15 @@
         <attribute name="userTag" optional="YES" attributeType="String"/>
         <attribute name="utmTags" optional="YES" attributeType="Binary"/>
     </entity>
+    <entity name="ProfileUpdateEntity" representedClassName="ProfileUpdateEntity" syncable="YES">
+        <attribute name="maxRetryCount" optional="YES" attributeType="Integer 16" defaultValueString="0" usesScalarValueType="YES"/>
+        <attribute name="profileFields" optional="YES" attributeType="Binary"/>
+        <attribute name="requestId" optional="YES" attributeType="String"/>
+        <attribute name="retryCount" optional="YES" attributeType="Integer 16" defaultValueString="0" usesScalarValueType="YES"/>
+        <attribute name="skipTriggers" optional="YES" attributeType="Boolean" usesScalarValueType="YES"/>
+        <attribute name="time" optional="YES" attributeType="Integer 64" defaultValueString="0" usesScalarValueType="YES"/>
+        <attribute name="userTag" optional="YES" attributeType="String"/>
+    </entity>
     <entity name="PushEventEntity" representedClassName="PushEventEntity" syncable="YES">
         <attribute name="maxRetryCount" optional="YES" attributeType="Integer 16" defaultValueString="0" usesScalarValueType="YES"/>
         <attribute name="requestId" optional="YES" attributeType="String"/>

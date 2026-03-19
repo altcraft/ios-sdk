@@ -5,249 +5,228 @@
 //  Created by Andrey Pogodin.
 //
 //  Copyright © 2025 Altcraft. All rights reserved.
+//
 
 import Foundation
 import CoreData
 
-class MobileEvent: NSObject {
+internal actor MobileEvent {
 
     static let shared = MobileEvent()
+
     let userDefault = StoredVariablesManager.shared
-    
-    private func retry() {
-        localMobileEventRetry()
-        MobileEventQueues.startQueue.reset(dropCurrent: true)
-    }
-    
-    /// Result type to control next step in mobile event  processing.
-    private enum RequestResult {
-        case completed
-        case retry
+    let backgroundTask = AccessToBackground.shared
+
+    /// Builds a formatted function tag for logs.
+    ///
+    /// - Parameter name: The source function name.
+    private func getFunc(_ name: String) -> String {
+        "\(name) :: MobileEvent"
     }
 
     /// Sends a mobile event to the server.
     ///
-    /// Enqueues creation of a mobile event entity and triggers processing.
-    /// Validates input, persists event with metadata, and starts delivery flow.
+    /// Persists event metadata in Core Data and triggers processing.
     ///
     /// - Parameters:
     ///   - sid: The string ID of the pixel.
     ///   - eventName: Event name.
     ///   - sendMessageId: Send Message ID (SMID).
-    ///   - payloadFields: Arbitrary event payload; will be serialized to JSON.
-    ///   - matching: Optional matching pair (key, value) to be serialized to JSON.
-    ///   - profileFields: Optional profile fields; will be serialized to JSON.
-    ///   - subscription: Subscription to attach to the profile (
-    ///   `EmailSubscription` / `SmsSubscription` / `PushSubscription` / `CcDataSubscription`
-    ///   ).
+    ///   - payloadData: Encoded event payload.
+    ///   - matchingData: Encoded matching data.
+    ///   - profileFieldsData: Encoded profile fields.
+    ///   - subscriptionData: Encoded subscription data.
     ///   - altcraftClientID: Altcraft client identifier.
-    ///   - matchingType: Type of matching (e.g., "push_sub", "email", etc.).
-    ///   - utmTags: Optional UTM tags for campaign attribution (source, medium, campaign, term, content).
+    ///   - matchingType: Type of matching (e.g. "push_sub", "email", etc.).
+    ///   - utmTagsData: Encoded UTM tags.
     func sendMobileEvent(
         sid: String,
         eventName: String,
+        payloadData: Data? = nil,
+        matchingData: Data? = nil,
         sendMessageId: String? = nil,
-        payloadFields: [String: Any?]? = nil,
-        matching: [String: Any?]? = nil,
-        profileFields: [String: Any?]? = nil,
-        subscription: (any Subscription)? = nil,
+        profileFieldsData: Data? = nil,
+        subscriptionData: Data? = nil,
         altcraftClientID: String = "",
         matchingType: String? = nil,
-        utmTags: UTM? = nil
-    ) {
-        MobileEventQueues.entityQueue.submit { done in
-            guard !self.userDefault.getDbErrorStatus() else {
-                errorEvent(#function, error: coreDataError)
-                done()
-                return
-            }
-            getUserTag { userTag in
-                guard let userTag else {
-                    errorEvent(#function, error: userTagIsNilE)
-                    done()
-                    return
-                }
-                if payloadFields.containsNonPrimitiveValues() {
-                    errorEvent(#function, error: fieldsIsObjects)
-                    done()
-                    return
-                }
-                let timeZone = DeviceInfo().getTimeZone()
+        utmTagsData: Data? = nil
+    ) async {
+        let function = getFunc(#function)
+        let env = Environment.create()
+        
+        do {
+            try env.checkCoreDataError()
+            let userTag = try await env.userTag()
+            let timeZone = DeviceInfo.getTimeZone()
+            
+            switch await addMobileEventEntity(
+                sid: sid,
+                userTag: userTag,
+                timeZone: timeZone,
+                eventName: eventName,
+                payloadData: payloadData,
+                matchingData: matchingData,
+                sendMessageId: sendMessageId,
+                matchingType: matchingType,
+                utmTagsData: utmTagsData,
+                altcraftClientID: altcraftClientID,
+                profileFieldsData: profileFieldsData,
+                subscriptionData: subscriptionData
+            ) {
+            case .success:
+                RetryCounters.shared.reset(
+                    RetryKey.mobileEvent
+                )
+                await self.enqueueStart()
                 
-                addMobileEventEntity(
-                    userTag: userTag,
-                    timeZone: timeZone,
-                    sid: sid,
-                    eventName: eventName,
-                    altcraftClientID: altcraftClientID,
-                    payload: payloadFields,
-                    matching: matching,
-                    profileFields: profileFields,
-                    subscription: subscription,
-                    sendMessageId: sendMessageId,
-                    matchingType: matchingType,
-                    utmTags: utmTags
-                ) { result in
-                    switch result {
-                    case .success:
-                        mobileEventRetryCount = 0
-                        self.enqueueStart()
-                        done()
-                        
-                    case .failure(let error):
-                        errorEvent(#function, error: error)
-                        done()
-                    }
+            case .failure(let error):
+                errorEvent(function, error: error)
+            }
+        } catch {
+            errorEvent(function, error: error)
+        }
+    }
+
+    /// Enqueues mobile event processing into the serial command queue.
+    ///
+    /// - Parameter enableRetry: If `true`, schedules internal retry on failure.
+    func enqueueStart(enableRetry: Bool = true) async {
+        let function = getFunc(#function)
+         MobileEventQueues.startQueue.submit {
+            
+            do {
+                await NetworkMonitor.shared.waitConnected()
+
+                let env = Environment.create()
+                let userTag = try await env.userTag()
+                let result = await self.processEvents(
+                    userTag: userTag
+                )
+                
+                if !result && enableRetry {
+                    mobileEventRetry()
                 }
+            } catch {
+                retryEvent(function, error: error)
+                if enableRetry {mobileEventRetry()}
             }
         }
     }
 
-    /// Enqueues the mobile event processing job into the serial start queue.
-    /// Creates a fresh background context via `getContext()` and starts a single
-    /// `startEventsSend` run. The queue guarantees that only one run executes at a time;
-    /// the queue is released only after the whole flow completes.
+    /// Processes all stored subscriptions for the given user tag.
     ///
-    /// - Parameter enableRetry: If `true`, schedules internal retry on failure
-    ///                          (e.g., network unavailable). If `false`, no retry is scheduled.
-    func enqueueStart(enableRetry: Bool = true) {
-        MobileEventQueues.startQueue.submit { done in
-            self.startEventsSend(context: getContext(), enableRetry: enableRetry) {
-                done()
+    /// Performs cleanup of outdated entities, fetches all queued subscriptions for `userTag`,
+    /// and processes them sequentially. Returns as soon as a retry condition is met.
+    ///
+    /// - Parameter userTag: Tag used to fetch subscription entities.
+    /// - Returns: `true` if processing should stop and retry later, otherwise `false`.
+    fileprivate func processEvents(userTag: String) async -> Bool {
+        let context = CoreDataManager.shared.getContext()
+        
+        await clearOldMobileEvents(context: context)
+        
+        let events = await getAllMobileEventsByTag(
+            context: context,
+            userTag: userTag
+        )
+        
+        for event in events {
+            if await isRetry(context: context, event: event){
+                return false
             }
         }
+        
+        return true
     }
-    
-    /// Starts full mobile event processing flow using the provided Core Data context.
-    ///
-    /// Unlike push subscriptions, this method does not require notification authorization.
-    /// It validates network connectivity and processes all pending events.
+
+    /// Processes a single mobile event and determines whether a retry is required.
     ///
     /// - Parameters:
-    ///   - context: Core Data context used for fetch/update/delete operations.
-    ///   - enableRetry: If `true`, schedules internal retry on failure.
-    ///   - completion: Closure called after processing completes (success or retry scheduled).
-    func startEventsSend(
-        context: NSManagedObjectContext,
-        enableRetry: Bool = true,
-        completion: @escaping () -> Void = {}
-    ) {
-        NetworkMonitor.shared.performActionWhenConnected {
-            self.processEvents(context: context) { completed in
-                if !completed && enableRetry {
-                    self.retry()
-                }
-                MobileEventQueues.syncQueue.async {
-                    completion()
-                }
-            }
-        }
-    }
-    
-    /// Fetches and processes all stored mobile events for the current user tag.
-    /// Performs storage maintenance (clearing old records), then processes events sequentially.
-    ///
-    /// - Parameters:
-    ///   - context: Core Data context used for fetch/update/delete operations.
-    ///   - completion: Closure called with `true` on overall success (no retry needed),
-    ///                 or `false` if a retry should be scheduled.
-    private func processEvents(context: NSManagedObjectContext, completion: @escaping (Bool) -> Void) {
-        getUserTag { userTag in
-            guard let tag = userTag else {
-                errorEvent(#function, error: userTagIsNil)
-                return completion(true)
-            }
-            clearOldMobileEvents(context: context) {
-                getAllMobileEventsByTag(context: context, userTag: tag) { events in
-                    
-                    guard !events.isEmpty else { return completion(true) }
-                    
-                    self.sendAll(context: context, events: events) { retry in
-                        completion(!retry)
-                    }
-                }
-            }
-        }
-    }
-    
-    /// Processes multiple stored mobile events sequentially in FIFO order.
-    /// Stops early if a retry condition occurs.
-    ///
-    /// - Parameters:
-    ///   - context: Core Data context used for persistence updates (retry counters, deletions).
-    ///   - events: Array of `NSManagedObjectID` for `MobileEventEntity` to process (FIFO).
-    ///   - completion: Closure called with `true` if a retry is required (flow should stop),
-    ///                 or `false` when all events have been processed successfully.
-    private func sendAll(
-        context: NSManagedObjectContext,
-        events: [NSManagedObjectID],
-        completion: @escaping (Bool) -> Void
-    ) {
-        var index = 0
-        func processNext() {
-            guard index < events.count else { completion(false); return }
-            let event = events[index]
-            index += 1
-            self.handleEvent(context: context, event: event) { result in
-                result == .completed ? processNext() : completion(true)
-            }
-        }
-        processNext()
-    }
-    
-    /// Handles a single mobile event: builds DTO, sends request, and resolves result.
-    /// Increments retry counters or deletes the entity depending on the outcome.
-    ///
-    /// - Parameters:
-    ///   - context: Core Data context to update retry counters or delete on success.
-    ///   - event: `NSManagedObjectID` of `MobileEventEntity` to be sent.
-    ///   - completion: Closure called with `.completed` to proceed with next item,
-    ///                 or `.retry` to stop the flow and schedule a retry.
-    private func handleEvent(
+    ///   - context: Core Data context used for persistence operations.
+    ///   - event: `NSManagedObjectID` of the `MobileEventEntity`.
+    /// - Returns: `true` if processing should stop and retry later, otherwise `false`.
+    fileprivate func isRetry(
         context: NSManagedObjectContext,
         event: NSManagedObjectID,
-        completion: @escaping (RequestResult) -> Void
-    ) {
-        self.sendMobileEventRequest(context: context, event: event) { result in
-            if result is RetryEvent {
-                retryLimit(context: context, for: event) {
-                    limit in completion(limit ? .completed : .retry)
-                }
-                return
-            }
-            deleteEntity(context: context, objectID: event) {
-                deleted in completion(deleted ? .completed : .retry)
-            }
+    ) async -> Bool {
+        let response = await request(context: context, event: event)
+        
+        switch response {
+        case is RetryEvent:
+            return !(await retryLimit(context: context, objectID: event))
+        default:
+            return !(await deleteEntity(context: context, objectID: event))
         }
     }
-    
+
+
     /// Builds and sends a multipart mobile event request based on the provided objectID.
-    /// Resolves `MobileEventRequestData` from Core Data, converts it to multipart request, and sends it.
     ///
     /// - Parameters:
     ///   - context: Core Data context used to read event fields for the request.
     ///   - event: `NSManagedObjectID` of `MobileEventEntity` used to create the request.
-    ///   - completion: Closure called with the resulting `Event` (success, failure, or retry).
-    func sendMobileEventRequest(
+    /// - Returns: Resulting `Event` (success, failure, or retry).
+    fileprivate func request (
         context: NSManagedObjectContext,
-        event: NSManagedObjectID,
-        completion: @escaping (Event) -> Void
-    ) {
-        getMobileEventRequestData(context: context, objectID: event) { data in
-            guard let requestData = data else {
-                completion(retryEvent(#function, error: mobileRequestDataIsNil))
-                return
-            }
-            guard let request = createMobileEventRequest(data: requestData) else {
-                completion(retryEvent(#function, error: failedCreateRequest))
-                return
-            }
-            
-            let name  = Constants.RequestName.mobileEvent
-            
-            RequestManager().sendRequest(
-                request: request, requestName: name,  name: requestData.eventName, completion: completion
-            )
+        event: NSManagedObjectID
+    ) async -> Event {
+        let function = getFunc(#function)
+        guard let requestData = await getMobileEventRequestData(
+            context: context,
+            objectID: event
+        ) else {
+            return retryEvent(function, error: mobileRequestDataIsNil)
         }
+
+        guard let request = createMobileEventRequest(data: requestData) else {
+            return retryEvent(function, error: failedCreateRequest)
+        }
+
+        return await RequestManager.shared.sendRequest(
+            request: request, requestName: Constants.RequestName.mobileEvent, name: requestData.eventName
+        )
+    }
+}
+
+// MARK: - Unit Test Hooks
+
+/// Extension exposing fileprivate mobile-event processing hooks for unit tests.
+@available(iOSApplicationExtension, unavailable)
+extension MobileEvent {
+    
+    /// Test hook for internal request flow of a single mobile event.
+    ///
+    /// - Parameters:
+    ///   - context: Core Data context used to resolve the entity.
+    ///   - objectID: `NSManagedObjectID` of the `MobileEventEntity`.
+    /// - Returns: Resulting `Event`.
+    internal func test_mobile_event_request(
+        context: NSManagedObjectContext,
+        objectID: NSManagedObjectID
+    ) async -> Event {
+        await request(context: context, event: objectID)
+    }
+
+    /// Test hook for processing a single mobile event.
+    ///
+    /// - Parameters:
+    ///   - context: Core Data context used for persistence operations.
+    ///   - event: `NSManagedObjectID` of the `MobileEventEntity`.
+    /// - Returns: `true` if processing should stop and retry later, otherwise `false`.
+    internal func test_mobile_event_isRetry(
+        context: NSManagedObjectContext,
+        event: NSManagedObjectID
+    ) async -> Bool {
+        await isRetry(context: context, event: event)
+    }
+
+    /// Test hook for processing queued mobile events by user tag.
+    ///
+    /// - Parameter userTag: User tag used to fetch queued mobile events.
+    /// - Returns: `true` if processing completes without retry stop, otherwise `false`.
+    internal func test_mobile_event_processEvents(
+        userTag: String
+    ) async -> Bool {
+        await processEvents(userTag: userTag)
     }
 }

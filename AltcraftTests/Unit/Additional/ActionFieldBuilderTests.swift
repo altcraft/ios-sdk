@@ -20,7 +20,7 @@ import XCTest
  *  - test_5: Upsert builds correct entry with a string value.
  *  - test_6: Unset includes the value key with a nil payload.
  */
-final class ActionFieldBuilderTests: XCTestCase {
+final class ActionFieldBuilderTests: IsolatedTestCase {
 
     private let keyName      = "name"
     private let keyScore     = "score"

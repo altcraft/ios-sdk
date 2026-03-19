@@ -1,6 +1,6 @@
 Pod::Spec.new do |s|
   s.name             = 'Altcraft'
-  s.version          = '1.0.2'
+  s.version          = '0.1.3'
   s.summary          = 'Altcraft iOS SDK.'
   s.description      = <<-DESC
 Altcraft iOS SDK is a library that provides seamless integration with the Altcraft API, enabling iOS applications to interact with the Altcraft marketing platform efficiently.
@@ -11,7 +11,7 @@ Altcraft iOS SDK is a library that provides seamless integration with the Altcra
   s.authors          = { 'Altcraft' => 'contact@altcraft.com' }
 
   s.platform         = :ios, '13.0'
-  s.swift_versions   = ['5.10']
+  s.swift_versions   = ['6.0']
 
   s.static_framework = true
 

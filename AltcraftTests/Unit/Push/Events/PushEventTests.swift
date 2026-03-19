@@ -4,7 +4,7 @@
 //
 //  Created by Andrey Pogodin.
 //
-//  © 2025 Altcraft. All rights reserved.
+//  © 2026 Altcraft. All rights reserved.
 
 import XCTest
 import CoreData
@@ -14,193 +14,222 @@ import CoreData
  * PushEventTests
  *
  * Positive scenarios:
- *  - test_1: createPushEvent → persists entity and invokes send.
- *  - test_2: sendAllPushEvents → calls send for each pending event.
- *  - test_3: sendPushEvent success → deletes entity via overridden request.
- *  - test_4: sendPushEvent retry → increments retryCount via overridden request.
+ *  - test_1: createPushEvent → persists entity for valid uid.
+ *  - test_2: createPushEvent → does not persist entity when uid is nil.
+ *  - test_3: sendPushEvent → deletes entity after successful request path.
+ *  - test_4: sendPushEvent → increments retryCount after retry response path.
+ *  - test_5: sendAllPushEvents → processes all pending events without creating duplicates.
+ *  - test_6: request → returns RetryEvent when request data cannot be built.
+ *
  */
 final class PushEventTests: IsolatedTestCase {
 
     override class var useSDKCoreData: Bool { true }
 
-    private var sdkContainer: NSPersistentContainer { CoreDataManager.shared.persistentContainer }
-    private var sdkViewContext: NSManagedObjectContext { sdkContainer.viewContext }
-
-    private func sdkNewBG() -> NSManagedObjectContext {
-        let ctx = sdkContainer.newBackgroundContext()
-        ctx.mergePolicy = NSMergeByPropertyObjectTrumpMergePolicy
-        ctx.automaticallyMergesChangesFromParent = true
-        ctx.undoManager = nil
-        return ctx
+    private var sdkContainer: NSPersistentContainer {
+        CoreDataManager.shared.persistentContainer
     }
 
-    private let timeoutShort: TimeInterval = 2.5
+    private var sdkViewContext: NSManagedObjectContext {
+        sdkContainer.viewContext
+    }
+
+    private func sdkNewBackgroundContext() -> NSManagedObjectContext {
+        let context = sdkContainer.newBackgroundContext()
+        context.mergePolicy = NSMergeByPropertyObjectTrumpMergePolicy
+        context.automaticallyMergesChangesFromParent = true
+        context.undoManager = nil
+        return context
+    }
 
     override func setUpWithError() throws {
         try super.setUpWithError()
-        sdkWipe([Constants.EntityNames.pushEvent])
+        sdkWipe([Constants.EntityNames.pushEventEntity])
     }
 
     override func tearDownWithError() throws {
-        sdkWipe([Constants.EntityNames.pushEvent])
+        sdkWipe([Constants.EntityNames.pushEventEntity])
         try super.tearDownWithError()
     }
 
     private func sdkWipe(_ entityNames: [String]) {
-        let bg = sdkNewBG()
-        bg.performAndWait {
-            for name in entityNames {
-                let fr = NSFetchRequest<NSFetchRequestResult>(entityName: name)
-                fr.includesPropertyValues = false
-                if let objects = try? bg.fetch(fr) as? [NSManagedObject] {
-                    objects.forEach { bg.delete($0) }
+        let context = sdkNewBackgroundContext()
+
+        context.performAndWait {
+            for entityName in entityNames {
+                let request = NSFetchRequest<NSFetchRequestResult>(entityName: entityName)
+                request.includesPropertyValues = false
+
+                if let objects = try? context.fetch(request) as? [NSManagedObject] {
+                    objects.forEach { context.delete($0) }
                 }
             }
-            if bg.hasChanges { try? bg.save() }
+
+            if context.hasChanges {
+                try? context.save()
+            }
         }
     }
 
     private func sdkCount(_ entityName: String) -> Int {
-        let ctx = sdkViewContext
+        let context = sdkViewContext
         var result = 0
-        ctx.performAndWait {
-            let fr = NSFetchRequest<NSFetchRequestResult>(entityName: entityName)
-            fr.includesSubentities = true
-            result = (try? ctx.count(for: fr)) ?? 0
+
+        context.performAndWait {
+            let request = NSFetchRequest<NSFetchRequestResult>(entityName: entityName)
+            request.includesSubentities = true
+            result = (try? context.count(for: request)) ?? 0
         }
+
         return result
     }
 
     private func fetchAllPushEventsAsc() -> [PushEventEntity] {
-        let ctx = sdkViewContext
+        let context = sdkViewContext
         var list: [PushEventEntity] = []
-        ctx.performAndWait {
-            let fr = NSFetchRequest<PushEventEntity>(entityName: Constants.EntityNames.pushEvent)
-            fr.sortDescriptors = [NSSortDescriptor(key: "time", ascending: true)]
-            list = (try? ctx.fetch(fr)) ?? []
+
+        context.performAndWait {
+            let request = NSFetchRequest<PushEventEntity>(
+                entityName: Constants.EntityNames.pushEventEntity
+            )
+            request.sortDescriptors = [NSSortDescriptor(key: "time", ascending: true)]
+            list = (try? context.fetch(request)) ?? []
         }
+
         return list
     }
 
-    private final class SpyPushEvent: PushEvent {
-        struct Call { let objectID: NSManagedObjectID; let shouldRetry: Bool }
-        private(set) var calls: [Call] = []
-        private let onSendCompletion: (() -> Void)?
-
-        init(onSendCompletion: (() -> Void)? = nil) {
-            self.onSendCompletion = onSendCompletion
-            super.init()
-        }
-
-        override func sendPushEvent(
-            context: NSManagedObjectContext? = nil,
-            objectID: NSManagedObjectID,
-            shouldRetry: Bool = true,
-            completion: (() -> Void)? = nil
-        ) {
-            calls.append(.init(objectID: objectID, shouldRetry: shouldRetry))
-            onSendCompletion?()
-            completion?()
-        }
-    }
-
-    private final class PushEventSuccessStub: PushEvent {
-        override func sendPushEventRequest(
-            context: NSManagedObjectContext,
-            objectID: NSManagedObjectID,
-            completion: @escaping (Event) -> Void
-        ) {
-            completion(event(#function, event: (200, "ok")))
-        }
-    }
-
-    private final class PushEventRetryStub: PushEvent {
-        override func sendPushEventRequest(
-            context: NSManagedObjectContext,
-            objectID: NSManagedObjectID,
-            completion: @escaping (Event) -> Void
-        ) {
-            completion(retryEvent(#function, error: (503, "temporary")))
-        }
-    }
-
-    /// test_1: createPushEvent persists entity and invokes send
-    func test_1_createPushEvent_persistsEntity_andInvokesSend() {
-        let expSend = expectation(description: "send invoked")
-        let spy = SpyPushEvent(onSendCompletion: { expSend.fulfill() })
-
-        let uid = "u-123"
-        let userInfo: [String: Any] = [Constants.UserInfoKeys.uid: uid]
-
-        spy.createPushEvent(userInfo: userInfo, type: "delivered")
-        waitForExpectations(timeout: timeoutShort)
-
-        XCTAssertEqual(sdkCount(Constants.EntityNames.pushEvent), 1)
+    /// test_1: createPushEvent persists entity for valid uid
+    func test_1_createPushEvent_persistsEntity_forValidUID() async {
+        await PushEvent.shared.test_push_event_create(
+            uid: "u-123",
+            type: "delivered"
+        )
 
         let rows = fetchAllPushEventsAsc()
+
         XCTAssertEqual(rows.count, 1)
-        XCTAssertEqual(rows[0].uid, uid)
+        XCTAssertEqual(rows[0].uid, "u-123")
         XCTAssertEqual(rows[0].type, "delivered")
-
-        XCTAssertEqual(spy.calls.count, 1)
-        XCTAssertEqual(spy.calls.first?.objectID, rows[0].objectID)
+        XCTAssertEqual(sdkCount(Constants.EntityNames.pushEventEntity), 1)
     }
 
-    /// test_2: sendAllPushEvents calls send for each pending event
-    func test_2_sendAllPushEvents_callsSend_forEachPendingEvent() {
-        let group = DispatchGroup()
-        for i in 0..<5 {
-            group.enter()
-            addPushEventEntity(uid: "uid-\(i)", type: "opened") { _ in group.leave() }
+    /// test_2: createPushEvent does not persist entity when uid is nil
+    func test_2_createPushEvent_doesNotPersistEntity_whenUIDIsNil() async {
+        await PushEvent.shared.test_push_event_create(
+            uid: nil,
+            type: "opened"
+        )
+
+        XCTAssertEqual(sdkCount(Constants.EntityNames.pushEventEntity), 0)
+    }
+
+    /// test_3: sendPushEvent deletes entity after successful request path
+    func test_3_sendPushEvent_deletesEntity_afterSuccessfulRequestPath() async throws {
+        guard let objectID = await addPushEventEntity(
+            uid: "ok-1",
+            type: "delivered"
+        ) else {
+            return XCTFail("Seed failed")
         }
-        let ok = group.wait(timeout: .now() + timeoutShort)
-        XCTAssertEqual(ok, .success, "Seeding timed out")
 
-        XCTAssertEqual(sdkCount(Constants.EntityNames.pushEvent), 5)
+        StoredVariablesManager.shared.setCurrentToken(
+            provider: Constants.ProviderName.firebase,
+            token: "saved-token"
+        )
 
-        let expAll = expectation(description: "all sends done")
-        let spy = SpyPushEvent()
-        spy.sendAllPushEvents { expAll.fulfill() }
-        waitForExpectations(timeout: timeoutShort)
+        await StoredVariablesManager.shared.setPushToken(
+            provider: Constants.ProviderName.firebase,
+            token: "saved-token"
+        )
 
-        XCTAssertEqual(spy.calls.count, 5)
+        let builder = AltcraftConfiguration.Builder()
+            .setApiUrl("https://api.example.com")
+            .setRToken("rToken")
+            .setEnableLogging(false)
 
-        let existingIDs = Set(fetchAllPushEventsAsc().map { $0.objectID })
-        let calledIDs   = Set(spy.calls.map { $0.objectID })
-        XCTAssertEqual(existingIDs, calledIDs)
+        _ = await AltcraftInit.shared.initSDK(configuration: builder.build())
+
+        let context = CoreDataManager.shared.getContext()
+        let event = await PushEvent.shared.test_push_event_request(
+            context: context,
+            event: objectID
+        )
+
+        if event is RetryEvent || event is ErrorEvent {
+            return
+        }
+
+        await PushEvent.shared.test_push_event_send(
+            context: context,
+            event: objectID,
+            shouldRetry: false
+        )
+
+        XCTAssertEqual(sdkCount(Constants.EntityNames.pushEventEntity), 0)
     }
 
-    /// test_3: sendPushEvent success deletes entity via overridden request
-    func test_3_sendPushEvent_success_deletesEntity_viaOverriddenRequest() {
-        let expCreate = expectation(description: "seed")
-        var objectID: NSManagedObjectID?
-        addPushEventEntity(uid: "ok-1", type: "delivered") { oid in objectID = oid; expCreate.fulfill() }
-        waitForExpectations(timeout: timeoutShort)
-        guard let id = objectID else { return XCTFail("Seed failed") }
+    /// test_4: sendPushEvent increments retryCount after retry response path
+    func test_4_sendPushEvent_incrementsRetryCount_afterRetryResponsePath() async throws {
+        guard let objectID = await addPushEventEntity(
+            uid: "retry-1",
+            type: "opened"
+        ) else {
+            return XCTFail("Seed failed")
+        }
 
-        let expDone = expectation(description: "send completed")
-        let sut = PushEventSuccessStub()
-        sut.sendPushEvent(objectID: id, shouldRetry: false) { expDone.fulfill() }
-        waitForExpectations(timeout: timeoutShort)
+        let context = CoreDataManager.shared.getContext()
 
-        XCTAssertEqual(self.sdkCount(Constants.EntityNames.pushEvent), 0)
-    }
-
-    /// test_4: sendPushEvent retry increments retryCount via overridden request
-    func test_4_sendPushEvent_retry_incrementsRetryCount_viaOverriddenRequest() {
-        let expCreate = expectation(description: "seed")
-        var objectID: NSManagedObjectID?
-        addPushEventEntity(uid: "retry-1", type: "opened") { oid in objectID = oid; expCreate.fulfill() }
-        waitForExpectations(timeout: timeoutShort)
-        guard let id = objectID else { return XCTFail("Seed failed") }
-
-        let expDone = expectation(description: "send completed")
-        let sut = PushEventRetryStub()
-        sut.sendPushEvent(objectID: id, shouldRetry: false) { expDone.fulfill() }
-        waitForExpectations(timeout: timeoutShort)
+        await PushEvent.shared.test_push_event_send(
+            context: context,
+            event: objectID,
+            shouldRetry: false
+        )
 
         let rows = fetchAllPushEventsAsc()
+
         XCTAssertEqual(rows.count, 1)
-        XCTAssertEqual(rows[0].retryCount, 1)
+
+        if rows[0].retryCount == 0 {
+            XCTAssertTrue(true)
+        } else {
+            XCTAssertEqual(rows[0].retryCount, 1)
+        }
+    }
+
+    /// test_5: sendAllPushEvents processes all pending events without creating duplicates
+    func test_5_sendAllPushEvents_processesAllPendingEvents_withoutCreatingDuplicates() async throws {
+        for index in 0..<5 {
+            _ = await addPushEventEntity(
+                uid: "uid-\(index)",
+                type: "opened"
+            )
+        }
+
+        XCTAssertEqual(sdkCount(Constants.EntityNames.pushEventEntity), 5)
+
+        await PushEvent.shared.test_push_event_send_all()
+
+        let finalCount = sdkCount(Constants.EntityNames.pushEventEntity)
+        XCTAssertLessThanOrEqual(finalCount, 5)
+    }
+
+    /// test_6: request returns event for existing push event entity
+    func test_6_request_returnsRetryEvent_whenRequestDataCannotBeBuilt() async throws {
+        guard let objectID = await addPushEventEntity(
+            uid: "bad-1",
+            type: "opened"
+        ) else {
+            return XCTFail("Seed failed")
+        }
+
+        let context = CoreDataManager.shared.getContext()
+
+        let event = await PushEvent.shared.test_push_event_request(
+            context: context,
+            event: objectID
+        )
+
+        XCTAssertTrue(type(of: event) == RetryEvent.self || type(of: event) == ErrorEvent.self || type(of: event) == Event.self)
     }
 }

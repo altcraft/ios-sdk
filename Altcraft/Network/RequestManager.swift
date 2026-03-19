@@ -10,17 +10,19 @@ import Foundation
 
 /// A singleton class responsible for sending HTTP requests
 /// and handling redirects with header preservation.
-final class RequestManager: NSObject {
-    
+final class RequestManager: NSObject, @unchecked Sendable {
+
     /// The shared singleton instance of `RequestManager`.
     static let shared = RequestManager()
-    
+
     /// A lazily-initialized URLSession with `RequestManager` as its delegate.
     private lazy var session: URLSession = {
         let configuration = URLSessionConfiguration.default
-        return URLSession(configuration: configuration, delegate: self, delegateQueue: nil)
+        return URLSession(
+            configuration: configuration, delegate: self, delegateQueue: nil
+        )
     }()
-    
+
     /// Sends an HTTP request and handles response, error, or redirection.
     ///
     /// Automatically processes the response using `responseProcessing(...)` and ensures
@@ -38,28 +40,30 @@ final class RequestManager: NSObject {
         requestName: String,
         uid: String? = nil,
         type: String? = nil,
-        name: String? = nil,
-        completion: @escaping (Event) -> Void
-    ) {
+        name: String? = nil
+    ) async -> Event {
         let functionName = "\(#function): \(requestName)"
         
-        session.dataTask(with: request) { data, response, error in
-            if let error = error {
-                completion(retryEvent(functionName, error: error))
-                return
-            }
+        do {
+            let (data, response) = try await session.dataAsync(for: request)
+            
             guard let httpResponse = response as? HTTPURLResponse else {
-                completion(retryEvent(functionName, error: invalidResponseFormat))
-                return
+                return retryEvent(functionName, error: invalidResponseFormat)
             }
-            completion(
-                self.responseProcessing(
-                    response: httpResponse, data: data, requestName: requestName, uid: uid, type: type, name: name
-                )
+            
+            return responseProcessing(
+                response: httpResponse,
+                data: data,
+                requestName: requestName,
+                uid: uid,
+                type: type,
+                name: name
             )
-        }.resume()
+        } catch {
+            return retryEvent(functionName, error: error)
+        }
     }
-    
+
     /// Processes an HTTP response and maps it to an `Event`.
     ///
     /// Applies common response parsing and builds success/error/retry events
@@ -87,13 +91,13 @@ final class RequestManager: NSObject {
         name: String? = nil
     ) -> Event {
         let data = parseResponse(data: data)
-     
+
         let successPair = createSuccessPair(requestName: requestName, type: type, name: name)
-        
+
         let errorPair = createErrorPair(
             requestName: requestName, code: response.statusCode, response: data, type: type, name: name
         )
-        
+
         let value = mapValue(code: response.statusCode, response: data, uid: uid, type: type, name: name)
 
         switch response.statusCode {
@@ -107,19 +111,21 @@ final class RequestManager: NSObject {
     }
 }
 
-/// Handles HTTP redirection by preserving specific headers from the original request.
-///
-/// This method is called when a server response indicates a redirect (e.g., HTTP 3xx).
-/// It copies selected headers (Authorization, Request-ID, Content-Type) from the original
-/// request to the new redirected request before it is sent.
-///
-/// - Parameters:
-///   - session: The session containing the task that will perform the redirection.
-///   - task: The task whose request resulted in a redirect response.
-///   - response: The response that triggered the redirection.
-///   - request: The new request to be sent.
-///   - completionHandler: A closure that receives the modified request to continue with, or `nil` to cancel the redirect.
+
 extension RequestManager: URLSessionTaskDelegate {
+    
+    /// Handles HTTP redirection by preserving specific headers from the original request.
+    ///
+    /// This method is called when a server response indicates a redirect (e.g., HTTP 3xx).
+    /// It copies selected headers (Authorization, Request-ID, Content-Type) from the original
+    /// request to the new redirected request before it is sent.
+    ///
+    /// - Parameters:
+    ///   - session: The session containing the task that will perform the redirection.
+    ///   - task: The task whose request resulted in a redirect response.
+    ///   - response: The response that triggered the redirection.
+    ///   - request: The new request to be sent.
+    ///   - completionHandler: A closure that receives the modified request to continue with, or `nil` to cancel the redirect.
     func urlSession(
         _ session: URLSession,
         task: URLSessionTask,
@@ -127,8 +133,9 @@ extension RequestManager: URLSessionTaskDelegate {
         newRequest request: URLRequest,
         completionHandler: @escaping (URLRequest?) -> Void
     ) {
+        let completionBox = CallbackBox<URLRequest?>(completionHandler)
         var redirectedRequest = request
-        
+
         if let originalRequest = task.originalRequest {
             [
                 Constants.HTTPHeader.authorization,
@@ -140,7 +147,31 @@ extension RequestManager: URLSessionTaskDelegate {
                 }
             }
         }
+
+        completionBox.call(redirectedRequest)
+    }
+}
+
+
+extension URLSession {
+    
+    /// Async wrapper around `dataTask(with:)` for platforms without `data(for:)`.
+        /// - Parameter request: The request to execute.
+        /// - Returns: Response data and URL response.
+        /// - Throws: A transport error or `URLError(.badServerResponse)` if response is missing.
+    func dataAsync(for request: URLRequest) async throws -> (Data, URLResponse) {
         
-        completionHandler(redirectedRequest)
+        try await withCheckedThrowingContinuation { continuation in
+            let task = self.dataTask(with: request) { data, response, error in
+                
+                if let error { return continuation.resume(throwing: error) }
+                
+                guard let response else {
+                    return continuation.resume(throwing: URLError(.badServerResponse))
+                }
+                continuation.resume(returning: (data ?? Data(), response))
+            }
+            task.resume()
+        }
     }
 }

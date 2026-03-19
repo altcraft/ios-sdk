@@ -47,7 +47,7 @@ private class MockConfigManager {
  *  - test_9: Get user tag with no config and no JWT returns nil.
  *  - test_10: Get user tag with whitespace R token in config returns whitespace as-is.
  */
-final class AuthManagerTests: XCTestCase {
+final class AuthManagerTests: IsolatedTestCase {
 
     private let msgNonNil   = "Value must be non-nil"
     private let msgNil      = "Value must be nil"

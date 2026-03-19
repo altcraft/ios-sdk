@@ -1,230 +1,153 @@
 //
-//  CoreDataMigrationTests.swift
+//  CoreDataMigratorContractTests.swift
 //  AltcraftTests
 //
 //  Created by Andrey Pogodin.
 //
-//  © 2025 Altcraft. All rights reserved.
+//  Copyright © 2025 Altcraft. All rights reserved.
+//
 
 import XCTest
 import CoreData
 @testable import Altcraft
 
 /**
- * CoreDataMigrationTests
- *
- * Positive scenarios:
- *  - test_1: Oldest→Current: if store is incompatible → migrate; if compatible → no-op; current model opens store.
- *  - test_2: Pairwise across all steps: for each step expect migrate-or-compatible; current model opens store.
- *  - test_3: Current→Current: strictly no-op and current model opens store.
- */
-final class CoreDataMigrationTests: XCTestCase {
+* CoreDataMigratorContractTests
+*
+* Positive scenarios:
+* - test_1: Default bundles collection → returns a non-empty bundle list.
+* - test_2: Missing model lookup → returns nil for unknown model name.
+*
+* Negative scenarios:
+* - test_3: Missing store URL → throws storeNotFound before any model work starts.
+* - test_4: Existing file with missing model → throws modelNotFound.
+* - test_5: Existing directory path with missing model → throws modelNotFound.
+*
+*/
+final class CoreDataMigratorContractTests: IsolatedTestCase {
 
-    private let msgNil:     String = "Value must be nil"
-    private let msgNonNil:  String = "Value must be non-nil"
-    private let msgTrue:    String = "Value must be true"
-    private let msgFalse:   String = "Value must be false"
-    private let msgEqual:   String = "Values must be equal"
+    /// test_1: default bundles collection returns a non-empty bundle list
+    func test_1_default_bundles_collection() {
+        let bundles = CoreDataMigrator.defaultBundles()
 
-    private let modelName = Constants.CoreData.modelName
-
-    /// test_1: Oldest→Current with compatibility-aware expectation
-    func test_1_migrateFromOldestToCurrent_succeedsOrIsAlreadyCompatible() throws {
-        let bundles = candidateBundles()
-        let steps   = discoverModelSteps(named: modelName, bundles: bundles)
-        try XCTSkipIf(steps.count < 2, "Only one model version found — nothing to migrate")
-
-        let legacyModel = steps.first!.model
-        let storeURL    = temporaryStoreURL()
-
-        try prepareDirectory(for: storeURL)
-        _ = try createSQLiteStore(model: legacyModel, at: storeURL)
-
-        let compatibleBefore = try isStore(storeURL, compatibleWith: loadCurrentModel(bundles)!)
-
-        let didMigrate = try CoreDataMigrator.shared.migrateStore(
-            modelName: modelName,
-            storeURL: storeURL,
-            allowInferredMappingAsFallback: true,
-            bundles: bundles
+        XCTAssertFalse(bundles.isEmpty)
+        XCTAssertTrue(
+            bundles.contains(where: { $0.bundleURL == Bundle.main.bundleURL })
         )
-
-        XCTAssertEqual(didMigrate, !compatibleBefore, msgEqual)
-
-        assertCurrentModelOpensStore(at: storeURL, bundles: bundles)
-        cleanupSQLiteArtifacts(at: storeURL)
+        XCTAssertTrue(
+            bundles.contains(where: { $0.bundleURL == Bundle(for: CoreDataMigrator.self).bundleURL })
+        )
     }
 
-    /// test_2: Pairwise migrate-or-compatible across all adjacent versions
-    func test_2_migratePairwiseAcrossAllAdjacentVersions_awareOfCompatibility() throws {
-        let bundles = candidateBundles()
-        let steps   = discoverModelSteps(named: modelName, bundles: bundles)
-        try XCTSkipIf(steps.count < 2, "Only one model version found — nothing to migrate")
+    /// test_2: missing model lookup returns nil for unknown model name
+    func test_2_missing_model_lookup() {
+        let model = CoreDataMigrator.loadCurrentModel(
+            named: "DefinitelyMissingModel_\(UUID().uuidString)",
+            bundles: CoreDataMigrator.defaultBundles()
+        )
 
-        let currentModel = loadCurrentModel(bundles)!
+        XCTAssertNil(model)
+    }
 
-        for i in 0..<(steps.count - 1) {
-            let fromModel = steps[i].model
-            let storeURL  = temporaryStoreURL(filename: "pair_\(i).sqlite")
+    /// test_3: missing store URL throws storeNotFound before any model work starts
+    func test_3_missing_store_url_throws_store_not_found() {
+        let missingURL = temporaryURL(filename: UUID().uuidString + ".sqlite")
 
-            try prepareDirectory(for: storeURL)
-            _ = try createSQLiteStore(model: fromModel, at: storeURL)
+        XCTAssertFalse(FileManager.default.fileExists(atPath: missingURL.path))
 
-            let compatibleBefore = try isStore(storeURL, compatibleWith: currentModel)
-
-            let didMigrate = try CoreDataMigrator.shared.migrateStore(
-                modelName: modelName,
-                storeURL: storeURL,
-                allowInferredMappingAsFallback: true,
-                bundles: bundles
+        XCTAssertThrowsError(
+            try CoreDataMigrator.shared.migrateStore(
+                modelName: "AnyModelName",
+                storeURL: missingURL,
+                allowInferredMappingAsFallback: false,
+                bundles: []
             )
-
-            XCTAssertEqual(didMigrate, !compatibleBefore, "Step \(i): migrate iff incompatible")
-
-            assertCurrentModelOpensStore(at: storeURL, bundles: bundles)
-            cleanupSQLiteArtifacts(at: storeURL)
-        }
-    }
-
-    /// test_3: Current→Current is a strict no-op
-    func test_3_migrationIsNoOp_whenStoreAlreadyCurrent() throws {
-        let bundles = candidateBundles()
-        let currentModel = loadCurrentModel(bundles)!
-
-        let storeURL = temporaryStoreURL(filename: "noop.sqlite")
-        try prepareDirectory(for: storeURL)
-        _ = try createSQLiteStore(model: currentModel, at: storeURL)
-
-        let didMigrate = try CoreDataMigrator.shared.migrateStore(
-            modelName: modelName,
-            storeURL: storeURL,
-            allowInferredMappingAsFallback: true,
-            bundles: bundles
-        )
-        XCTAssertFalse(didMigrate, msgFalse)
-
-        assertCurrentModelOpensStore(at: storeURL, bundles: bundles)
-        cleanupSQLiteArtifacts(at: storeURL)
-    }
-
-    private struct Step { let name: String; let url: URL; let model: NSManagedObjectModel }
-
-    private func candidateBundles() -> [Bundle] {
-        var arr: [Bundle] = []
-        let frameworkBundle = Bundle(for: CoreDataMigrator.self)
-
-        if let urlInFramework = frameworkBundle.url(forResource: "AltcraftResources", withExtension: "bundle"),
-           let resInFramework = Bundle(url: urlInFramework) { arr.append(resInFramework) }
-
-        if let urlInMain = Bundle.main.url(forResource: "AltcraftResources", withExtension: "bundle"),
-           let resInMain = Bundle(url: urlInMain) { arr.append(resInMain) }
-
-        #if SWIFT_PACKAGE
-        arr.append(Bundle.module)
-        #endif
-
-        arr.append(frameworkBundle)
-        arr.append(Bundle.main)
-        return arr
-    }
-
-    private func loadCurrentModel(_ bundles: [Bundle]) -> NSManagedObjectModel? {
-        for b in bundles {
-            if let url = b.url(forResource: modelName, withExtension: "momd"),
-               let m = NSManagedObjectModel(contentsOf: url) { return m }
-            if let url = b.url(forResource: modelName, withExtension: "mom"),
-               let m = NSManagedObjectModel(contentsOf: url) { return m }
-        }
-        return nil
-    }
-
-    private func discoverModelSteps(named: String, bundles: [Bundle]) -> [Step] {
-        var steps: [Step] = []
-        for b in bundles {
-            if let momdURL = b.url(forResource: named, withExtension: "momd"),
-               let contents = try? FileManager.default.contentsOfDirectory(at: momdURL, includingPropertiesForKeys: nil) {
-                for url in contents where url.pathExtension == "mom" {
-                    if let m = NSManagedObjectModel(contentsOf: url) {
-                        steps.append(Step(name: url.deletingPathExtension().lastPathComponent, url: url, model: m))
-                    }
-                }
-            } else if let momURL = b.url(forResource: named, withExtension: "mom"),
-                      let m = NSManagedObjectModel(contentsOf: momURL) {
-                steps.append(Step(name: momURL.deletingPathExtension().lastPathComponent, url: momURL, model: m))
+        ) { error in
+            guard case let HeavyMigrationError.storeNotFound(url) = error else {
+                return XCTFail("Expected storeNotFound, got \(error)")
             }
+
+            XCTAssertEqual(url, missingURL)
         }
-        steps.sort { $0.name < $1.name }
-        return steps
     }
 
-    private func isStore(_ storeURL: URL, compatibleWith model: NSManagedObjectModel) throws -> Bool {
-        let md = try NSPersistentStoreCoordinator.metadataForPersistentStore(
-            ofType: NSSQLiteStoreType, at: storeURL, options: nil
+    /// test_4: existing file with missing model throws modelNotFound
+    func test_4_existing_file_with_missing_model_throws_model_not_found() throws {
+        let fileURL = temporaryURL(filename: UUID().uuidString + ".tmp")
+
+        try prepareParentDirectory(for: fileURL)
+        defer { try? FileManager.default.removeItem(at: fileURL) }
+
+        FileManager.default.createFile(
+            atPath: fileURL.path,
+            contents: Data(),
+            attributes: nil
         )
-        return model.isConfiguration(withName: nil, compatibleWithStoreMetadata: md)
-    }
 
-    @discardableResult
-    private func createSQLiteStore(model: NSManagedObjectModel, at url: URL) throws -> NSPersistentContainer {
-        let desc = NSPersistentStoreDescription(url: url)
-        desc.type = NSSQLiteStoreType
-        desc.shouldAddStoreAsynchronously = false
-        desc.setOption(true as NSNumber, forKey: NSPersistentHistoryTrackingKey)
-        desc.setOption(true as NSNumber, forKey: NSPersistentStoreRemoteChangeNotificationPostOptionKey)
+        XCTAssertTrue(FileManager.default.fileExists(atPath: fileURL.path))
 
-        let c = NSPersistentContainer(name: "Legacy", managedObjectModel: model)
-        c.persistentStoreDescriptions = [desc]
+        let missingModelName = "DefinitelyMissingModel_\(UUID().uuidString)"
 
-        var loadError: Error?
-        c.loadPersistentStores { _, e in loadError = e }
-        if let e = loadError { throw e }
+        XCTAssertThrowsError(
+            try CoreDataMigrator.shared.migrateStore(
+                modelName: missingModelName,
+                storeURL: fileURL,
+                allowInferredMappingAsFallback: false,
+                bundles: []
+            )
+        ) { error in
+            guard case let HeavyMigrationError.modelNotFound(name) = error else {
+                return XCTFail("Expected modelNotFound, got \(error)")
+            }
 
-        c.viewContext.mergePolicy = NSMergeByPropertyObjectTrumpMergePolicy
-        c.viewContext.automaticallyMergesChangesFromParent = true
-
-        if c.viewContext.hasChanges { try c.viewContext.save() }
-        return c
-    }
-
-    private func assertCurrentModelOpensStore(at url: URL, bundles: [Bundle], file: StaticString = #file, line: UInt = #line) {
-        guard let currentModel = loadCurrentModel(bundles) else {
-            XCTFail("Current model not found: \(modelName)", file: file, line: line)
-            return
+            XCTAssertEqual(name, missingModelName)
         }
-
-        let desc = NSPersistentStoreDescription(url: url)
-        desc.type = NSSQLiteStoreType
-        desc.shouldAddStoreAsynchronously = false
-
-        let c = NSPersistentContainer(name: "Current", managedObjectModel: currentModel)
-        c.persistentStoreDescriptions = [desc]
-
-        let exp = expectation(description: "load current model store")
-        var loadError: Error?
-        c.loadPersistentStores { _, e in loadError = e; exp.fulfill() }
-        wait(for: [exp], timeout: 5.0)
-
-        XCTAssertNil(loadError, "Current model failed to open migrated store: \(String(describing: loadError))", file: file, line: line)
     }
 
-    private func temporaryStoreURL(filename: String = UUID().uuidString + ".sqlite") -> URL {
+    /// test_5: existing directory path with missing model throws modelNotFound
+    func test_5_existing_directory_path_with_missing_model_throws_model_not_found() throws {
+        let directoryURL = temporaryURL(filename: UUID().uuidString)
+
+        try FileManager.default.createDirectory(
+            at: directoryURL,
+            withIntermediateDirectories: true
+        )
+        defer { try? FileManager.default.removeItem(at: directoryURL) }
+
+        XCTAssertTrue(
+            FileManager.default.fileExists(atPath: directoryURL.path)
+        )
+
+        let missingModelName = "DefinitelyMissingModel_\(UUID().uuidString)"
+
+        XCTAssertThrowsError(
+            try CoreDataMigrator.shared.migrateStore(
+                modelName: missingModelName,
+                storeURL: directoryURL,
+                allowInferredMappingAsFallback: false,
+                bundles: []
+            )
+        ) { error in
+            guard case let HeavyMigrationError.modelNotFound(name) = error else {
+                return XCTFail("Expected modelNotFound, got \(error)")
+            }
+
+            XCTAssertEqual(name, missingModelName)
+        }
+    }
+
+    private func temporaryURL(filename: String) -> URL {
         let base = URL(fileURLWithPath: NSTemporaryDirectory(), isDirectory: true)
-        return base.appendingPathComponent("Altcraft_Migration_Tmp", isDirectory: true)
+
+        return base
+            .appendingPathComponent("Altcraft_Migrator_Contract_Tmp", isDirectory: true)
             .appendingPathComponent(filename, isDirectory: false)
     }
 
-    private func prepareDirectory(for fileURL: URL) throws {
+    private func prepareParentDirectory(for fileURL: URL) throws {
         try FileManager.default.createDirectory(
-            at: fileURL.deletingLastPathComponent(), withIntermediateDirectories: true
+            at: fileURL.deletingLastPathComponent(),
+            withIntermediateDirectories: true
         )
-        try? FileManager.default.removeItem(at: fileURL)
-        try? FileManager.default.removeItem(at: fileURL.deletingPathExtension().appendingPathExtension("sqlite-wal"))
-        try? FileManager.default.removeItem(at: fileURL.deletingPathExtension().appendingPathExtension("sqlite-shm"))
-    }
-
-    private func cleanupSQLiteArtifacts(at fileURL: URL) {
-        try? FileManager.default.removeItem(at: fileURL)
-        try? FileManager.default.removeItem(at: fileURL.deletingPathExtension().appendingPathExtension("sqlite-wal"))
-        try? FileManager.default.removeItem(at: fileURL.deletingPathExtension().appendingPathExtension("sqlite-shm"))
     }
 }

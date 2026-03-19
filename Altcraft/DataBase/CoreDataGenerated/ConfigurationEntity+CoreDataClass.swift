@@ -2,7 +2,7 @@
 //  ConfigurationEntity+CoreDataClass.swift
 //  
 //
-//  Created by andrey on 06.01.2026.
+//  Created by andrey on 03.03.2026.
 //
 //
 

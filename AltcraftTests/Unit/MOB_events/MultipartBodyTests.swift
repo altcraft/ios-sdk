@@ -25,7 +25,7 @@ import XCTest
  * Edge scenarios:
  *  - test_3b: Content-Disposition with empty filename → treats as no filename.
  */
-final class MultipartBodyTest: XCTestCase {
+final class MultipartBodyTest: IsolatedTestCase {
     
     private func makeContentDisposition(_ name: String, filename: String?) -> Data {
         if let filename, !filename.isEmpty {
