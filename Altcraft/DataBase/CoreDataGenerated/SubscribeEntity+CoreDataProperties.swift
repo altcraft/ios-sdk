@@ -2,7 +2,7 @@
 //  SubscribeEntity+CoreDataProperties.swift
 //  
 //
-//  Created by andrey on 06.01.2026.
+//  Created by andrey on 03.03.2026.
 //
 //
 
@@ -23,11 +23,12 @@ extension SubscribeEntity {
     @NSManaged public var maxRetryCount: Int16
     @NSManaged public var profileFields: Data?
     @NSManaged public var replace: Bool
+    @NSManaged public var requestId: String?
     @NSManaged public var retryCount: Int16
     @NSManaged public var skipTriggers: Bool
     @NSManaged public var status: String?
     @NSManaged public var sync: Int16
     @NSManaged public var time: Int64
-    @NSManaged public var requestId: String?
     @NSManaged public var userTag: String?
+
 }

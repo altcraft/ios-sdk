@@ -18,12 +18,12 @@ import Foundation
 /// It can be constructed only via the nested `Builder` class (see below).
 @objc(AltcraftConfiguration)
 @objcMembers
-public final class AltcraftConfiguration: NSObject {
+public final class AltcraftConfiguration: NSObject, Sendable{
 
     private let apiUrl: String
     private let rToken: String?
-    private var appInfo: AppInfo?
-    private var providerPriorityList: [String]?
+    private let appInfo: AppInfo?
+    private let providerPriorityList: [String]?
     private let enableLogging: Bool?
 
     private init(
@@ -159,7 +159,8 @@ public final class AltcraftConfiguration: NSObject {
                 errorEvent(#function, error: invalidUrlValue)
                 return nil
             }
-            if let list = providerPriorityList, !TokenManager.shared.allProvidersValid(list) {
+            if let list = providerPriorityList,
+                !TokenManager.shared.allProvidersValid(list) {
                 errorEvent(#function, error: invalidPushProviders)
                 return nil
             }
@@ -169,7 +170,11 @@ public final class AltcraftConfiguration: NSObject {
                     return swiftInfo
                 }
                 if let dto = self.appInfoObjC {
-                    return AppInfo(appID: dto.appID, appIID: dto.appIID, appVer: dto.appVer)
+                    return AppInfo(
+                        appID: dto.appID,
+                        appIID: dto.appIID,
+                        appVer: dto.appVer
+                    )
                 }
                 return nil
             }()

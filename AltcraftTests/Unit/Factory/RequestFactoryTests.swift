@@ -31,6 +31,8 @@ import XCTest
  *  - test_16: Create mobile event request builds multipart with headers boundary and URL.
  *  - test_17: Status request invalid mode returns nil quickly.
  *  - test_18: Status request no profile data emits error and returns nil.
+ *  - test_19: Create profile update request builds POST with headers.
+ *  - test_20: Profile update request end to end non-nil body and request.
  */
 final class RequestFactoryTests: IsolatedTestCase {
 
@@ -40,6 +42,12 @@ final class RequestFactoryTests: IsolatedTestCase {
         func stop()  { SDKEvents.shared.unsubscribe() }
     }
 
+    private final class MockAPNS: APNSInterface {
+        var tokenToReturn: String?
+        func getToken(completion: @escaping (String?) -> Void) { completion(tokenToReturn) }
+    }
+
+    /// Builds URLComponents from URL and fails test if not possible.
     private func components(from url: URL) -> URLComponents {
         guard let c = URLComponents(url: url, resolvingAgainstBaseURL: false) else {
             XCTFail("Failed to resolve URLComponents")
@@ -48,16 +56,22 @@ final class RequestFactoryTests: IsolatedTestCase {
         return c
     }
 
+    /// Converts queryItems to dictionary for assertions.
     private func queryDict(_ comps: URLComponents) -> [String: String] {
         var dict: [String: String] = [:]
         for qi in comps.queryItems ?? [] { dict[qi.name] = qi.value ?? "" }
         return dict
     }
 
+    /// Normalizes function name without parentheses and arguments.
     private func normalizeFunctionName(_ raw: String?) -> String {
         guard let raw = raw else { return "" }
-        if let idx = raw.firstIndex(of: "(") { return String(raw[..<idx]).trimmingCharacters(in: .whitespacesAndNewlines) }
-        if raw.hasSuffix("()") { return String(raw.dropLast(2)).trimmingCharacters(in: .whitespacesAndNewlines) }
+        if let idx = raw.firstIndex(of: "(") {
+            return String(raw[..<idx]).trimmingCharacters(in: .whitespacesAndNewlines)
+        }
+        if raw.hasSuffix("()") {
+            return String(raw.dropLast(2)).trimmingCharacters(in: .whitespacesAndNewlines)
+        }
         return raw.trimmingCharacters(in: .whitespacesAndNewlines)
     }
 
@@ -121,7 +135,7 @@ final class RequestFactoryTests: IsolatedTestCase {
 
     /// test_4: Create subscribe request success builds post with query and headers
     func test_4_createSubscribeRequest_success_buildsPostWithQueryAndHeaders() {
-        let data = SubscribeRequestData(
+        let data = PushSubscribeRequestData(
             url: "https://api.altcraft.test/subscribe",
             requestId: "RID-1",
             time: 1234567890,
@@ -156,7 +170,7 @@ final class RequestFactoryTests: IsolatedTestCase {
     /// test_5: Create subscribe request invalid URL emits error and returns nil
     func test_5_createSubscribeRequest_invalidURL_emitsError_andReturnsNil() {
         let spy = EventSpy(); spy.start(); defer { spy.stop() }
-        let data = SubscribeRequestData(
+        let data = PushSubscribeRequestData(
             url: "://bad url",
             requestId: "RID-ERR",
             time: 1,
@@ -176,13 +190,15 @@ final class RequestFactoryTests: IsolatedTestCase {
         let body = createSubscribeJSONBody(data: data)!
         let req = createSubscribeRequest(data: data, requestBody: body)
         XCTAssertNil(req)
-        let hasCreateError = spy.events.contains { ($0 is ErrorEvent) && normalizeFunctionName($0.function) == "createSubscribeRequest" }
+        let hasCreateError = spy.events.contains {
+            ($0 is ErrorEvent) && normalizeFunctionName($0.function) == "createSubscribeRequest"
+        }
         XCTAssertTrue(hasCreateError)
     }
 
     /// test_6: Create update request adds old token as subscription ID and uses new provider
     func test_6_createUpdateRequest_addsOldToken_asSubscriptionId_andUsesNewProvider() {
-        let data = UpdateRequestData(
+        let data = TokenUpdateRequestData(
             url: "https://api.altcraft.test/update",
             requestId: "RID-U",
             authHeader: "Bearer U",
@@ -192,8 +208,8 @@ final class RequestFactoryTests: IsolatedTestCase {
             newProvider: "ios-firebase",
             sync: true
         )
-        let dummyBody = Data([9,9,9])
-        let req = createUpdateRequest(data: data, requestBody: dummyBody)
+        let dummyBody = Data([9, 9, 9])
+        let req = createTokenUpdateRequest(data: data, requestBody: dummyBody)
         XCTAssertNotNil(req)
         XCTAssertEqual(req?.httpMethod, Constants.HTTPMethod.post)
         XCTAssertEqual(req?.value(forHTTPHeaderField: Constants.HTTPHeader.authorization), "Bearer U")
@@ -235,7 +251,7 @@ final class RequestFactoryTests: IsolatedTestCase {
 
     /// test_8: Create profile request builds GET with provider token matching mode
     func test_8_createProfileRequest_buildsGET_withProviderTokenMatchingMode() {
-        let data = ProfileRequestData(
+        let data = ProfileStatusRequestData(
             url: "https://api.altcraft.test/profile",
             requestId: "RID-PR-1",
             authHeader: "Bearer P",
@@ -243,7 +259,7 @@ final class RequestFactoryTests: IsolatedTestCase {
             provider: "ios-apns",
             token: "TOK"
         )
-        let req = createProfileRequest(data: data)
+        let req = createProfileStatusRequest(data: data)
         XCTAssertNotNil(req)
         XCTAssertEqual(req?.httpMethod, Constants.HTTPMethod.get)
         XCTAssertEqual(req?.value(forHTTPHeaderField: Constants.HTTPHeader.authorization), "Bearer P")
@@ -284,7 +300,7 @@ final class RequestFactoryTests: IsolatedTestCase {
 
     /// test_10: Subscribe request end to end non-nil body and request
     func test_10_subscribeRequest_endToEnd_nonNilBodyAndRequest() {
-        let data = SubscribeRequestData(
+        let data = PushSubscribeRequestData(
             url: "https://api.altcraft.test/subscribe",
             requestId: "RID-10",
             time: 2222,
@@ -296,19 +312,19 @@ final class RequestFactoryTests: IsolatedTestCase {
             status: "active",
             sync: false,
             profileFields: nil,
-            customFields: ["k":"v"],
+            customFields: ["k": "v"],
             cats: nil,
             replace: nil,
             skipTriggers: nil
         )
-        let req = subscribeRequest(data: data)
+        let req = pushSubscribeRequest(data: data)
         XCTAssertNotNil(req)
         XCTAssertEqual(req?.httpMethod, Constants.HTTPMethod.post)
     }
 
     /// test_11: Update request end to end non-nil body and request
     func test_11_updateRequest_endToEnd_nonNilBodyAndRequest() {
-        let data = UpdateRequestData(
+        let data = TokenUpdateRequestData(
             url: "https://api.altcraft.test/update",
             requestId: "RID-11",
             authHeader: "Bearer U11",
@@ -318,7 +334,7 @@ final class RequestFactoryTests: IsolatedTestCase {
             newProvider: "ios-firebase",
             sync: true
         )
-        let req = updateRequest(data: data)
+        let req = tokenUpdateRequest(data: data)
         XCTAssertNotNil(req)
         XCTAssertEqual(req?.httpMethod, Constants.HTTPMethod.post)
     }
@@ -401,7 +417,6 @@ final class RequestFactoryTests: IsolatedTestCase {
 
         let ctype = req?.value(forHTTPHeaderField: Constants.HTTPHeader.contentType) ?? ""
         XCTAssertTrue(ctype.hasPrefix("multipart/form-data; boundary="))
-
         XCTAssertEqual(req?.value(forHTTPHeaderField: Constants.HTTPHeader.requestId), "RID-M-1")
 
         let comps = components(from: req!.url!)
@@ -416,30 +431,111 @@ final class RequestFactoryTests: IsolatedTestCase {
         XCTAssertTrue(bodyStr.contains("Content-Type: application/json"))
         XCTAssertTrue(bodyStr.contains("Content-Disposition: form-data; name=\"file\"; filename=\"a.txt\""))
         XCTAssertTrue(bodyStr.contains("Content-Type: text/plain"))
-        XCTAssertTrue((req?.value(forHTTPHeaderField: "Content-Length")).flatMap(Int.init) ?? 0 > 0)
+
+        let contentLength = (req?.value(forHTTPHeaderField: "Content-Length")).flatMap(Int.init) ?? 0
+        XCTAssertTrue(contentLength > 0)
+
         XCTAssertFalse(spy.events.contains { $0 is ErrorEvent })
     }
 
     /// test_17: Status request invalid mode returns nil quickly
-    func test_17_statusRequest_invalidMode_returnsNil_quickly() {
-        let exp = expectation(description: "status invalid mode")
-        statusRequest(mode: "___bad___", provider: nil) { req in
-            XCTAssertNil(req)
-            exp.fulfill()
-        }
-        wait(for: [exp], timeout: 1.0)
+    func test_17_status_request_invalid_mode_returns_nil_quickly() async {
+        let apns = MockAPNS()
+        apns.tokenToReturn = "APNS"
+
+        await TokenManager.shared.setAPNSProvider(apns)
+        await TokenManager.shared.setFCMProvider(nil)
+        await TokenManager.shared.setHMSProvider(nil)
+        await StoredVariablesManager.shared.clearManualToken()
+
+        let request = await statusRequest(
+            mode: "___bad___",
+            provider: nil
+        )
+
+        XCTAssertNil(request)
+
+        await TokenManager.shared.setAPNSProvider(nil)
     }
 
     /// test_18: Status request no profile data emits error and returns nil
-    func test_18_statusRequest_noProfileData_emitsError_andReturnsNil() {
-        let spy = EventSpy(); spy.start(); defer { spy.stop() }
-        let exp = expectation(description: "status no data")
-        statusRequest(mode: Constants.StatusMode.matchCurrentContext, provider: nil) { req in
-            XCTAssertNil(req)
-            let hasError = spy.events.contains { ($0 is ErrorEvent) && (self.normalizeFunctionName($0.function) == "statusRequest") }
-            XCTAssertTrue(hasError)
-            exp.fulfill()
+    func test_18_status_request_no_profile_data_emits_error_and_returns_nil() async {
+        let apns = MockAPNS()
+        apns.tokenToReturn = "APNS"
+
+        await TokenManager.shared.setAPNSProvider(apns)
+        await TokenManager.shared.setFCMProvider(nil)
+        await TokenManager.shared.setHMSProvider(nil)
+        await StoredVariablesManager.shared.clearManualToken()
+
+        let spy = EventSpy()
+        spy.start()
+        defer { spy.stop() }
+
+        let request = await statusRequest(
+            mode: Constants.StatusMode.matchCurrentContext,
+            provider: nil
+        )
+
+        XCTAssertNil(request)
+
+        var hasError = false
+
+        for _ in 0..<20 {
+            hasError = spy.events.contains {
+                ($0 is ErrorEvent) && (self.normalizeFunctionName($0.function) == "statusRequest")
+            }
+
+            if hasError {
+                break
+            }
+
+            try? await Task.sleep(nanoseconds: 50_000_000)
         }
-        wait(for: [exp], timeout: 2.0)
+
+        XCTAssertTrue(hasError)
+
+        await TokenManager.shared.setAPNSProvider(nil)
+    }
+    
+    /// test_19: Create profile update request builds POST with headers
+    func test_19_createProfileUpdateRequest_buildsPOST_withHeaders() {
+        let data = ProfileUpdateRequestData(
+            url: "https://api.altcraft.test/profile/update",
+            requestId: "RID-PU-1",
+            authHeader: "Bearer PU",
+            profileFields: ["email": "a@b.com"],
+            skipTriggers: true
+        )
+
+        let body = createProfileUpdateJSONBody(data: data)
+        XCTAssertNotNil(body)
+
+        let req = createProfileUpdateRequest(data: data, requestBody: body!)
+        XCTAssertNotNil(req)
+        XCTAssertEqual(req?.httpMethod, Constants.HTTPMethod.post)
+        XCTAssertEqual(req?.value(forHTTPHeaderField: Constants.HTTPHeader.authorization), "Bearer PU")
+        XCTAssertEqual(req?.value(forHTTPHeaderField: Constants.HTTPHeader.requestId), "RID-PU-1")
+        XCTAssertEqual(req?.value(forHTTPHeaderField: Constants.HTTPHeader.contentType), "application/json")
+
+        let comps = components(from: req!.url!)
+        XCTAssertTrue((comps.queryItems ?? []).isEmpty)
+    }
+
+    /// test_20: Profile update request end to end non-nil body and request
+    func test_20_profileUpdateRequest_endToEnd_nonNilBodyAndRequest() {
+        let data = ProfileUpdateRequestData(
+            url: "https://api.altcraft.test/profile/update",
+            requestId: "RID-PU-2",
+            authHeader: "Bearer PU2",
+            profileFields: ["a": 1],
+            skipTriggers: nil
+        )
+
+        let req = profileUpdateRequest(data: data)
+        XCTAssertNotNil(req)
+        XCTAssertEqual(req?.httpMethod, Constants.HTTPMethod.post)
+        XCTAssertEqual(req?.value(forHTTPHeaderField: Constants.HTTPHeader.requestId), "RID-PU-2")
     }
 }
+

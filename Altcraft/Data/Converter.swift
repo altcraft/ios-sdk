@@ -185,10 +185,9 @@ func encodeSubscription(_ sub: (any Subscription)?) -> Data? {
 func decodeSubscription(from data: Data?) -> (any Subscription)? {
     guard let data else { return nil }
     let decoder = JSONDecoder()
-    // Keep default strategies; each concrete type has its own CodingKeys if needed.
-    if let v = try? decoder.decode(EmailSubscription.self, from: data) { return v }
     if let v = try? decoder.decode(SmsSubscription.self, from: data) { return v }
     if let v = try? decoder.decode(PushSubscription.self, from: data) { return v }
+    if let v = try? decoder.decode(EmailSubscription.self, from: data) { return v }
     if let v = try? decoder.decode(CcDataSubscription.self, from: data) { return v }
     errorEvent(#function, error: unsupportedSubscriptionType)
     return nil

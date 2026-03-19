@@ -23,7 +23,7 @@ import XCTest
  *  - test_6: Data base64 URL encoded with invalid string returns nil.
  *  - test_7: Array string ts_last on empty array returns nil.
  */
-final class ExtensionsTests: XCTestCase {
+final class ExtensionsTests: IsolatedTestCase {
 
     /// test_1: Data base64 URL encoded with valid string successfully decodes to original data
     func test_1_base64UrlEncoded_decodesValid() {

@@ -8,75 +8,61 @@
 
 import Foundation
 
-/// Coalesces concurrent calls into a single in-flight operation.
-/// While running, collects completions; on finish, delivers the same result to all.
-/// `operation` must call `done` exactly once.
-final class UpdateCoordinator<Result> {
+/// Coalesces concurrent calls into a single in-flight async operation.
+///
+/// While an operation is running, additional callers wait for the same result.
+/// Once finished, all waiters receive the shared result.
+actor UpdateCoordinator<Result: Sendable> {
 
-    typealias Completion = (Result) -> Void
-    typealias Operation = (@escaping Completion) -> Void
+    private var inFlight: Task<Result, Never>?
+    private var waiters: [CheckedContinuation<Result, Never>] = []
 
-    private let queue: DispatchQueue
-    private var isRunning: Bool = false
-    private var pending: [Completion] = []
-    private let queueKey = DispatchSpecificKey<Void>()
+    /// Runs `operation` once for all concurrent callers.
+    ///
+    /// If an operation is already running, waits for its result.
+    ///
+    /// - Parameter operation: Async operation producing a shared result.
+    /// - Returns: The shared result.
+    func run(
+        operation: @Sendable @escaping () async -> Result
+    ) async -> Result {
+        if let inFlight {
+            return await inFlight.value
+        }
 
-    init(label: String) {
-        self.queue = DispatchQueue(label: label)
-        self.queue.setSpecific(key: queueKey, value: ())
+        let task = Task { await operation() }
+        inFlight = task
+
+        let result = await task.value
+        inFlight = nil
+
+        let current = waiters
+        waiters.removeAll(keepingCapacity: true)
+        current.forEach { $0.resume(returning: result) }
+
+        return result
     }
 
-    /// Coalesces concurrent calls into a single in-flight operation.
-    /// If an operation is already running, only enqueues `completion`.
+    /// Callback compatibility.
     ///
     /// - Parameters:
-    ///   - operation: Must call `done` exactly once.
-    ///   - completion: Optional callback receiving the shared result.
+    ///   - operation: Async operation producing a shared result.
+    ///   - completion: Callback receiving the shared result.
     func run(
-        operation: @escaping Operation,
-        completion: Completion? = nil
+        operation: @Sendable @escaping () async -> Result,
+        completion: @escaping (Result) -> Void
     ) {
-        onQueue { [weak self] in
-            guard let self else { return }
-
-            if let completion {
-                self.pending.append(completion)
-            }
-
-            if self.isRunning { return }
-            self.isRunning = true
-
-            operation { [weak self] result in
-                self?.finish(result)
-            }
+        Task {
+            let result = await run(operation: operation)
+            completion(result)
         }
     }
 
-    /// Executes `block` on the internal serial queue.
-    /// If already on that queue, executes immediately.
+    /// Waits for the current in-flight operation result, if any.
     ///
-    /// - Parameter block: Work to execute.
-    private func onQueue(_ block: @escaping () -> Void) {
-        if DispatchQueue.getSpecific(key: queueKey) != nil {
-            block()
-        } else {
-            queue.async(execute: block)
-        }
-    }
-
-    /// Completes the current operation and delivers `result`
-    /// to all pending completions.
-    ///
-    /// - Parameter result: Result to deliver.
-    private func finish(_ result: Result) {
-        onQueue { [weak self] in
-            guard let self else { return }
-            self.isRunning = false
-
-            let completions = self.pending
-            self.pending.removeAll(keepingCapacity: true)
-
-            completions.forEach { $0(result) }
-        }
+    /// - Returns: The shared result, or `nil` if nothing is running.
+    func waitIfRunning() async -> Result? {
+        guard let task = inFlight else { return nil }
+        return await task.value
     }
 }

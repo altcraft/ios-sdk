@@ -2,7 +2,7 @@
 //  PushEventEntity+CoreDataProperties.swift
 //  
 //
-//  Created by andrey on 06.01.2026.
+//  Created by andrey on 03.03.2026.
 //
 //
 
@@ -19,10 +19,10 @@ extension PushEventEntity {
     }
 
     @NSManaged public var maxRetryCount: Int16
+    @NSManaged public var requestId: String?
     @NSManaged public var retryCount: Int16
     @NSManaged public var time: Int64
     @NSManaged public var type: String?
     @NSManaged public var uid: String?
-    @NSManaged public var requestId: String?
 
 }

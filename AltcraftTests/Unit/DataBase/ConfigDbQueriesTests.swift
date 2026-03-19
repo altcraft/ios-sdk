@@ -4,327 +4,483 @@
 //
 //  Created by Andrey Pogodin.
 //
-//  © 2025 Altcraft. All rights reserved.
+//  Copyright © 2025 Altcraft. All rights reserved.
+//
 
 import XCTest
 import CoreData
 @testable import Altcraft
 
 /**
- * ConfigDbQueriesTests
- *
- * Positive scenarios:
- *  - test_1: Set config creates new and persists all fields.
- *  - test_2: Set config updates existing no duplicates.
- *  - test_3: Set config token change triggers subscription purge.
- *  - test_4: Get config returns nil when URL empty.
- *  - test_5: Does configuration entity exist false then true.
- *  - test_6: Update provider priority list updates list and returns success.
- *  - test_7: Set config returns false when DB error status is set.
- *  - test_8: Update provider priority list returns error when no config.
- */
+* ConfigDbQueriesTests
+*
+* Positive scenarios:
+* - test_1: setConfig creates new and persists all fields.
+* - test_2: setConfig updates existing configuration without duplicates.
+* - test_3: setConfig token change triggers subscription purge.
+* - test_4: getConfig returns nil when URL is empty.
+* - test_5: doesConfigurationEntityExist returns false then true.
+* - test_6: updateProviderPriorityList updates list and returns success.
+* - test_7: setConfig returns false when DB error status is set.
+* - test_8: updateProviderPriorityList returns false when no config exists.
+*
+*/
 final class ConfigDbQueriesTests: IsolatedTestCase {
 
     override class var useSDKCoreData: Bool { true }
 
-    private var sdkContainer: NSPersistentContainer { CoreDataManager.shared.persistentContainer }
-    private var sdkViewContext: NSManagedObjectContext { sdkContainer.viewContext }
+    private var sdkContainer: NSPersistentContainer {
+        CoreDataManager.shared.persistentContainer
+    }
 
-    private func sdkNewBG() -> NSManagedObjectContext {
-        let ctx = sdkContainer.newBackgroundContext()
-        ctx.mergePolicy = NSMergeByPropertyObjectTrumpMergePolicy
-        ctx.automaticallyMergesChangesFromParent = true
-        ctx.undoManager = nil
-        return ctx
+    private var sdkViewContext: NSManagedObjectContext {
+        sdkContainer.viewContext
+    }
+
+    private func sdkNewBackgroundContext() -> NSManagedObjectContext {
+        let context = sdkContainer.newBackgroundContext()
+        context.mergePolicy = NSMergeByPropertyObjectTrumpMergePolicy
+        context.automaticallyMergesChangesFromParent = true
+        context.undoManager = nil
+        return context
     }
 
     private var isInMemoryStore: Bool {
         sdkContainer.persistentStoreCoordinator.persistentStores.first?.type == NSInMemoryStoreType
     }
 
-    private let timeoutShort: TimeInterval = 2.5
-
     override func setUpWithError() throws {
         try super.setUpWithError()
-        sdkWipe([Constants.EntityNames.config, Constants.EntityNames.subscribe])
+        sdkWipe([
+            Constants.EntityNames.configurationEntity,
+            Constants.EntityNames.subscribeEntity,
+            Constants.EntityNames.mobileEventEntity,
+            Constants.EntityNames.profileUpdateEntity
+        ])
     }
 
     override func tearDownWithError() throws {
-        sdkWipe([Constants.EntityNames.config, Constants.EntityNames.subscribe])
+        sdkWipe([
+            Constants.EntityNames.configurationEntity,
+            Constants.EntityNames.subscribeEntity,
+            Constants.EntityNames.mobileEventEntity,
+            Constants.EntityNames.profileUpdateEntity
+        ])
+        StoredVariablesManager.shared.setCritDB(value: false)
         try super.tearDownWithError()
     }
 
     private func sdkCount(entityName: String) -> Int? {
-        let ctx = sdkViewContext
+        let context = sdkViewContext
         var result: Int?
-        ctx.performAndWait {
-            let fr = NSFetchRequest<NSFetchRequestResult>(entityName: entityName)
-            fr.includesSubentities = true
-            do { result = try ctx.count(for: fr) } catch { result = nil }
+
+        context.performAndWait {
+            let fetchRequest = NSFetchRequest<NSFetchRequestResult>(entityName: entityName)
+            fetchRequest.includesSubentities = true
+
+            do {
+                result = try context.count(for: fetchRequest)
+            } catch {
+                result = nil
+            }
         }
+
         return result
     }
 
     private func sdkWipe(_ entityNames: [String]) {
-        let bg = sdkNewBG()
-        bg.performAndWait {
-            for name in entityNames {
-                let fr = NSFetchRequest<NSFetchRequestResult>(entityName: name)
-                fr.includesPropertyValues = false
-                if let objects = try? bg.fetch(fr) as? [NSManagedObject] {
-                    objects.forEach { bg.delete($0) }
+        let context = sdkNewBackgroundContext()
+
+        context.performAndWait {
+            for entityName in entityNames {
+                let fetchRequest = NSFetchRequest<NSFetchRequestResult>(entityName: entityName)
+                fetchRequest.includesPropertyValues = false
+
+                if let objects = try? context.fetch(fetchRequest) as? [NSManagedObject] {
+                    objects.forEach { context.delete($0) }
                 }
             }
-            if bg.hasChanges { try? bg.save() }
+
+            if context.hasChanges {
+                try? context.save()
+            }
         }
     }
 
     private func sdkFetchSingleConfigurationEntity() -> ConfigurationEntity? {
-        let ctx = sdkViewContext
-        var obj: ConfigurationEntity?
-        ctx.performAndWait {
-            let fr: NSFetchRequest<ConfigurationEntity> = ConfigurationEntity.fetchRequest()
-            fr.fetchLimit = 1
-            obj = try? ctx.fetch(fr).first
+        let context = sdkViewContext
+        var entity: ConfigurationEntity?
+
+        context.performAndWait {
+            let fetchRequest: NSFetchRequest<ConfigurationEntity> = ConfigurationEntity.fetchRequest()
+            fetchRequest.fetchLimit = 1
+            entity = try? context.fetch(fetchRequest).first
         }
-        return obj
+
+        return entity
     }
 
     private func decodeStringArray(_ data: Data?) -> [String]? {
-        guard let d = data else { return nil }
-        return try? JSONDecoder().decode([String].self, from: d)
+        guard let data else { return nil }
+        return try? JSONDecoder().decode([String].self, from: data)
     }
 
     private func decodeAppInfoData(_ data: Data?) -> AppInfo? {
-        guard let d = data else { return nil }
-        return try? JSONDecoder().decode(AppInfo.self, from: d)
+        guard let data else { return nil }
+        return try? JSONDecoder().decode(AppInfo.self, from: data)
     }
 
-    private func sdkSeedSubscribe(count n: Int) throws {
-        let bg = sdkNewBG()
-        var thrown: Error?
-        bg.performAndWait {
-            guard let _ = NSEntityDescription.entity(
-                forEntityName: Constants.EntityNames.subscribe, in: bg
-            ) else {
-                thrown = NSError(domain: "ConfigDbQueriesTests", code: 404,
-                                 userInfo: [NSLocalizedDescriptionKey: "Entity SubscribeEntity not found"])
+    private func sdkSeedSubscribe(count: Int) throws {
+        let context = sdkNewBackgroundContext()
+        var thrownError: Error?
+
+        context.performAndWait {
+            guard NSEntityDescription.entity(
+                forEntityName: Constants.EntityNames.subscribeEntity,
+                in: context
+            ) != nil else {
+                thrownError = NSError(
+                    domain: "ConfigDbQueriesTests",
+                    code: 404,
+                    userInfo: [NSLocalizedDescriptionKey: "Entity SubscribeEntity not found"]
+                )
                 return
             }
-            for _ in 0..<n {
+
+            for _ in 0..<count {
                 _ = NSEntityDescription.insertNewObject(
-                    forEntityName: Constants.EntityNames.subscribe, into: bg
+                    forEntityName: Constants.EntityNames.subscribeEntity,
+                    into: context
                 )
             }
-            do { try bg.save() } catch { thrown = error }
+
+            do {
+                try context.save()
+            } catch {
+                thrownError = error
+            }
         }
-        if let e = thrown { throw e }
+
+        if let thrownError {
+            throw thrownError
+        }
     }
 
-    /// test_1: Set config creates new and persists all fields
-    func test_1_setConfig_createsNew_andPersistsAllFields() {
+    private func sdkSeedMobileEvents(count: Int) throws {
+        let context = sdkNewBackgroundContext()
+        var thrownError: Error?
+
+        context.performAndWait {
+            guard NSEntityDescription.entity(
+                forEntityName: Constants.EntityNames.mobileEventEntity,
+                in: context
+            ) != nil else {
+                thrownError = NSError(
+                    domain: "ConfigDbQueriesTests",
+                    code: 404,
+                    userInfo: [NSLocalizedDescriptionKey: "Entity MobileEventEntity not found"]
+                )
+                return
+            }
+
+            for index in 0..<count {
+                let entity = MobileEventEntity(context: context)
+                entity.userTag = "u"
+                entity.sid = "sid-\(index)"
+                entity.eventName = "open"
+                entity.time = Int64(1_700_000_000_000 + index)
+                entity.timeZone = 180
+                entity.retryCount = 0
+                entity.maxRetryCount = 3
+            }
+
+            do {
+                try context.save()
+            } catch {
+                thrownError = error
+            }
+        }
+
+        if let thrownError {
+            throw thrownError
+        }
+    }
+
+    private func sdkSeedProfileUpdates(count: Int) throws {
+        let context = sdkNewBackgroundContext()
+        var thrownError: Error?
+
+        context.performAndWait {
+            guard NSEntityDescription.entity(
+                forEntityName: Constants.EntityNames.profileUpdateEntity,
+                in: context
+            ) != nil else {
+                thrownError = NSError(
+                    domain: "ConfigDbQueriesTests",
+                    code: 404,
+                    userInfo: [NSLocalizedDescriptionKey: "Entity ProfileUpdateEntity not found"]
+                )
+                return
+            }
+
+            for index in 0..<count {
+                let entity = ProfileUpdateEntity(context: context)
+                entity.time = Int64(1_700_000_000_000 + index)
+                entity.retryCount = 0
+                entity.maxRetryCount = 3
+            }
+
+            do {
+                try context.save()
+            } catch {
+                thrownError = error
+            }
+        }
+
+        if let thrownError {
+            throw thrownError
+        }
+    }
+
+    /// test_1: setConfig creates new and persists all fields
+    func test_1_set_config_creates_new_and_persists_all_fields() async {
         let url = "https://api.altcraft.test"
         let rToken = "token-123"
-        let app = AppInfo(appID: "app-id", appIID: "iid-xyz", appVer: "1.2.3")
-        let providers = [Constants.ProviderName.firebase, Constants.ProviderName.huawei, Constants.ProviderName.apns]
+        let appInfo = AppInfo(appID: "app-id", appIID: "iid-xyz", appVer: "1.2.3")
+        let providers = [
+            Constants.ProviderName.firebase,
+            Constants.ProviderName.huawei,
+            Constants.ProviderName.apns
+        ]
 
-        let exp = expectation(description: "setConfig completion")
-        setConfig(url: url, rToken: rToken, appInfo: app, providerPriorityList: providers) { ok in
-            XCTAssertTrue(ok, "setConfig must return success")
-            exp.fulfill()
+        let result = await setConfig(
+            url: url,
+            rToken: rToken,
+            appInfo: appInfo,
+            providerPriorityList: providers
+        )
+
+        XCTAssertTrue(result, "setConfig must return success")
+
+        guard let entity = sdkFetchSingleConfigurationEntity() else {
+            XCTFail("ConfigurationEntity must exist")
+            return
         }
-        waitForExpectations(timeout: timeoutShort)
 
-        guard let e = sdkFetchSingleConfigurationEntity() else {
-            XCTFail("ConfigurationEntity must exist"); return
-        }
-        XCTAssertEqual(e.url, url)
-        XCTAssertEqual(e.rToken, rToken)
+        XCTAssertEqual(entity.url, url)
+        XCTAssertEqual(entity.rToken, rToken)
 
-        let decodedApp = decodeAppInfoData(e.appInfo)
-        XCTAssertNotNil(decodedApp)
-        XCTAssertEqual(decodedApp?.appID, app.appID)
-        XCTAssertEqual(decodedApp?.appIID, app.appIID)
-        XCTAssertEqual(decodedApp?.appVer, app.appVer)
+        let decodedAppInfo = decodeAppInfoData(entity.appInfo)
+        XCTAssertNotNil(decodedAppInfo)
+        XCTAssertEqual(decodedAppInfo?.appID, appInfo.appID)
+        XCTAssertEqual(decodedAppInfo?.appIID, appInfo.appIID)
+        XCTAssertEqual(decodedAppInfo?.appVer, appInfo.appVer)
 
-        let decodedProviders = decodeStringArray(e.providerPriorityList)
+        let decodedProviders = decodeStringArray(entity.providerPriorityList)
         XCTAssertEqual(decodedProviders, providers)
 
-        let exp2 = expectation(description: "getConfig")
-        getConfig { cfg in
-            XCTAssertNotNil(cfg)
-            XCTAssertEqual(cfg?.url, url)
-            XCTAssertEqual(cfg?.rToken, rToken)
-            XCTAssertEqual(cfg?.appInfo?.appID, app.appID)
-            XCTAssertEqual(cfg?.providerPriorityList ?? [], providers)
-            exp2.fulfill()
-        }
-        waitForExpectations(timeout: timeoutShort)
+        let config = await getConfig()
+        XCTAssertNotNil(config)
+        XCTAssertEqual(config?.url, url)
+        XCTAssertEqual(config?.rToken, rToken)
+        XCTAssertEqual(config?.appInfo?.appID, appInfo.appID)
+        XCTAssertEqual(config?.providerPriorityList ?? [], providers)
     }
 
-    /// test_2: Set config updates existing no duplicates
-    func test_2_setConfig_updatesExisting_noDuplicates() {
-        let url1 = "https://a1"
-        let r1 = "rt-1"
-        let app1 = AppInfo(appID: "A", appIID: "I", appVer: "1.0")
-        let p1 = [Constants.ProviderName.firebase, Constants.ProviderName.huawei]
+    /// test_2: setConfig updates existing configuration without duplicates
+    func test_2_set_config_updates_existing_configuration_without_duplicates() async {
+        let firstResult = await setConfig(
+            url: "https://a1",
+            rToken: "rt-1",
+            appInfo: AppInfo(appID: "A", appIID: "I", appVer: "1.0"),
+            providerPriorityList: [
+                Constants.ProviderName.firebase,
+                Constants.ProviderName.huawei
+            ]
+        )
 
-        let exp1 = expectation(description: "setConfig 1")
-        setConfig(url: url1, rToken: r1, appInfo: app1, providerPriorityList: p1) { ok in
-            XCTAssertTrue(ok); exp1.fulfill()
+        XCTAssertTrue(firstResult)
+
+        let secondAppInfo = AppInfo(appID: "B", appIID: "J", appVer: "2.0")
+        let secondProviders = [
+            Constants.ProviderName.apns,
+            Constants.ProviderName.firebase
+        ]
+
+        let secondResult = await setConfig(
+            url: "https://a2",
+            rToken: "rt-1",
+            appInfo: secondAppInfo,
+            providerPriorityList: secondProviders
+        )
+
+        XCTAssertTrue(secondResult)
+
+        let configCount = sdkCount(entityName: Constants.EntityNames.configurationEntity)
+        XCTAssertEqual(configCount, 1, "Must keep a single ConfigurationEntity")
+
+        guard let entity = sdkFetchSingleConfigurationEntity() else {
+            XCTFail("ConfigurationEntity must exist")
+            return
         }
-        waitForExpectations(timeout: timeoutShort)
 
-        let url2 = "https://a2"
-        let app2 = AppInfo(appID: "B", appIID: "J", appVer: "2.0")
-        let p2 = [Constants.ProviderName.apns, Constants.ProviderName.firebase]
+        XCTAssertEqual(entity.url, "https://a2")
+        XCTAssertEqual(entity.rToken, "rt-1")
 
-        let exp2 = expectation(description: "setConfig 2")
-        setConfig(url: url2, rToken: r1, appInfo: app2, providerPriorityList: p2) { ok in
-            XCTAssertTrue(ok); exp2.fulfill()
-        }
-        waitForExpectations(timeout: timeoutShort)
-
-        let cfgCount = sdkCount(entityName: Constants.EntityNames.config)
-        XCTAssertEqual(cfgCount, 1, "Must keep a single ConfigurationEntity")
-
-        guard let e = sdkFetchSingleConfigurationEntity() else {
-            XCTFail("ConfigurationEntity must exist"); return
-        }
-        XCTAssertEqual(e.url, url2)
-        XCTAssertEqual(e.rToken, r1)
-        let appDec = decodeAppInfoData(e.appInfo)
-        XCTAssertEqual(appDec?.appID, app2.appID)
-        XCTAssertEqual(decodeStringArray(e.providerPriorityList) ?? [], p2)
+        let decodedAppInfo = decodeAppInfoData(entity.appInfo)
+        XCTAssertEqual(decodedAppInfo?.appID, secondAppInfo.appID)
+        XCTAssertEqual(decodeStringArray(entity.providerPriorityList) ?? [], secondProviders)
     }
 
-    /// test_3: Set config token change triggers subscription purge
-    func test_3_setConfig_tokenChange_triggersSubscriptionPurge() throws {
+    /// test_3: setConfig token change triggers subscription purge
+    func test_3_set_config_token_change_triggers_subscription_purge() async throws {
         if isInMemoryStore {
             throw XCTSkip("NSBatchDelete may be unsupported by in-memory stores; skipping.")
         }
 
         try sdkSeedSubscribe(count: 5)
-        XCTAssertEqual(sdkCount(entityName: Constants.EntityNames.subscribe), 5)
+        try sdkSeedMobileEvents(count: 3)
+        try sdkSeedProfileUpdates(count: 2)
 
-        let exp1 = expectation(description: "setConfig A")
-        setConfig(url: "https://api", rToken: "A", appInfo: nil, providerPriorityList: nil) { ok in
-            XCTAssertTrue(ok); exp1.fulfill()
-        }
-        waitForExpectations(timeout: timeoutShort)
+        XCTAssertEqual(sdkCount(entityName: Constants.EntityNames.subscribeEntity), 5)
+        XCTAssertEqual(sdkCount(entityName: Constants.EntityNames.mobileEventEntity), 3)
+        XCTAssertEqual(sdkCount(entityName: Constants.EntityNames.profileUpdateEntity), 2)
 
-        let exp2 = expectation(description: "setConfig B")
-        setConfig(url: "https://api", rToken: "B", appInfo: nil, providerPriorityList: nil) { ok in
-            XCTAssertTrue(ok); exp2.fulfill()
-        }
-        waitForExpectations(timeout: timeoutShort)
+        let firstResult = await setConfig(
+            url: "https://api",
+            rToken: "A",
+            appInfo: nil,
+            providerPriorityList: nil
+        )
 
-        XCTAssertEqual(sdkCount(entityName: Constants.EntityNames.subscribe), 0,
-                       "SubscribeEntity must be purged on rToken change.")
+        XCTAssertTrue(firstResult)
+
+        let secondResult = await setConfig(
+            url: "https://api",
+            rToken: "B",
+            appInfo: nil,
+            providerPriorityList: nil
+        )
+
+        XCTAssertTrue(secondResult)
+
+        XCTAssertEqual(
+            sdkCount(entityName: Constants.EntityNames.subscribeEntity),
+            0,
+            "SubscribeEntity must be purged on rToken change"
+        )
+
+        XCTAssertEqual(
+            sdkCount(entityName: Constants.EntityNames.mobileEventEntity),
+            0,
+            "MobileEventEntity must be purged on rToken change"
+        )
+
+        XCTAssertEqual(
+            sdkCount(entityName: Constants.EntityNames.profileUpdateEntity),
+            0,
+            "ProfileUpdateEntity must be purged on rToken change"
+        )
     }
 
-    /// test_4: Get config returns nil when URL empty
-    func test_4_getConfig_returnsNil_whenUrlEmpty() {
-        let bg = sdkNewBG()
+    /// test_4: getConfig returns nil when URL is empty
+    func test_4_get_config_returns_nil_when_url_is_empty() async {
+        let context = sdkNewBackgroundContext()
         var insertError: Error?
-        bg.performAndWait {
-            let e = ConfigurationEntity(context: bg)
-            e.url = ""
-            e.rToken = "X"
-            do { try bg.save() } catch { insertError = error }
+
+        context.performAndWait {
+            let entity = ConfigurationEntity(context: context)
+            entity.url = ""
+            entity.rToken = "X"
+
+            do {
+                try context.save()
+            } catch {
+                insertError = error
+            }
         }
+
         XCTAssertNil(insertError, "Insert failed: \(String(describing: insertError))")
 
-        let exp = expectation(description: "getConfig empty url")
-        getConfig { cfg in
-            XCTAssertNil(cfg, "Configuration must be nil if url is empty")
-            exp.fulfill()
-        }
-        waitForExpectations(timeout: timeoutShort)
+        let config = await getConfig()
+        XCTAssertNil(config, "Configuration must be nil if URL is empty")
     }
 
-    /// test_5: Does configuration entity exist false then true
-    func test_5_doesConfigurationEntityExist_false_then_true() {
-        let exp1 = expectation(description: "exist false")
-        doesConfigurationEntityExist(resToken: "any") { result in
-            switch result {
-            case .success(let exists): XCTAssertFalse(exists)
-            case .failure(let e): XCTFail("Unexpected error: \(e)")
-            }
-            exp1.fulfill()
-        }
-        waitForExpectations(timeout: timeoutShort)
+    /// test_5: doesConfigurationEntityExist returns false then true
+    func test_5_does_configuration_entity_exist_returns_false_then_true() async {
+        let doesNotExistInitially = await doesConfigurationEntityExist()
+        XCTAssertFalse(doesNotExistInitially)
 
-        let exp2 = expectation(description: "setConfig")
-        setConfig(url: "https://api", rToken: "R", appInfo: nil, providerPriorityList: nil) { ok in
-            XCTAssertTrue(ok); exp2.fulfill()
-        }
-        waitForExpectations(timeout: timeoutShort)
+        let setResult = await setConfig(
+            url: "https://api",
+            rToken: "R",
+            appInfo: nil,
+            providerPriorityList: nil
+        )
 
-        let exp3 = expectation(description: "exist true")
-        doesConfigurationEntityExist(resToken: "ignored") { result in
-            switch result {
-            case .success(let exists): XCTAssertTrue(exists)
-            case .failure(let e): XCTFail("Unexpected error: \(e)")
-            }
-            exp3.fulfill()
-        }
-        waitForExpectations(timeout: timeoutShort)
+        XCTAssertTrue(setResult)
+
+        let existsAfterInsert = await doesConfigurationEntityExist()
+        XCTAssertTrue(existsAfterInsert)
     }
 
-    /// test_6: Update provider priority list updates list and returns success
-    func test_6_updateProviderPriorityList_updatesList_andReturnsSuccess() {
-        let exp1 = expectation(description: "setConfig")
-        setConfig(url: "https://api", rToken: "R",
-                  appInfo: nil, providerPriorityList: [Constants.ProviderName.firebase]) { ok in
-            XCTAssertTrue(ok); exp1.fulfill()
-        }
-        waitForExpectations(timeout: timeoutShort)
+    /// test_6: updateProviderPriorityList updates list and returns success
+    func test_6_update_provider_priority_list_updates_list_and_returns_success() async {
+        let setResult = await setConfig(
+            url: "https://api",
+            rToken: "R",
+            appInfo: nil,
+            providerPriorityList: [Constants.ProviderName.firebase]
+        )
 
-        let newList = [Constants.ProviderName.apns, Constants.ProviderName.huawei, Constants.ProviderName.firebase]
-        let exp2 = expectation(description: "update list")
-        updateProviderPriorityList(newList: newList) { result in
-            switch result {
-            case .success: exp2.fulfill()
-            case .failure(let e): XCTFail("updateProviderPriorityList failed: \(e)")
-            }
-        }
-        waitForExpectations(timeout: timeoutShort)
+        XCTAssertTrue(setResult)
 
-        guard let e = sdkFetchSingleConfigurationEntity() else {
-            XCTFail("ConfigurationEntity must exist"); return
+        let newList = [
+            Constants.ProviderName.apns,
+            Constants.ProviderName.huawei,
+            Constants.ProviderName.firebase
+        ]
+
+        let updateResult = await updateProviderPriorityList(newList: newList)
+        XCTAssertTrue(updateResult)
+
+        guard let entity = sdkFetchSingleConfigurationEntity() else {
+            XCTFail("ConfigurationEntity must exist")
+            return
         }
-        XCTAssertEqual(decodeStringArray(e.providerPriorityList) ?? [], newList)
+
+        XCTAssertEqual(decodeStringArray(entity.providerPriorityList) ?? [], newList)
     }
 
-    /// test_7: Set config returns false when DB error status is set
-    func test_7_setConfig_returnsFalse_whenDbErrorStatusIsSet() {
+    /// test_7: setConfig returns false when DB error status is set
+    func test_7_set_config_returns_false_when_db_error_status_is_set() async {
         StoredVariablesManager.shared.setCritDB(value: true)
 
-        let exp = expectation(description: "setConfig with DB error")
-        setConfig(url: "https://api", rToken: "token", appInfo: nil, providerPriorityList: nil) { ok in
-            XCTAssertFalse(ok, "setConfig should return false when DB error status is set")
-            exp.fulfill()
-        }
-        waitForExpectations(timeout: timeoutShort)
+        let result = await setConfig(
+            url: "https://api",
+            rToken: "token",
+            appInfo: nil,
+            providerPriorityList: nil
+        )
+
+        XCTAssertFalse(result, "setConfig should return false when DB error status is set")
 
         StoredVariablesManager.shared.setCritDB(value: false)
     }
 
-    /// test_8: Update provider priority list returns error when no config
-    func test_8_updateProviderPriorityList_returnsError_whenNoConfig() {
-        sdkWipe([Constants.EntityNames.config, Constants.EntityNames.subscribe])
+    /// test_8: updateProviderPriorityList returns false when no config exists
+    func test_8_update_provider_priority_list_returns_false_when_no_config_exists() async {
+        sdkWipe([
+            Constants.EntityNames.configurationEntity,
+            Constants.EntityNames.subscribeEntity,
+            Constants.EntityNames.mobileEventEntity,
+            Constants.EntityNames.profileUpdateEntity
+        ])
 
-        let exp = expectation(description: "update list with no config")
-        updateProviderPriorityList(newList: [Constants.ProviderName.apns]) { result in
-            switch result {
-            case .success:
-                XCTFail("Should return error when no configuration exists")
-            case .failure:
-                break
-            }
-            exp.fulfill()
-        }
-        waitForExpectations(timeout: timeoutShort)
+        let result = await updateProviderPriorityList(
+            newList: [Constants.ProviderName.apns]
+        )
+
+        XCTAssertFalse(result, "Should return false when no configuration exists")
     }
 }

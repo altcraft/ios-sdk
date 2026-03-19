@@ -8,7 +8,8 @@
 
 import Foundation
 
-// 200 — General SDK events
+// MARK: - 200 — General SDK events
+
 let configSet = (200, "SDK configuration is installed.")
 let pushProviderSet = (201, "push provider set: ")
 let pushReceive = (203, "received Altcraft push notification.")
@@ -17,19 +18,24 @@ let sdkCleared = (205, "SDK data has been cleared")
 let initAwait = (206, "waiting for SDK initialization to complete")
 let pushTokenUpdateAwait = (207, "waiting for push token update to complete")
 let backgroundTaskRegister = (208, "SDK background task is registered")
-let backgroundTaskСompleted = (209, "SDK background task completed")
+let backgroundTaskCompleted = (209, "SDK background task completed")
 
-/// 230–237 — Success codes for completed server requests:
-///  - 230 → push subscribe request succeeded
-///  - 231 → push suspend request succeeded
-///  - 232 → push unsubscribed request succeeded
-///  - 233 → push update request succeeded
-///  - 234 → push unsuspend request succeeded
+// MARK: - 230–238 — Success codes for completed server requests
+
+/// 230–238 — Success codes for completed server requests:
+///  - 230 → subscribe request succeeded
+///  - 231 → suspend request succeeded
+///  - 232 → unsubscribe request succeeded
+///  - 233 → token update request succeeded
+///  - 234 → unsuspend request succeeded
 ///  - 235 → profile status request succeeded
-///  - 236 → push event delivered successfully
-///  - 237 → mobile event delivered successfully
+///  - 236 → push event request succeeded
+///  - 237 → mobile event request succeeded
+///  - 238 → profile update request succeeded
 
-// 400 — used for error, after which the operation cannot be repeated.
+// MARK: - 400 — Non-retryable errors
+
+/// 400 — used for errors after which the operation must not be retried automatically.
 
 // Common internal error
 let configIsNotSet = (401, "the configuration is not set")
@@ -37,10 +43,11 @@ let userTagIsNilE = (402, "userTag is null. It is impossible to identify the use
 let coreDataError = (403, "error in CoreData. Re-initialize the SDK.")
 let errorLoadModelInCoreData = (404, "failed to load model from framework.")
 let appGroupIsNotSet = (405, "App Group name was not set.")
-let apnsIsNotUpdated = (406, "Forcing a push token update is not possible: the operation is not supported for APNs.")
+let contextIsUnavailable = (406, "core data context is unavailable")
 let invalidCoreDataEntityName = (407, "the coreData entity name is not valid")
 let entityNotFoundByID = (408, "entity not found by ID")
 let sdkInitWaitingExpired = (409, "SDK initialization timeout has expire")
+let apnsIsNotUpdated = (410, "Forcing a push token update is not possible: the operation is not supported for APNs.")
 
 // Invalid value
 let invalidUrlValue = (471, "invalid apiUrl value - empty or null.")
@@ -62,24 +69,26 @@ let invalidButtonIdentifier = (455, "invalid button identifier. See event value"
 let outOfRangeForIdentifier = (456, "out of range for identifier. See event value")
 let unknownButtonIdentifier = (457, "unknown button identifier. See event value")
 
-/// 422,423 — Missing request payloads (no automatic retry)
+/// 422–424 — Missing request payloads (non-retryable)
 /// These errors indicate missing request data for which the SDK does not attempt to recollect
 /// or retry.
 let unSuspendRequestDataIsNil = (422, "unsuspend request data is nil")
 let profileRequestDataIsNil = (423, "profile request data is nil")
 
-/// 430–437 — SDK-to-server request errors without automatic retry
-/// (4xx or non-retryable request group)
+/// 430–438 — SDK-to-server request errors without automatic retry (4xx or non-retryable group)
 ///  - 430 → subscribe request failed
 ///  - 431 → suspend request failed
-///  - 432 → unsubscribed request failed
-///  - 433 → update request failed
+///  - 432 → unsubscribe request failed
+///  - 433 → token update request failed
 ///  - 434 → unsuspend request failed
-///  - 435 → status request failed
-///  - 436 → push event delivery failed
+///  - 435 → profile status request failed
+///  - 436 → push event request failed
 ///  - 437 → mobile event request failed
+///  - 438 → profile update request failed
 
-// 500 — used for error, after which the operation should be retried automatically
+// MARK: - 500 — Retryable errors
+
+/// 500 — used for errors after which the operation should be retried automatically.
 
 // 501–506 — Missing SDK state or environment issues
 let configIsNil  = (501, "config data is nil")
@@ -96,14 +105,16 @@ let subscribeRequestDataIsNil = (520, "subscribe request data is nil")
 let updateRequestDataIsNil = (521, "update request data is nil")
 let pushEventRequestDataIsNil = (524, "push event request data is nil")
 let mobileRequestDataIsNil = (525, "mobile event request data is nil")
+let profileUpdateRequestDataIsNil = (526, "profile update request data is nil")
 
-/// 530–537 — SDK-to-server request errors with automatic retry by the SDK (5xx HTTP):
+/// 530–538 — SDK-to-server request errors with automatic retry by the SDK (5xx HTTP)
 ///  - 530 → subscribe request failed (retryable)
 ///  - 531 → suspend request failed (retryable)
-///  - 532 → unsubscribed request failed (retryable)
-///  - 533 → update request failed (retryable)
-///  - 536 → push event delivery failed (retryable)
-///  - 537 → mobile event delivery failed (retryable)
+///  - 532 → unsubscribe request failed (retryable)
+///  - 533 → token update request failed (retryable)
+///  - 536 → push event request failed (retryable)
+///  - 537 → mobile event request failed (retryable)
+///  - 538 → profile update request failed (retryable)
 
 // 540–544 — Authorization-related errors
 let jwtIsNil = (540, "JWT token is nil")
@@ -118,5 +129,5 @@ let failedProcessingResponse  = (562, "Failed processing the response")
 // invalid values
 let invalidRequestUrl = (571, "invalid request url")
 let invalidResponseFormat = (572, "invalid response format")
-let invalidSubscribeRequestData = (573, "invalid push subscribe request data")
+let invalidSubRequestData = (573, "invalid push subscribe request data")
 let invalidPushEventRequestData = (574, "invalid push event request data")

@@ -4,7 +4,7 @@
 //
 //  Created by Andrey Pogodin.
 //
-//  © 2025 Altcraft. All rights reserved.
+//  © 2026 Altcraft. All rights reserved.
 
 import XCTest
 @testable import Altcraft
@@ -13,292 +13,263 @@ import XCTest
  * UpdateCoordinatorTests
  *
  * Positive scenarios:
- *  - test_1: run (concurrent) → coalesces into a single operation call and delivers same result to all completions.
- *  - test_2: run → allows new operation after finish (no coalescing across finished runs).
- *  - test_3: run (while running) → appends completions and all are called on finish.
- *  - test_4: run (without completion) → still performs operation and does not crash.
- *  - test_5: run (reentrant from completion) → starts a new operation after finish and does not lose callbacks.
- *  - test_6: run (many concurrent callers) → still runs exactly once and delivers to all.
+ *  - test_1: run with concurrent callers → coalesces into a single operation call and returns same result to all.
+ *  - test_2: run → allows new operation after previous finish.
+ *  - test_3: run with callback while running → appends completions and all are called on finish.
+ *  - test_4: run without callback → still performs operation and returns result.
+ *  - test_5: run reentrant from callback → starts a new operation after finish and does not lose callbacks.
+ *  - test_6: run with many concurrent callers → still runs exactly once and delivers same result to all.
+ *
  */
-final class UpdateCoordinatorTests: XCTestCase {
+final class UpdateCoordinatorTests: IsolatedTestCase {
 
-    private func makeCoordinator<T>() -> UpdateCoordinator<T> {
-        UpdateCoordinator<T>(label: "altcraft.tests.updatecoordinator.\(UUID().uuidString)")
+    private func makeCoordinator<T: Sendable>() -> UpdateCoordinator<T> {
+        UpdateCoordinator<T>()
     }
 
-    /// test_1: run (concurrent) → coalesces into a single operation call and delivers same result to all completions
-    func test_1_run_concurrent_coalescesIntoSingleOperation_andDeliversSameResultToAll() {
+    actor IntRecorder {
+        private var values: [Int] = []
+
+        func append(_ value: Int) {
+            values.append(value)
+        }
+
+        func snapshot() -> [Int] {
+            values
+        }
+
+        func count() -> Int {
+            values.count
+        }
+    }
+
+    actor StringRecorder {
+        private var values: [String] = []
+
+        func append(_ value: String) {
+            values.append(value)
+        }
+
+        func snapshot() -> [String] {
+            values
+        }
+    }
+
+    actor Counter {
+        private var value = 0
+
+        func increment() -> Int {
+            value += 1
+            return value
+        }
+
+        func get() -> Int {
+            value
+        }
+    }
+
+    /// test_1: run with concurrent callers coalesces into a single operation call and returns same result to all
+    func test_1_run_withConcurrentCallers_coalescesIntoSingleOperation_andReturnsSameResultToAll() async {
         let coordinator = makeCoordinator() as UpdateCoordinator<Int>
+        let recorder = IntRecorder()
+        let counter = Counter()
 
-        let callers = 20
-        let start = DispatchGroup()
-        let done = expectation(description: "all completions called")
-        done.expectedFulfillmentCount = callers
-
-        let opCalledOnce = expectation(description: "operation called once")
-        opCalledOnce.expectedFulfillmentCount = 1
-
-        let lock = NSLock()
-        var operationCallCount = 0
-        var received: [Int] = []
-
-        for _ in 0..<callers {
-            start.enter()
-            DispatchQueue.global(qos: .userInitiated).async {
-                coordinator.run(operation: { finish in
-                    lock.lock()
-                    operationCallCount += 1
-                    let isFirst = (operationCallCount == 1)
-                    lock.unlock()
-
-                    if isFirst { opCalledOnce.fulfill() }
-
-                    DispatchQueue.global().asyncAfter(deadline: .now() + 0.05) {
-                        finish(777)
+        await withTaskGroup(of: Int.self) { group in
+            for _ in 0..<20 {
+                group.addTask {
+                    await coordinator.run {
+                        let call = await counter.increment()
+                        XCTAssertEqual(call, 1)
+                        try? await Task.sleep(nanoseconds: 50_000_000)
+                        return 777
                     }
-                }, completion: { value in
-                    lock.lock()
-                    received.append(value)
-                    lock.unlock()
-                    done.fulfill()
-                })
-                start.leave()
+                }
+            }
+
+            for await value in group {
+                await recorder.append(value)
             }
         }
 
-        start.wait()
-
-        wait(for: [opCalledOnce, done], timeout: 2.0)
-
-        lock.lock()
-        let count = operationCallCount
-        let allSame = received.allSatisfy { $0 == 777 }
-        let receivedCount = received.count
-        lock.unlock()
-
-        XCTAssertEqual(count, 1)
-        XCTAssertEqual(receivedCount, callers)
-        XCTAssertTrue(allSame)
-    }
-
-    /// test_2: run → allows new operation after finish (no coalescing across finished runs)
-    func test_2_run_allowsNewOperationAfterFinish() {
-        let coordinator = makeCoordinator() as UpdateCoordinator<String>
-
-        let firstDone = expectation(description: "first completion")
-        let secondDone = expectation(description: "second completion")
-
-        let lock = NSLock()
-        var opCalls = 0
-        var values: [String] = []
-
-        coordinator.run(operation: { finish in
-            lock.lock(); opCalls += 1; lock.unlock()
-            DispatchQueue.global().asyncAfter(deadline: .now() + 0.03) { finish("A") }
-        }, completion: { v in
-            lock.lock(); values.append(v); lock.unlock()
-            firstDone.fulfill()
-        })
-
-        wait(for: [firstDone], timeout: 1.0)
-
-        coordinator.run(operation: { finish in
-            lock.lock(); opCalls += 1; lock.unlock()
-            DispatchQueue.global().asyncAfter(deadline: .now() + 0.03) { finish("B") }
-        }, completion: { v in
-            lock.lock(); values.append(v); lock.unlock()
-            secondDone.fulfill()
-        })
-
-        wait(for: [secondDone], timeout: 1.0)
-
-        lock.lock()
-        let calls = opCalls
-        let captured = values
-        lock.unlock()
-
-        XCTAssertEqual(calls, 2)
-        XCTAssertEqual(captured, ["A", "B"])
-    }
-
-    /// test_3: run (while running) → appends completions and all are called on finish
-    func test_3_run_whileRunning_appendsCompletions_andAllAreCalledOnFinish() {
-        let coordinator = makeCoordinator() as UpdateCoordinator<Int>
-
-        let done = expectation(description: "all completions called")
-        done.expectedFulfillmentCount = 3
-
-        let opCalledOnce = expectation(description: "operation called once")
-        opCalledOnce.expectedFulfillmentCount = 1
-
-        let lock = NSLock()
-        var opCalls = 0
-        var results: [Int] = []
-
-        coordinator.run(operation: { finish in
-            lock.lock()
-            opCalls += 1
-            let isFirst = (opCalls == 1)
-            lock.unlock()
-
-            if isFirst { opCalledOnce.fulfill() }
-
-            DispatchQueue.global().asyncAfter(deadline: .now() + 0.08) {
-                finish(42)
-            }
-        }, completion: { value in
-            lock.lock(); results.append(value); lock.unlock()
-            done.fulfill()
-        })
-
-        DispatchQueue.global().asyncAfter(deadline: .now() + 0.01) {
-            coordinator.run(operation: { _ in
-                XCTFail("operation must not be called while already running")
-            }, completion: { value in
-                lock.lock(); results.append(value); lock.unlock()
-                done.fulfill()
-            })
-        }
-
-        DispatchQueue.global().asyncAfter(deadline: .now() + 0.02) {
-            coordinator.run(operation: { _ in
-                XCTFail("operation must not be called while already running")
-            }, completion: { value in
-                lock.lock(); results.append(value); lock.unlock()
-                done.fulfill()
-            })
-        }
-
-        wait(for: [opCalledOnce, done], timeout: 2.0)
-
-        lock.lock()
-        let calls = opCalls
-        let allSame = results.allSatisfy { $0 == 42 }
-        let count = results.count
-        lock.unlock()
+        let calls = await counter.get()
+        let received = await recorder.snapshot()
 
         XCTAssertEqual(calls, 1)
-        XCTAssertEqual(count, 3)
-        XCTAssertTrue(allSame)
+        XCTAssertEqual(received.count, 20)
+        XCTAssertTrue(received.allSatisfy { $0 == 777 })
     }
 
-    /// test_4: run (without completion) → still performs operation and does not crash
-    func test_4_run_withoutCompletion_stillPerformsOperation() {
-        let coordinator = makeCoordinator() as UpdateCoordinator<Void>
+    /// test_2: run allows new operation after previous finish
+    func test_2_run_allowsNewOperationAfterPreviousFinish() async {
+        let coordinator = makeCoordinator() as UpdateCoordinator<String>
+        let recorder = StringRecorder()
+        let counter = Counter()
 
-        let opCalled = expectation(description: "operation called")
-        let finished = expectation(description: "operation finished")
+        let first = await coordinator.run {
+            let call = await counter.increment()
+            XCTAssertEqual(call, 1)
+            try? await Task.sleep(nanoseconds: 30_000_000)
+            return "A"
+        }
+        await recorder.append(first)
 
-        coordinator.run(operation: { finish in
-            opCalled.fulfill()
-            DispatchQueue.global().asyncAfter(deadline: .now() + 0.03) {
-                finish(())
-                finished.fulfill()
+        let second = await coordinator.run {
+            let call = await counter.increment()
+            XCTAssertEqual(call, 2)
+            try? await Task.sleep(nanoseconds: 30_000_000)
+            return "B"
+        }
+        await recorder.append(second)
+
+        let calls = await counter.get()
+        let values = await recorder.snapshot()
+
+        XCTAssertEqual(calls, 2)
+        XCTAssertEqual(values, ["A", "B"])
+    }
+
+    /// test_3: run with callback while running appends completions and all are called on finish
+    func test_3_run_withCallbackWhileRunning_appendsCompletions_andAllAreCalledOnFinish() async {
+        let coordinator = makeCoordinator() as UpdateCoordinator<Int>
+        let counter = Counter()
+        let recorder = IntRecorder()
+
+        let done = expectation(description: "all callback completions called")
+        done.expectedFulfillmentCount = 3
+
+        await coordinator.run(operation: {
+            let call = await counter.increment()
+            XCTAssertEqual(call, 1)
+            try? await Task.sleep(nanoseconds: 80_000_000)
+            return 42
+        }, completion: { value in
+            Task {
+                await recorder.append(value)
+                done.fulfill()
             }
         })
 
-        wait(for: [opCalled, finished], timeout: 1.0)
-    }
-
-    /// test_5: run (reentrant from completion) → starts a new operation after finish and does not lose callbacks
-    func test_5_run_reentrantFromCompletion_startsNewOperationAfterFinish() {
-        let coordinator = makeCoordinator() as UpdateCoordinator<Int>
-
-        let firstDone = expectation(description: "first completion called")
-        let secondDone = expectation(description: "second completion called")
-
-        let lock = NSLock()
-        var opCalls = 0
-        var received: [Int] = []
-
-        coordinator.run(operation: { finish in
-            lock.lock(); opCalls += 1; lock.unlock()
-            DispatchQueue.global().asyncAfter(deadline: .now() + 0.03) { finish(1) }
+        await coordinator.run(operation: {
+            XCTFail("operation must not be called while already running")
+            return 0
         }, completion: { value in
-            lock.lock(); received.append(value); lock.unlock()
-            firstDone.fulfill()
-
-            coordinator.run(operation: { finish in
-                lock.lock(); opCalls += 1; lock.unlock()
-                DispatchQueue.global().asyncAfter(deadline: .now() + 0.03) { finish(2) }
-            }, completion: { v2 in
-                lock.lock(); received.append(v2); lock.unlock()
-                secondDone.fulfill()
-            })
+            Task {
+                await recorder.append(value)
+                done.fulfill()
+            }
         })
 
-        wait(for: [firstDone, secondDone], timeout: 2.0)
+        await coordinator.run(operation: {
+            XCTFail("operation must not be called while already running")
+            return 0
+        }, completion: { value in
+            Task {
+                await recorder.append(value)
+                done.fulfill()
+            }
+        })
 
-        lock.lock()
-        let calls = opCalls
-        let values = received
-        lock.unlock()
+        await fulfillment(of: [done], timeout: 2.0)
+
+        let calls = await counter.get()
+        let results = await recorder.snapshot()
+
+        XCTAssertEqual(calls, 1)
+        XCTAssertEqual(results.count, 3)
+        XCTAssertTrue(results.allSatisfy { $0 == 42 })
+    }
+
+    /// test_4: run without callback still performs operation and returns result
+    func test_4_run_withoutCallback_stillPerformsOperation_andReturnsResult() async {
+        let coordinator = makeCoordinator() as UpdateCoordinator<Int>
+        let counter = Counter()
+
+        let value = await coordinator.run {
+            let call = await counter.increment()
+            XCTAssertEqual(call, 1)
+            try? await Task.sleep(nanoseconds: 30_000_000)
+            return 123
+        }
+
+        let calls = await counter.get()
+
+        XCTAssertEqual(calls, 1)
+        XCTAssertEqual(value, 123)
+    }
+
+    /// test_5: run reentrant from callback starts a new operation after finish and does not lose callbacks
+    func test_5_run_reentrantFromCallback_startsNewOperationAfterFinish_andDoesNotLoseCallbacks() async {
+        let coordinator = makeCoordinator() as UpdateCoordinator<Int>
+        let counter = Counter()
+        let recorder = IntRecorder()
+
+        let done = expectation(description: "both callback completions called")
+        done.expectedFulfillmentCount = 2
+
+        await coordinator.run(operation: {
+            let call = await counter.increment()
+            XCTAssertEqual(call, 1)
+            try? await Task.sleep(nanoseconds: 30_000_000)
+            return 1
+        }, completion: { value in
+            Task {
+                await recorder.append(value)
+                done.fulfill()
+            }
+
+            Task {
+                await coordinator.run(operation: {
+                    let call = await counter.increment()
+                    XCTAssertEqual(call, 2)
+                    try? await Task.sleep(nanoseconds: 30_000_000)
+                    return 2
+                }, completion: { secondValue in
+                    Task {
+                        await recorder.append(secondValue)
+                        done.fulfill()
+                    }
+                })
+            }
+        })
+
+        await fulfillment(of: [done], timeout: 2.0)
+
+        let calls = await counter.get()
+        let values = await recorder.snapshot()
 
         XCTAssertEqual(calls, 2)
         XCTAssertEqual(values, [1, 2])
     }
 
-    /// test_6: run (many concurrent callers) → still runs exactly once and delivers to all
-    func test_6_run_manyConcurrentCallers_runsExactlyOnce_andDeliversToAll() {
+    /// test_6: run with many concurrent callers still runs exactly once and delivers same result to all
+    func test_6_run_withManyConcurrentCallers_stillRunsExactlyOnce_andDeliversSameResultToAll() async {
         let coordinator = makeCoordinator() as UpdateCoordinator<Int>
+        let counter = Counter()
+        let recorder = IntRecorder()
 
-        let callers = 200
-        let done = expectation(description: "all completions called")
-        done.expectedFulfillmentCount = callers
-
-        let opCalledOnce = expectation(description: "operation called once")
-        opCalledOnce.expectedFulfillmentCount = 1
-
-        let startGate = DispatchGroup()
-        let lock = NSLock()
-
-        var opCalls = 0
-        var receivedCount = 0
-        var minValue = Int.max
-        var maxValue = Int.min
-
-        for _ in 0..<callers {
-            startGate.enter()
-            DispatchQueue.global(qos: .userInitiated).async {
-                coordinator.run(operation: { finish in
-                    lock.lock()
-                    opCalls += 1
-                    let isFirst = (opCalls == 1)
-                    lock.unlock()
-
-                    if isFirst { opCalledOnce.fulfill() }
-
-                    DispatchQueue.global().asyncAfter(deadline: .now() + 0.05) {
-                        finish(999)
+        await withTaskGroup(of: Int.self) { group in
+            for _ in 0..<200 {
+                group.addTask {
+                    await coordinator.run {
+                        let call = await counter.increment()
+                        XCTAssertEqual(call, 1)
+                        try? await Task.sleep(nanoseconds: 50_000_000)
+                        return 999
                     }
-                }, completion: { value in
-                    lock.lock()
-                    receivedCount += 1
-                    minValue = Swift.min(minValue, value)
-                    maxValue = Swift.max(maxValue, value)
-                    lock.unlock()
+                }
+            }
 
-                    done.fulfill()
-                })
-                startGate.leave()
+            for await value in group {
+                await recorder.append(value)
             }
         }
 
-        startGate.wait()
-
-        wait(for: [opCalledOnce, done], timeout: 5.0)
-
-        lock.lock()
-        let calls = opCalls
-        let rCount = receivedCount
-        let minV = minValue
-        let maxV = maxValue
-        lock.unlock()
+        let calls = await counter.get()
+        let values = await recorder.snapshot()
 
         XCTAssertEqual(calls, 1)
-        XCTAssertEqual(rCount, callers)
-        XCTAssertEqual(minV, 999)
-        XCTAssertEqual(maxV, 999)
+        XCTAssertEqual(values.count, 200)
+        XCTAssertEqual(values.min(), 999)
+        XCTAssertEqual(values.max(), 999)
     }
 }
-

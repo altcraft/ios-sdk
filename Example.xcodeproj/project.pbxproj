@@ -11,15 +11,10 @@
 		5509FAA02D6C677700B1DE03 /* SubscribeStatusManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5509FA9F2D6C677700B1DE03 /* SubscribeStatusManager.swift */; };
 		550C5AF52EF1504C00D3EBC1 /* FirebaseMessaging in Frameworks */ = {isa = PBXBuildFile; productRef = 550C5AF42EF1504C00D3EBC1 /* FirebaseMessaging */; };
 		5516B35A2D9C3AA7001FAF66 /* JWTProvider.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5516B3592D9C3AA7001FAF66 /* JWTProvider.swift */; };
-		55302BBE2E9D4356003A1A4C /* PushServiceTest.swift in Sources */ = {isa = PBXBuildFile; fileRef = 551440DA2E8E88F300BD0451 /* PushServiceTest.swift */; };
 		553646E22ECB3D680017AB0D /* NotificationService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 553646E12ECB3D680017AB0D /* NotificationService.swift */; };
 		553646E62ECB3D680017AB0D /* PushService.appex in Embed Foundation Extensions */ = {isa = PBXBuildFile; fileRef = 553646DF2ECB3D680017AB0D /* PushService.appex */; settings = {ATTRIBUTES = (RemoveHeadersOnCopy, ); }; };
 		553646EE2ECB3DB00017AB0D /* JWTProvider.swift in Sources */ = {isa = PBXBuildFile; fileRef = 553646ED2ECB3DB00017AB0D /* JWTProvider.swift */; };
 		5557A9232DF026B700BEF354 /* SDKFunctions.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5557A9222DF026B700BEF354 /* SDKFunctions.swift */; };
-		555831162F168AFD002E4A99 /* AGConnectCore.xcframework in Frameworks */ = {isa = PBXBuildFile; fileRef = 55E566452D107BE400FA2B07 /* AGConnectCore.xcframework */; };
-		555831182F168AFD002E4A99 /* AGConnectCredential.xcframework in Frameworks */ = {isa = PBXBuildFile; fileRef = 55E566482D107BE900FA2B07 /* AGConnectCredential.xcframework */; };
-		5558311C2F168AFD002E4A99 /* HMFoundation.xcframework in Frameworks */ = {isa = PBXBuildFile; fileRef = 55E5664E2D107C0B00FA2B07 /* HMFoundation.xcframework */; };
-		555831222F168BF8002E4A99 /* HiAnalytics.xcframework in Frameworks */ = {isa = PBXBuildFile; fileRef = 55E5664B2D107BEE00FA2B07 /* HiAnalytics.xcframework */; };
 		556288C82ED5C048007D1633 /* Altcraft.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 55302CAD2EA13466003A1A4C /* Altcraft.framework */; };
 		556288C92ED5C048007D1633 /* Altcraft.framework in Embed Frameworks */ = {isa = PBXBuildFile; fileRef = 55302CAD2EA13466003A1A4C /* Altcraft.framework */; settings = {ATTRIBUTES = (CodeSignOnCopy, RemoveHeadersOnCopy, ); }; };
 		556288CB2ED5C052007D1633 /* Altcraft.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 55302CAD2EA13466003A1A4C /* Altcraft.framework */; };
@@ -38,6 +33,10 @@
 		556FC7172E2A71B7000584AA /* JWTSettingComponents.swift in Sources */ = {isa = PBXBuildFile; fileRef = 556FC7162E2A71B7000584AA /* JWTSettingComponents.swift */; };
 		556FC7192E2AA433000584AA /* JWTManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 556FC7182E2AA433000584AA /* JWTManager.swift */; };
 		556FC7332E2E8109000584AA /* NotificationDataManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 556FC7322E2E8109000584AA /* NotificationDataManager.swift */; };
+		557B20042F6C553500D1D162 /* AGConnectCore.xcframework in Frameworks */ = {isa = PBXBuildFile; fileRef = 55E566452D107BE400FA2B07 /* AGConnectCore.xcframework */; };
+		557B20062F6C553500D1D162 /* AGConnectCredential.xcframework in Frameworks */ = {isa = PBXBuildFile; fileRef = 55E566482D107BE900FA2B07 /* AGConnectCredential.xcframework */; };
+		557B20082F6C553500D1D162 /* HiAnalytics.xcframework in Frameworks */ = {isa = PBXBuildFile; fileRef = 55E5664B2D107BEE00FA2B07 /* HiAnalytics.xcframework */; };
+		557B200A2F6C553500D1D162 /* HMFoundation.xcframework in Frameworks */ = {isa = PBXBuildFile; fileRef = 55E5664E2D107C0B00FA2B07 /* HMFoundation.xcframework */; };
 		558C47EF2C9DA6120006750E /* NavigatorView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 558C47EE2C9DA6120006750E /* NavigatorView.swift */; };
 		558C47F12C9DA6ED0006750E /* ExampleView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 558C47F02C9DA6ED0006750E /* ExampleView.swift */; };
 		558C47F32C9DB2D50006750E /* LogsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 558C47F22C9DB2D50006750E /* LogsView.swift */; };
@@ -132,7 +131,6 @@
 		46E657A8BE14BB1EBE18A4B4 /* Pods-Example.release.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-Example.release.xcconfig"; path = "Target Support Files/Pods-Example/Pods-Example.release.xcconfig"; sourceTree = "<group>"; };
 		4AA2DDD1707D6A449043469A /* Pods_PushService.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; includeInIndex = 0; path = Pods_PushService.framework; sourceTree = BUILT_PRODUCTS_DIR; };
 		5509FA9F2D6C677700B1DE03 /* SubscribeStatusManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SubscribeStatusManager.swift; sourceTree = "<group>"; };
-		551440DA2E8E88F300BD0451 /* PushServiceTest.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PushServiceTest.swift; sourceTree = "<group>"; };
 		5516B3592D9C3AA7001FAF66 /* JWTProvider.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = JWTProvider.swift; sourceTree = "<group>"; };
 		55302CA72EA13466003A1A4C /* Altcraft.xcodeproj */ = {isa = PBXFileReference; lastKnownFileType = "wrapper.pb-project"; path = Altcraft.xcodeproj; sourceTree = "<group>"; };
 		553646DF2ECB3D680017AB0D /* PushService.appex */ = {isa = PBXFileReference; explicitFileType = "wrapper.app-extension"; includeInIndex = 0; path = PushService.appex; sourceTree = BUILT_PRODUCTS_DIR; };
@@ -210,15 +208,15 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				555831182F168AFD002E4A99 /* AGConnectCredential.xcframework in Frameworks */,
+				557B20062F6C553500D1D162 /* AGConnectCredential.xcframework in Frameworks */,
 				556288C82ED5C048007D1633 /* Altcraft.framework in Frameworks */,
 				55E566562D108A6500FA2B07 /* libc++.tbd in Frameworks */,
 				550C5AF52EF1504C00D3EBC1 /* FirebaseMessaging in Frameworks */,
-				555831162F168AFD002E4A99 /* AGConnectCore.xcframework in Frameworks */,
-				555831222F168BF8002E4A99 /* HiAnalytics.xcframework in Frameworks */,
+				557B20042F6C553500D1D162 /* AGConnectCore.xcframework in Frameworks */,
 				55E566552D108A5100FA2B07 /* libz.tbd in Frameworks */,
 				8E3E2B3A979E1F327C3CEF9F /* Pods_Example.framework in Frameworks */,
-				5558311C2F168AFD002E4A99 /* HMFoundation.xcframework in Frameworks */,
+				557B200A2F6C553500D1D162 /* HMFoundation.xcframework in Frameworks */,
+				557B20082F6C553500D1D162 /* HiAnalytics.xcframework in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -322,7 +320,6 @@
 		558C70262C9C29D30062F600 /* Preview Content */ = {
 			isa = PBXGroup;
 			children = (
-				551440DA2E8E88F300BD0451 /* PushServiceTest.swift */,
 				558C70272C9C29D30062F600 /* Preview Assets.xcassets */,
 			);
 			path = "Preview Content";
@@ -482,7 +479,7 @@
 				558C701A2C9C29D10062F600 /* Resources */,
 				558C476F2C9C3CE10006750E /* Embed Foundation Extensions */,
 				556288CA2ED5C048007D1633 /* Embed Frameworks */,
-				3B13715C07993AA0F02CC55F /* [CP] Copy Pods Resources */,
+				D4F9F1F8120D66E1A2A7F4A4 /* [CP] Copy Pods Resources */,
 			);
 			buildRules = (
 			);
@@ -580,27 +577,6 @@
 /* End PBXResourcesBuildPhase section */
 
 /* Begin PBXShellScriptBuildPhase section */
-		3B13715C07993AA0F02CC55F /* [CP] Copy Pods Resources */ = {
-			isa = PBXShellScriptBuildPhase;
-			buildActionMask = 2147483647;
-			files = (
-			);
-			inputFileListPaths = (
-				"${PODS_ROOT}/Target Support Files/Pods-Example/Pods-Example-resources-${CONFIGURATION}-input-files.xcfilelist",
-			);
-			inputPaths = (
-			);
-			name = "[CP] Copy Pods Resources";
-			outputFileListPaths = (
-				"${PODS_ROOT}/Target Support Files/Pods-Example/Pods-Example-resources-${CONFIGURATION}-output-files.xcfilelist",
-			);
-			outputPaths = (
-			);
-			runOnlyForDeploymentPostprocessing = 0;
-			shellPath = /bin/sh;
-			shellScript = "\"${PODS_ROOT}/Target Support Files/Pods-Example/Pods-Example-resources.sh\"\n";
-			showEnvVarsInLog = 0;
-		};
 		907E22FE7527D9D49F664337 /* [CP] Check Pods Manifest.lock */ = {
 			isa = PBXShellScriptBuildPhase;
 			buildActionMask = 2147483647;
@@ -643,6 +619,27 @@
 			runOnlyForDeploymentPostprocessing = 0;
 			shellPath = /bin/sh;
 			shellScript = "diff \"${PODS_PODFILE_DIR_PATH}/Podfile.lock\" \"${PODS_ROOT}/Manifest.lock\" > /dev/null\nif [ $? != 0 ] ; then\n    # print error to STDERR\n    echo \"error: The sandbox is not in sync with the Podfile.lock. Run 'pod install' or update your CocoaPods installation.\" >&2\n    exit 1\nfi\n# This output is used by Xcode 'outputs' to avoid re-running this script phase.\necho \"SUCCESS\" > \"${SCRIPT_OUTPUT_FILE_0}\"\n";
+			showEnvVarsInLog = 0;
+		};
+		D4F9F1F8120D66E1A2A7F4A4 /* [CP] Copy Pods Resources */ = {
+			isa = PBXShellScriptBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			inputFileListPaths = (
+				"${PODS_ROOT}/Target Support Files/Pods-Example/Pods-Example-resources-${CONFIGURATION}-input-files.xcfilelist",
+			);
+			inputPaths = (
+			);
+			name = "[CP] Copy Pods Resources";
+			outputFileListPaths = (
+				"${PODS_ROOT}/Target Support Files/Pods-Example/Pods-Example-resources-${CONFIGURATION}-output-files.xcfilelist",
+			);
+			outputPaths = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+			shellPath = /bin/sh;
+			shellScript = "\"${PODS_ROOT}/Target Support Files/Pods-Example/Pods-Example-resources.sh\"\n";
 			showEnvVarsInLog = 0;
 		};
 /* End PBXShellScriptBuildPhase section */
@@ -694,7 +691,6 @@
 				559F2CF42E213AE900C5B7EE /* ActionComponents.swift in Sources */,
 				559F2CF62E21436300C5B7EE /* SubscribeStatusIndicator.swift in Sources */,
 				556FC7052E280402000584AA /* ProfileComponents.swift in Sources */,
-				55302BBE2E9D4356003A1A4C /* PushServiceTest.swift in Sources */,
 				556FC7132E2A6F15000584AA /* ConfigSettingComponents.swift in Sources */,
 				559F2CFB2E21443400C5B7EE /* EventComponents.swift in Sources */,
 				556FC7012E27C15A000584AA /* AppConstants.swift in Sources */,
@@ -930,7 +926,7 @@
 				"INFOPLIST_KEY_UIStatusBarStyle[sdk=iphonesimulator*]" = UIStatusBarStyleDefault;
 				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPad = "UIInterfaceOrientationPortrait UIInterfaceOrientationPortraitUpsideDown UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
 				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPhone = "UIInterfaceOrientationPortrait UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
-				IPHONEOS_DEPLOYMENT_TARGET = 15.1;
+				IPHONEOS_DEPLOYMENT_TARGET = 15.0;
 				LD_RUNPATH_SEARCH_PATHS = "@executable_path/Frameworks";
 				"LD_RUNPATH_SEARCH_PATHS[sdk=macosx*]" = "@executable_path/../Frameworks";
 				MACOSX_DEPLOYMENT_TARGET = 14.1;
@@ -942,7 +938,7 @@
 				SUPPORTED_PLATFORMS = "iphoneos iphonesimulator";
 				SUPPORTS_MACCATALYST = NO;
 				SWIFT_EMIT_LOC_STRINGS = YES;
-				SWIFT_VERSION = 5.0;
+				SWIFT_VERSION = 6.0;
 				TARGETED_DEVICE_FAMILY = "1,2";
 			};
 			name = Debug;
@@ -975,7 +971,7 @@
 				"INFOPLIST_KEY_UIStatusBarStyle[sdk=iphonesimulator*]" = UIStatusBarStyleDefault;
 				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPad = "UIInterfaceOrientationPortrait UIInterfaceOrientationPortraitUpsideDown UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
 				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPhone = "UIInterfaceOrientationPortrait UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
-				IPHONEOS_DEPLOYMENT_TARGET = 15.1;
+				IPHONEOS_DEPLOYMENT_TARGET = 15.0;
 				LD_RUNPATH_SEARCH_PATHS = "@executable_path/Frameworks";
 				"LD_RUNPATH_SEARCH_PATHS[sdk=macosx*]" = "@executable_path/../Frameworks";
 				MACOSX_DEPLOYMENT_TARGET = 14.1;
@@ -987,7 +983,7 @@
 				SUPPORTED_PLATFORMS = "iphoneos iphonesimulator";
 				SUPPORTS_MACCATALYST = NO;
 				SWIFT_EMIT_LOC_STRINGS = YES;
-				SWIFT_VERSION = 5.0;
+				SWIFT_VERSION = 6.0;
 				TARGETED_DEVICE_FAMILY = "1,2";
 			};
 			name = Release;

@@ -41,7 +41,7 @@ import XCTest
  *  - test_24: decodeUTM returns nil for nil input.
  *  - test_25: JSONValue handles unknown types with error.
  */
-final class ConverterTests: XCTestCase {
+final class ConverterTests: IsolatedTestCase {
 
     private func jsonData(_ object: [String: Any]) -> Data {
         return try! JSONSerialization.data(withJSONObject: object, options: [])

@@ -5,6 +5,7 @@
 //  Created by Andrey Pogodin.
 //
 //  Copyright © 2025 Altcraft. All rights reserved.
+//
 
 import Foundation
 
@@ -15,14 +16,11 @@ import Foundation
 /// Objective-C-friendly DTOs where needed.
 @objcMembers
 @available(iOSApplicationExtension, unavailable)
-public class PublicPushSubscriptionFunctions: NSObject {
-
+public class PublicPushSubscriptionFunctions: NSObject, @unchecked Sendable {
+    
     public static let shared = PublicPushSubscriptionFunctions()
-
-    /// Performs a push **subscription** request.
-    ///
-    /// Starts the subscription request and returns immediately; the `sync` flag
-    /// is forwarded to the backend (`1`/`0`) to control server-side behavior.
+    
+    /// Performs a push **push subscription** request.
     ///
     /// - Parameters:
     ///   - sync: Whether the call should be treated as synchronous (`true`)
@@ -41,17 +39,28 @@ public class PublicPushSubscriptionFunctions: NSObject {
         replace: Bool? = nil,
         skipTriggers: Bool? = nil
     ) {
-        PushSubscribe.shared.pushSubscribe(
-            status: Constants.SubStatus.subscribed.rawValue,
-            sync: sync ? 1 : 0,
-            profileFields: profileFields,
-            customFields: customFields,
-            cats: cats,
-            replace: replace,
-            skipTriggers: skipTriggers
-        )
+        let encodedCats = encodeCats(cats)
+        let encodedProfileFields = encodeAnyMap(profileFields)
+        let encodedCustomFields = encodeAnyMap(customFields)
+        
+        if (customFields ?? [:]).containsNonPrimitiveValues() {
+            errorEvent(#function, error: fieldsIsObjects)
+            return
+        }
+        
+        SubscribeQueues.entityQueue.submit {
+            await PushSubscribe.shared.pushSubscribe(
+                status: Constants.SubStatus.subscribed,
+                sync: sync ? 1 : 0,
+                profileFields: encodedProfileFields,
+                customFields: encodedCustomFields,
+                cats: encodedCats,
+                replace: replace,
+                skipTriggers: skipTriggers
+            )
+        }
     }
-
+    
     /// ObjC wrapper: subscribe (bridges Foundation types and `CategoryDataObjC`).
     @available(swift, obsoleted: 1)
     @objc(pushSubscribe:profileFields:customFields:cats:replace:skipTriggers:)
@@ -72,14 +81,11 @@ public class PublicPushSubscriptionFunctions: NSObject {
             skipTriggers: skipTriggers
         )
     }
-
-    /// Performs a push **unsubscription** request.
-    ///
-    /// Starts the unsubscription request and returns immediately; the `sync` flag
-    /// is forwarded to the backend (`1`/`0`) to control server-side behavior.
+    
+    /// Performs a push **push unsubscription** request.
     ///
     /// - Parameters:
-    ///   - sync: Whether the call should be treated as synchronous (`true`) 
+    ///   - sync: Whether the call should be treated as synchronous (`true`)
     ///   or asynchronous (`false`) on the server (default `true`).
     ///   - profileFields: Optional profile fields to include.
     ///   - customFields: Optional custom fields to include. Must contain only primitive values.
@@ -95,17 +101,28 @@ public class PublicPushSubscriptionFunctions: NSObject {
         replace: Bool? = nil,
         skipTriggers: Bool? = nil
     ) {
-        PushSubscribe.shared.pushSubscribe(
-            status: Constants.SubStatus.unsubscribed.rawValue,
-            sync: sync ? 1 : 0,
-            profileFields: profileFields,
-            customFields: customFields,
-            cats: cats,
-            replace: replace,
-            skipTriggers: skipTriggers
-        )
+        let encodedCats = encodeCats(cats)
+        let encodedProfileFields = encodeAnyMap(profileFields)
+        let encodedCustomFields = encodeAnyMap(customFields)
+        
+        if (customFields ?? [:]).containsNonPrimitiveValues() {
+            errorEvent(#function, error: fieldsIsObjects)
+            return
+        }
+        
+        SubscribeQueues.entityQueue.submit {
+            await PushSubscribe.shared.pushSubscribe(
+                status: Constants.SubStatus.unsubscribed,
+                sync: sync ? 1 : 0,
+                profileFields: encodedProfileFields,
+                customFields: encodedCustomFields,
+                cats: encodedCats,
+                replace: replace,
+                skipTriggers: skipTriggers
+            )
+        }
     }
-
+    
     /// ObjC wrapper: unsubscribe (bridges Foundation types and `CategoryDataObjC`).
     @available(swift, obsoleted: 1)
     @objc(pushUnSubscribe:profileFields:customFields:cats:replace:skipTriggers:)
@@ -126,14 +143,11 @@ public class PublicPushSubscriptionFunctions: NSObject {
             skipTriggers: skipTriggers
         )
     }
-
+    
     /// Suspends push notifications for the current profile.
     ///
-    /// Starts the suspend request and returns immediately; the `sync` flag
-    /// is forwarded to the backend (`1`/`0`) to control server-side behavior.
-    ///
     /// - Parameters:
-    ///   - sync: Whether the call should be treated as synchronous (`true`) 
+    ///   - sync: Whether the call should be treated as synchronous (`true`)
     ///   or asynchronous (`false`) on the server (default `true`).
     ///   - profileFields: Optional profile fields to include.
     ///   - customFields: Optional custom fields to include. Must contain only primitive values.
@@ -149,17 +163,28 @@ public class PublicPushSubscriptionFunctions: NSObject {
         replace: Bool? = nil,
         skipTriggers: Bool? = nil
     ) {
-        PushSubscribe.shared.pushSubscribe(
-            status: Constants.SubStatus.suspended.rawValue,
-            sync: sync ? 1 : 0,
-            profileFields: profileFields,
-            customFields: customFields,
-            cats: cats,
-            replace: replace,
-            skipTriggers: skipTriggers
-        )
+        let encodedCats = encodeCats(cats)
+        let encodedProfileFields = encodeAnyMap(profileFields)
+        let encodedCustomFields = encodeAnyMap(customFields)
+        
+        if (customFields ?? [:]).containsNonPrimitiveValues() {
+            errorEvent(#function, error: fieldsIsObjects)
+            return
+        }
+        
+        SubscribeQueues.entityQueue.submit {
+            await PushSubscribe.shared.pushSubscribe(
+                status: Constants.SubStatus.suspended,
+                sync: sync ? 1 : 0,
+                profileFields: encodedProfileFields,
+                customFields: encodedCustomFields,
+                cats: encodedCats,
+                replace: replace,
+                skipTriggers: skipTriggers
+            )
+        }
     }
-
+    
     /// ObjC wrapper: suspend (bridges Foundation types and `CategoryDataObjC`).
     @available(swift, obsoleted: 1)
     @objc(pushSuspend:profileFields:customFields:cats:replace:skipTriggers:)
@@ -180,7 +205,7 @@ public class PublicPushSubscriptionFunctions: NSObject {
             skipTriggers: skipTriggers
         )
     }
-
+    
     /// Sends an unSuspend request and wraps the response with the HTTP status code.
     ///
     /// The response is returned inside `ResponseWithHttp`, or `nil` on failure.
@@ -188,136 +213,191 @@ public class PublicPushSubscriptionFunctions: NSObject {
     ///
     /// - Parameter completion: Closure receiving `ResponseWithHttp` or `nil`.
     @nonobjc
-    public func unSuspendPushSubscription(completion: @escaping (ResponseWithHttp?) -> Void) {
-        getUnSuspendRequestData { data in
-            guard let data = data else {
+    public func unSuspendPushSubscription(
+        completion: @escaping @Sendable (ResponseWithHttp?) -> Void
+    ) {
+        Task {
+            guard let data = await getUnSuspendRequestData() else {
                 errorEvent(#function, error: unSuspendRequestDataIsNil)
-                completion(nil)
-                return
-            }
-
-            guard let request = unSuspendRequest(data: data) else {
-                errorEvent(#function, error: failedCreateRequest)
-                completion(nil)
-                return
-            }
-
-            RequestManager.shared.sendRequest(
-                request: request,
-                requestName: Constants.RequestName.unsuspend
-            ) { result in
-                completion(result.value?[Constants.MapKeys.responseWithHttp] as? ResponseWithHttp)
-            }
-        }
-    }
-
-    /// ObjC wrapper: unsuspend (bridges to `ResponseWithHttpObjC`).
-    @available(swift, obsoleted: 1)
-    @objc(unSuspendPushSubscriptionWithCompletion:)
-    public func unSuspendPushSubscription(_ completion: @escaping (ResponseWithHttpObjC?) -> Void) {
-        self.unSuspendPushSubscription { swiftResult in
-            completion(ResponseWithHttpObjC.from(swiftResult))
-        }
-    }
-
-    /// Returns the status of the latest subscription in profile.
-    /// Equivalent to Kotlin's `getStatusOfLatestSubscription()`.
-    ///
-    /// - Parameter completion: Callback invoked with `ResponseWithHttp` (contains HTTP status and parsed `Response`)
-    ///                         or `nil` if validation fails or the request could not be created/sent.
-    @nonobjc
-    public func getStatusOfLatestSubscription(completion: @escaping (ResponseWithHttp?) -> Void) {
-        statusRequest(mode: Constants.StatusMode.latestSubscription) { request in
-            guard let request = request else {
-                completion(nil)
+                await MainActor.run {
+                    completion(nil)
+                }
                 return
             }
             
-            RequestManager.shared.sendRequest(
+            guard let request = unSuspendRequest(data: data) else {
+                errorEvent(#function, error: failedCreateRequest)
+                await MainActor.run {
+                    completion(nil)
+                }
+                return
+            }
+            
+            let result = await RequestManager.shared.sendRequest(
                 request: request,
-                requestName: Constants.RequestName.status
-            ) { result in
-                completion(result.value?[Constants.MapKeys.responseWithHttp] as? ResponseWithHttp)
+                requestName: Constants.RequestName.unsuspend
+            )
+            
+            let response = result.value?[
+                Constants.MapKeys.responseWithHttp
+            ] as? ResponseWithHttp
+            
+            await MainActor.run {
+                completion(response)
             }
         }
     }
-
+    
+    /// ObjC wrapper: unsuspend (bridges to `ResponseWithHttpObjC`).
+    @available(swift, obsoleted: 1)
+    @objc(unSuspendPushSubscriptionWithCompletion:)
+    public func unSuspendPushSubscription(
+        _ completion: @escaping (ResponseWithHttpObjC?) -> Void
+    ) {
+        let completionBox = CallbackBox<ResponseWithHttpObjC?>(completion)
+        
+        self.unSuspendPushSubscription { response in
+            let objcResponse = ResponseWithHttpObjC.from(response)
+            completionBox.call(objcResponse)
+        }
+    }
+    
+    /// Returns the status of the latest subscription in profile.
+    ///
+    /// - Parameter completion: Callback invoked with `ResponseWithHttp` or `nil`.
+    @nonobjc
+    public func getStatusOfLatestSubscription(
+        completion: @escaping @Sendable (ResponseWithHttp?) -> Void
+    ) {
+        Task {
+            guard let request = await statusRequest(
+                mode: Constants.StatusMode.latestSubscription
+            ) else {
+                await MainActor.run {
+                    completion(nil)
+                }
+                return
+            }
+            
+            let result = await RequestManager.shared.sendRequest(
+                request: request,
+                requestName: Constants.RequestName.status
+            )
+            
+            let response = result.value?[
+                Constants.MapKeys.responseWithHttp
+            ] as? ResponseWithHttp
+            
+            await MainActor.run {
+                completion(response)
+            }
+        }
+    }
+    
     /// ObjC wrapper: latest status.
     @available(swift, obsoleted: 1)
     @objc(getStatusOfLatestSubscriptionWithCompletion:)
-    public func getStatusOfLatestSubscription(_ completion: @escaping (ResponseWithHttpObjC?) -> Void) {
-        self.getStatusOfLatestSubscription { swiftResult in
-            completion(ResponseWithHttpObjC.from(swiftResult))
+    public func getStatusOfLatestSubscription(
+        _ completion: @escaping (ResponseWithHttpObjC?) -> Void
+    ) {
+        let completionBox = CallbackBox<ResponseWithHttpObjC?>(completion)
+        
+        self.getStatusOfLatestSubscription { response in
+            let objcResponse = ResponseWithHttpObjC.from(response)
+            completionBox.call(objcResponse)
         }
     }
-
+    
     /// Returns the status of a subscription matching the current push token and provider.
-    /// Equivalent to Kotlin's `getStatusForCurrentSubscription()`.
     ///
-    /// - Parameter completion: Callback invoked with `ResponseWithHttp` (contains HTTP status and parsed `Response`)
-    ///                         or `nil` if validation fails or the request could not be created/sent.
+    /// - Parameter completion: Callback invoked with `ResponseWithHttp` or `nil`.
     @nonobjc
-    public func getStatusForCurrentSubscription(completion: @escaping (ResponseWithHttp?) -> Void) {
-        statusRequest(mode: Constants.StatusMode.matchCurrentContext) { request in
-            guard let request = request else {
-                completion(nil)
+    public func getStatusForCurrentSubscription(
+        completion: @escaping @Sendable (ResponseWithHttp?) -> Void
+    ) {
+        Task {
+            guard let request = await statusRequest(
+                mode: Constants.StatusMode.matchCurrentContext
+            ) else {
+                await MainActor.run {
+                    completion(nil)
+                }
                 return
             }
-
-            RequestManager.shared.sendRequest(
+            
+            let result = await RequestManager.shared.sendRequest(
                 request: request,
                 requestName: Constants.RequestName.status
-            ) { result in
-                completion(result.value?[Constants.MapKeys.responseWithHttp] as? ResponseWithHttp)
+            )
+            
+            let response = result.value?[
+                Constants.MapKeys.responseWithHttp
+            ] as? ResponseWithHttp
+            
+            await MainActor.run {
+                completion(response)
             }
         }
     }
-
+    
     /// ObjC wrapper: current status.
     @available(swift, obsoleted: 1)
     @objc(getStatusForCurrentSubscriptionWithCompletion:)
-    public func getStatusForCurrentSubscription(_ completion: @escaping (ResponseWithHttpObjC?) -> Void) {
-        self.getStatusForCurrentSubscription { swiftResult in
-            completion(ResponseWithHttpObjC.from(swiftResult))
+    public func getStatusForCurrentSubscription(
+        _ completion: @escaping (ResponseWithHttpObjC?) -> Void
+    ) {
+        let completionBox = CallbackBox<ResponseWithHttpObjC?>(completion)
+        
+        self.getStatusForCurrentSubscription { response in
+            let objcResponse = ResponseWithHttpObjC.from(response)
+            completionBox.call(objcResponse)
         }
     }
-
+    
     /// Returns the status of the latest subscription for a push provider.
-    /// If `provider` is specified, queries the latest subscription for that provider.
-    /// If `nil`, uses the current push provider.
-    /// Equivalent to Kotlin's `getStatusOfLatestSubscriptionForProvider()`.
     ///
     /// - Parameters:
-    ///   - provider: Optional push provider identifier (`"ios-apns"`, `"ios-firebase"`, `"ios-huawei"`). 
-    ///   If `nil`, the current provider is used.
-    ///   - completion: Callback invoked with `ResponseWithHttp` (contains HTTP status and parsed `Response`)
-    ///                 or `nil` if validation fails or the request could not be created/sent.
+    ///   - provider: Optional push provider identifier.
+    ///   - completion: Callback invoked with `ResponseWithHttp` or `nil`.
     @nonobjc
     public func getStatusOfLatestSubscriptionForProvider(
         provider: String? = nil,
-        completion: @escaping (ResponseWithHttp?) -> Void
+        completion: @escaping @Sendable (ResponseWithHttp?) -> Void
     ) {
-        if let p = provider, !TokenManager.shared.validProviders.contains(p) {
-            errorEvent(#function, error: invalidPushProviders)
-            completion(nil)
-            return
-        }
-
-        statusRequest(mode: Constants.StatusMode.latestForProvider, provider: provider) { request in
-            guard let request = request else {
-                completion(nil)
+        Task {
+            if let p = provider, !TokenManager.shared.validProviders.contains(p) {
+                errorEvent(#function, error: invalidPushProviders)
+                await MainActor.run {
+                    completion(nil)
+                }
                 return
             }
-
-            RequestManager.shared.sendRequest(
+            
+            guard let request = await statusRequest(
+                mode: Constants.StatusMode.latestForProvider,
+                provider: provider
+            ) else {
+                await MainActor.run {
+                    completion(nil)
+                }
+                return
+            }
+            
+            let result = await RequestManager.shared.sendRequest(
                 request: request,
                 requestName: Constants.RequestName.status
-            ) { result in
-                completion(result.value?[Constants.MapKeys.responseWithHttp] as? ResponseWithHttp)
+            )
+            
+            let response = result.value?[
+                Constants.MapKeys.responseWithHttp
+            ] as? ResponseWithHttp
+            
+            await MainActor.run {
+                completion(response)
             }
         }
     }
-
+    
     /// ObjC wrapper: latest status for provider.
     @available(swift, obsoleted: 1)
     @objc(getStatusOfLatestSubscriptionForProvider:completion:)
@@ -325,11 +405,14 @@ public class PublicPushSubscriptionFunctions: NSObject {
         _ provider: String?,
         completion: @escaping (ResponseWithHttpObjC?) -> Void
     ) {
-        self.getStatusOfLatestSubscriptionForProvider(provider: provider) { swiftResult in
-            completion(ResponseWithHttpObjC.from(swiftResult))
+        let completionBox = CallbackBox<ResponseWithHttpObjC?>(completion)
+        
+        self.getStatusOfLatestSubscriptionForProvider(provider: provider) { response in
+            let objcResponse = ResponseWithHttpObjC.from(response)
+            completionBox.call(objcResponse)
         }
     }
-
+    
     /// Creates an `ActionFieldBuilder` for the specified profile field key.
     ///
     /// - Parameter key: The profile field key.
@@ -337,30 +420,4 @@ public class PublicPushSubscriptionFunctions: NSObject {
     public func actionField(key: String) -> ActionFieldBuilder {
         return ActionFieldBuilder(key: key)
     }
-
-    /// Example usage (Swift):
-    /// You can construct a `profileFields` dictionary with structured updates:
-    ///
-    /// ```swift
-    /// AltcraftSDK.shared.pushSubscriptionFunctions.pushSubscribe(
-    ///     profileFields: actionField(key: "_fname").set(value: "Andrey")
-    /// )
-    /// ```
-    ///
-    /// ```swift
-    /// AltcraftSDK.shared.pushSubscriptionFunctions.pushSubscribe(
-    ///     profileFields: mergeFields(
-    ///         actionField(key: "_fname").set(value: "Andrey"),
-    ///         ["simple_field": "value"]
-    ///     )
-    /// )
-    /// ```
-    ///
-    /// Supported update actions:
-    /// - `set(value:)`
-    /// - `unset(value:)`
-    /// - `incr(value:)`
-    /// - `add(value:)`
-    /// - `delete(value:)`
-    /// - `upsert(value:)`
 }

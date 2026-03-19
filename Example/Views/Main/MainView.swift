@@ -156,8 +156,7 @@ struct MainView: View {
                                     AnyView(PlusIcon(lineWidth: 15, lineHeight: 3))
                                 })
                                 .frame(maxWidth: .infinity)
-                                
-                                
+                                 
                                 ActionButton(label: "Get profile status", onClick: {
                                     AltcraftSDK.shared.pushSubscriptionFunctions.getStatusForCurrentSubscription{ _ in
                                         Task { @MainActor in
@@ -168,10 +167,8 @@ struct MainView: View {
                                     
                                 }).frame(maxWidth: .infinity)
                                 
-                                
                                 ActionButton(label: "update device token", onClick: {
-                                    
-                                    AltcraftSDK.shared.pushTokenFunction.forcedTokenUpdate()
+                                    AltcraftSDK.shared.pushTokenFunctions.forcedTokenUpdate()
                                 }, customIcon: {
                                     AnyView(UShapedIcon())
                                 }).frame(maxWidth: .infinity)

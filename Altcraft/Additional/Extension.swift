@@ -37,11 +37,12 @@ extension Data {
 
 // MARK: - Thread-safe optional String array storage
 // One shared queue for all such lists.
-private let _tsListQueue = DispatchQueue(label: "com.altcraft.tslist", attributes: .concurrent)
+private let _tsListQueue = DispatchQueue(
+    label: "com.altcraft.tslist", attributes: .concurrent
+)
 
 extension Array where Element == String? {
-
-    /// Thread-safe append (stores `nil` too).
+    /// Appends an element using the shared synchronization queue.
     /// - Parameter value: Element to append.
      mutating func ts_append(_ value: Element) {
         _tsListQueue.sync(flags: .barrier) {
@@ -49,7 +50,7 @@ extension Array where Element == String? {
         }
     }
 
-    /// Thread-safe removal of all elements.
+    /// Removes all elements using the shared synchronization queue.
     /// - Parameter keepingCapacity: Pass `true` to keep the existing capacity.
      mutating func ts_removeAll(keepingCapacity: Bool = false) {
         _tsListQueue.sync(flags: .barrier) {
@@ -57,9 +58,9 @@ extension Array where Element == String? {
         }
     }
 
-    /// Thread-safe retrieval of the last element.
+    /// Returns the last element using the shared synchronization queue.
     /// - Returns: The last element or `nil` if the list is empty.
-     func ts_last() -> Element? {
+    func ts_last() -> Element? {
         _tsListQueue.sync { self.last }
     }
 }

@@ -5,74 +5,93 @@
 //  Created by Andrey Pogodin.
 //
 //  Copyright © 2025 Altcraft. All rights reserved.
-//
 
 import Foundation
 
-/// SDK logger that respects user-defined logging preferences.
+/// Thread-safe facade for SDK logging.
 ///
-/// - `true`  → logs are printed
-/// - `false` → logs are suppressed
-/// - `nil`   → logging not configured, one-time hint is printed
-final class Logger {
-
-    let userDefault = StoredVariablesManager.shared
-
-    /// Shared singleton instance of the logger.
+/// Delegates all mutable state and logging decisions to `LoggerCore`.
+final class Logger: Sendable {
+    /// Shared singleton instance.
     static let shared = Logger()
 
-    /// Private initializer to enforce singleton usage.
-    private init() {}
-    
-    /// Sets and persists the logging status for the SDK.
-    ///
-    /// Updates the in-memory logger state and saves the value to `StoredVariablesManager`.
-    func setStatus(status: Bool?) {
-        Logger.shared.loggingStatus = status
-        StoredVariablesManager.shared.setLoggingStatus(
-            enabled: status
-        )
-    }
-    
-    /// Current logging status, loaded lazily from `StoredVariablesManager`.
-    ///
-    /// - `true`  → logging enabled.
-    /// - `false` → logging disabled.
-    /// - `nil`   → not configured yet; a single integration hint will be printed.
-    lazy var loggingStatus: Bool? = {
-        userDefault.getLoggingStatus()
-    }()
+    private let core = LoggerCore()
 
-    private let integrationHintLock = NSLock()
+    private init() {}
+
+    /// Asynchronously logs a message according to the current logging settings.
+    ///
+    /// - Parameter message: The message to log.
+    func log(_ message: String) {
+        Task {
+            await core.log(message)
+        }
+    }
+
+    /// Asynchronously updates the logging status.
+    ///
+    /// - Parameter status: `true` to enable logging, `false` to disable it,
+    ///   or `nil` to clear the explicit setting.
+    func setStatus(_ status: Bool?) {
+        Task {
+            await core.setStatus(status)
+        }
+    }
+}
+
+/// Actor that stores logging state and performs actual log output.
+actor LoggerCore {
+    /// Cached logging status.
+    ///
+    /// Outer `nil` means the value has not been resolved yet.
+    /// Inner `nil` means no explicit setting is stored.
+    private var loggingStatus: Bool??
+
+    /// Indicates whether the integration hint has already been printed.
     private var integrationHintLogged = false
 
-    /// Logs an SDK message according to the current logging status.
+    init() {}
+
+    /// Updates and persists the logging status.
     ///
-    /// - Parameter message: The message to be logged.
+    /// - Parameter status: `true` to enable logging, `false` to disable it,
+    ///   or `nil` to clear the stored setting.
+    func setStatus(_ status: Bool?) {
+        loggingStatus = status
+        StoredVariablesManager.shared.setLoggingStatus(enabled: status)
+    }
+
+    /// Logs a message if logging is enabled.
+    ///
+    /// If logging status is undefined, prints the integration hint once.
+    ///
+    /// - Parameter message: The message to log.
     func log(_ message: String) {
-        switch loggingStatus {
+        let status = resolvedLoggingStatus()
+
+        switch status {
         case .some(true):
             print(message)
         case .some(false):
-            return
+            break
         case .none:
-            logIntegrationHintOnce()
+            guard !integrationHintLogged else { return }
+            integrationHintLogged = true
+            print(Constants.Log.hintLog)
         }
     }
 
-    /// Emits a one-time integration hint explaining how to enable logging.
+    /// Returns the effective logging status, using cached value when available.
     ///
-    /// Thread-safe: uses a lock to ensure the hint is printed only once.
-    private func logIntegrationHintOnce() {
-        integrationHintLock.lock()
-        let shouldLog = !integrationHintLogged
-        if shouldLog {
-            integrationHintLogged = true
+    /// - Returns: `true` if logging is enabled, `false` if disabled,
+    ///   or `nil` if the status is not defined.
+    private func resolvedLoggingStatus() -> Bool? {
+        if let cached = loggingStatus {
+            return cached
         }
-        integrationHintLock.unlock()
 
-        if shouldLog {
-            print(Constants.Log.hintLog)
-        }
+        let stored = StoredVariablesManager.shared.getLoggingStatus()
+        loggingStatus = stored
+        return stored
     }
 }

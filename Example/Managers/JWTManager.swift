@@ -8,7 +8,7 @@
 
 import Foundation
 
-final class JWTManager {
+final class JWTManager: @unchecked Sendable  {
     static let shared = JWTManager()
     
     private static let suiteName = appGroupID

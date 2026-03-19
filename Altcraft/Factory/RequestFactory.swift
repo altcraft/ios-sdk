@@ -169,7 +169,7 @@ func buildMobileEventURL(
 ///   - requestBody: The JSON-encoded request body.
 /// - Returns: An optional `URLRequest` representing the subscription request, or `nil` if an error occurs.
 func createSubscribeRequest(
-    data: SubscribeRequestData,
+    data: PushSubscribeRequestData,
     requestBody: Data
 ) -> URLRequest? {
 
@@ -191,11 +191,11 @@ func createSubscribeRequest(
 /// Creates a URL request for updating a push subscription token.
 ///
 /// - Parameters:
-///   - data: The `UpdateRequestData` object containing the request parameters.
+///   - data: The `TokenUpdateRequestData` object containing the request parameters.
 ///   - requestBody: The JSON-encoded request body.
 /// - Returns: An optional `URLRequest` object configured for the update request.
-func createUpdateRequest(
-    data: UpdateRequestData,
+func createTokenUpdateRequest(
+    data: TokenUpdateRequestData,
     requestBody: Data
 ) -> URLRequest? {
     
@@ -267,8 +267,7 @@ func createUnSuspendRequest(
 ///
 /// - Parameter data: The `ProfileRequestData` containing URL, headers, and optional parameters.
 /// - Returns: An optional `URLRequest` for the profile request, or `nil` if URL construction fails.
-func createProfileRequest(data: ProfileRequestData) -> URLRequest? {
-    
+func createProfileStatusRequest(data: ProfileStatusRequestData) -> URLRequest? {
     guard let url = buildURLComponents(
         url: data.url,
         provider: data.provider,
@@ -282,13 +281,63 @@ func createProfileRequest(data: ProfileRequestData) -> URLRequest? {
     return buildGetRequest(url: url, authHeader: data.authHeader, requestId: data.requestId)
 }
 
+/// Builds a multipart `URLRequest` for sending a mobile event.
+/// Resolves the endpoint via `buildMobileEventURL(...)` (adds `i`, `tr`, `t`, `v`)
+/// and delegates to `buildMultipartRequest(url:parts:authHeader:)`.
+///
+/// - Parameter data: `MobileEventRequestData` containing all required fields.
+/// - Returns: Configured `URLRequest`, or `nil` if URL construction fails (error is logged).
+func createMobileEventRequest(
+    data: MobileEventRequestData
+) -> URLRequest? {
+    guard let url = buildMobileEventURL(
+        baseURLString: data.url,
+        sid: data.sid,
+        tracker: "px",
+        type: "open",
+        version: "2"
+    ) else {
+        errorEvent(#function, error: invalidRequestUrl, value: [Constants.MapKeys.url: data.url])
+        return nil
+    }
+    return buildMultipartRequest(
+        url: url, parts: data.parts, authHeader: data.authHeader, requestId: data.requestId
+    )
+}
+
+/// Creates a URL request for updating profile fields.
+///
+/// - Parameters:
+///   - data: The `ProfileUpdateRequestData` containing URL, headers, and payload options.
+///   - requestBody: The JSON-encoded request body.
+/// - Returns: An optional `URLRequest` for the profile update, or `nil` if URL construction fails.
+func createProfileUpdateRequest(
+    data: ProfileUpdateRequestData,
+    requestBody: Data
+) -> URLRequest? {
+
+    guard let url = buildURLComponents(
+        url: data.url
+    )?.url else {
+        errorEvent(#function, error: invalidRequestUrl, value: [Constants.MapKeys.url: data.url])
+        return nil
+    }
+
+    return buildPostRequest(
+        url: url,
+        body: requestBody,
+        authHeader: data.authHeader,
+        requestId: data.requestId
+    )
+}
+
 /// Creates a complete URL request for a push subscription.
 ///
 /// Encodes the request body and builds a `URLRequest` with headers and query parameters.
 ///
 /// - Parameter data: The `SubscribeRequestData` containing subscription parameters.
 /// - Returns: A configured `URLRequest`, or `nil` if encoding fails.
-func subscribeRequest(data: SubscribeRequestData) -> URLRequest? {
+func pushSubscribeRequest(data: PushSubscribeRequestData) -> URLRequest? {
     guard let requestBody = createSubscribeJSONBody(data: data) else {
         return nil
     }
@@ -299,13 +348,13 @@ func subscribeRequest(data: SubscribeRequestData) -> URLRequest? {
 ///
 /// Encodes the update payload and builds a `URLRequest` with headers and query parameters.
 ///
-/// - Parameter data: The `UpdateRequestData` containing token update info.
+/// - Parameter data: The `TokenUpdateRequestData` containing token update info.
 /// - Returns: A configured `URLRequest`, or `nil` if encoding fails.
-func updateRequest(data: UpdateRequestData) -> URLRequest? {
+func tokenUpdateRequest(data: TokenUpdateRequestData) -> URLRequest? {
     guard let requestBody = createUpdateJSONBody(data: data) else {
         return nil
     }
-    return createUpdateRequest(data: data, requestBody: requestBody)
+    return createTokenUpdateRequest(data: data, requestBody: requestBody)
 }
 
 /// Creates a complete URL request for sending a push event.
@@ -334,6 +383,19 @@ func unSuspendRequest(data: UnSuspendRequestData) -> URLRequest? {
     return createUnSuspendRequest(data: data, requestBody: body)
 }
 
+/// Creates a complete URL request for updating profile fields.
+///
+/// Encodes the update payload and builds a `URLRequest` with headers.
+///
+/// - Parameter data: The `ProfileUpdateRequestData` containing profile update parameters.
+/// - Returns: A configured `URLRequest`, or `nil` if JSON encoding fails.
+func profileUpdateRequest(data: ProfileUpdateRequestData) -> URLRequest? {
+    guard let requestBody = createProfileUpdateJSONBody(data: data) else {
+        return nil
+    }
+    return createProfileUpdateRequest(data: data, requestBody: requestBody)
+}
+
 /// Internal helper: builds a `URLRequest` for a subscription status call
 /// based on the specified matching mode. All public APIs should call this
 /// helper and then send the request themselves.
@@ -344,63 +406,36 @@ func unSuspendRequest(data: UnSuspendRequestData) -> URLRequest? {
 ///   - completion: Closure receiving a built `URLRequest` or `nil` on failure.
 func statusRequest(
     mode: String,
-    provider: String? = nil,
-    completion: @escaping (URLRequest?) -> Void
-) {
-    getProfileRequestData { data in
-        guard var data = data else {
-            errorEvent(#function, error: profileRequestDataIsNil)
-            completion(nil)
-            return
-        }
-
-        switch mode {
-        case Constants.StatusMode.matchCurrentContext:
-            break
-
-        case Constants.StatusMode.latestSubscription:
-            data.provider = nil
-            data.token = nil
-
-        case Constants.StatusMode.latestForProvider:
-            data.provider = provider ?? data.provider
-            data.token = nil
-
-        default:
-            completion(nil)
-            return
-        }
-
-        guard let request = createProfileRequest(data: data) else {
-            errorEvent(#function, error: failedCreateRequest)
-            completion(nil)
-            return
-        }
-
-        completion(request)
-    }
-}
-
-/// Builds a multipart `URLRequest` for sending a mobile event.
-/// Resolves the endpoint via `buildMobileEventURL(...)` (adds `i`, `tr`, `t`, `v`)
-/// and delegates to `buildMultipartRequest(url:parts:authHeader:)`.
-///
-/// - Parameter data: `MobileEventRequestData` containing all required fields.
-/// - Returns: Configured `URLRequest`, or `nil` if URL construction fails (error is logged).
-func createMobileEventRequest(
-    data: MobileEventRequestData
-) -> URLRequest? {
-    guard let url = buildMobileEventURL(
-        baseURLString: data.url,
-        sid: data.sid,
-        tracker: "px",
-        type: "open",
-        version: "2"
-    ) else {
-        errorEvent(#function, error: invalidRequestUrl, value: [Constants.MapKeys.url: data.url])
+    provider: String? = nil
+) async -> URLRequest? {
+    let data  = await getProfileStatusRequestData()
+    guard var data = data else {
+        errorEvent(#function, error: profileRequestDataIsNil)
         return nil
     }
-    return buildMultipartRequest(
-        url: url, parts: data.parts, authHeader: data.authHeader, requestId: data.requestId
-    )
+    
+    switch mode {
+    case Constants.StatusMode.matchCurrentContext:
+        break
+        
+    case Constants.StatusMode.latestSubscription:
+        data.provider = nil
+        data.token = nil
+        
+    case Constants.StatusMode.latestForProvider:
+        data.provider = provider ?? data.provider
+        data.token = nil
+        
+    default:
+        return nil
+    }
+    
+     guard let request = createProfileStatusRequest(data: data) else {
+        errorEvent(#function, error: failedCreateRequest)
+        return  nil
+    }
+    
+    return request
 }
+
+

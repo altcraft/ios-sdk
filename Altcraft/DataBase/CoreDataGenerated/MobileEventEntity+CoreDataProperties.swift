@@ -2,7 +2,7 @@
 //  MobileEventEntity+CoreDataProperties.swift
 //  
 //
-//  Created by andrey on 06.01.2026.
+//  Created by andrey on 03.03.2026.
 //
 //
 
@@ -25,6 +25,7 @@ extension MobileEventEntity {
     @NSManaged public var maxRetryCount: Int16
     @NSManaged public var payload: Data?
     @NSManaged public var profileFields: Data?
+    @NSManaged public var requestId: String?
     @NSManaged public var retryCount: Int16
     @NSManaged public var sendMessageId: String?
     @NSManaged public var sid: String?
@@ -33,5 +34,5 @@ extension MobileEventEntity {
     @NSManaged public var timeZone: Int16
     @NSManaged public var userTag: String?
     @NSManaged public var utmTags: Data?
-    @NSManaged public var requestId: String?
+
 }

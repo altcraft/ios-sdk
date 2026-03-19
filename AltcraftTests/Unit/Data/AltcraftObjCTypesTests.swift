@@ -30,7 +30,7 @@ import XCTest
  *  - test_13_mapNSDictionary_withComplexNestedStructure: Handles complex nested dictionaries/arrays.
  *  - test_14_SubscriptionConversions_withNilOptionalFields: Subscriptions handle nil optional fields.
  */
-final class AltcraftObjCTypesTests: XCTestCase {
+final class AltcraftObjCTypesTests: IsolatedTestCase {
 
     /// test_1_AppInfoObjC_initialization
     func test_1_AppInfoObjC_initialization() {

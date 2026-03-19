@@ -2,9 +2,10 @@
 //  JsonFactoryAndRequestFactoryTests.swift
 //  AltcraftTests
 //
-//  Created by Andrey Pogodin.
+//  Created by Andrey Pogodin
 //
 //  © 2025 Altcraft. All rights reserved.
+//
 
 import XCTest
 @testable import Altcraft
@@ -19,8 +20,9 @@ import XCTest
  *  - test_4: unSuspend → JSON and request.
  *  - test_5: pushEvent → JSON and request.
  *  - test_6: profile → GET request.
+ *  - test_7: profileUpdate → JSON null/defaults.
  */
-final class JsonFactoryAndRequestFactoryTests: XCTestCase {
+final class JsonFactoryTests: XCTestCase {
 
     private let keys = Constants.JSONKeys.self
     private let httpH = Constants.HTTPHeader.self
@@ -62,7 +64,7 @@ final class JsonFactoryAndRequestFactoryTests: XCTestCase {
         return out
     }
 
-    /// test_1: subscribe → full JSON and request
+    /// test_1: subscribe → full JSON and request.
     func test_1_subscribe_full_json_and_request() throws {
         let cats: [CategoryData] = [
             CategoryData(name: "news",  title: "News",  steady: true,  active: true),
@@ -71,7 +73,7 @@ final class JsonFactoryAndRequestFactoryTests: XCTestCase {
         let profile: [String: Any] = ["age": 30, "city": "AMS"]
         let custom:  [String: Any] = ["utm": "spring-2025"]
 
-        let data = SubscribeRequestData(
+        let data = PushSubscribeRequestData(
             url: baseURL,
             requestId: reqId,
             time: 1_727_000_000,
@@ -133,9 +135,9 @@ final class JsonFactoryAndRequestFactoryTests: XCTestCase {
         XCTAssertNil(qm[q.subscriptionId])
     }
 
-    /// test_2: subscribe → minimal JSON defaults and request
+    /// test_2: subscribe → minimal JSON defaults and request.
     func test_2_subscribe_minimal_json_defaults_and_request() throws {
-        let data = SubscribeRequestData(
+        let data = PushSubscribeRequestData(
             url: baseURL,
             requestId: reqId,
             time: 123,
@@ -168,7 +170,7 @@ final class JsonFactoryAndRequestFactoryTests: XCTestCase {
 
         let fieldsAny = sub?[keys.fields]
         if let fieldsDict = fieldsAny as? [String: Any] {
-            XCTAssertTrue(fieldsDict.isEmpty, "Expected empty fields dict when customFields is empty")
+            XCTAssertTrue(fieldsDict.isEmpty)
         } else {
             XCTFail("Expected fields dict to exist")
         }
@@ -187,9 +189,9 @@ final class JsonFactoryAndRequestFactoryTests: XCTestCase {
         XCTAssertEqual(qm[q.sync], "false")
     }
 
-    /// test_3: update → JSON nulls and request
+    /// test_3: update → JSON nulls and request.
     func test_3_update_json_nulls_and_request() throws {
-        let full = UpdateRequestData(
+        let full = TokenUpdateRequestData(
             url: baseURL,
             requestId: reqId,
             authHeader: auth,
@@ -199,7 +201,7 @@ final class JsonFactoryAndRequestFactoryTests: XCTestCase {
             newProvider: "ios-firebase",
             sync: true
         )
-        let partial = UpdateRequestData(
+        let partial = TokenUpdateRequestData(
             url: baseURL,
             requestId: reqId,
             authHeader: auth,
@@ -222,7 +224,9 @@ final class JsonFactoryAndRequestFactoryTests: XCTestCase {
         XCTAssertEqual(d2[keys.newToken] as? String, "T")
         XCTAssertEqual(d2[keys.newProvider] as? String, "ios-firebase")
 
-        let r1 = createUpdateRequest(data: full, requestBody: try! JSONSerialization.data(withJSONObject: d1))
+        let body1 = createUpdateJSONBody(data: full)
+        XCTAssertNotNil(body1)
+        let r1 = createTokenUpdateRequest(data: full, requestBody: body1!)
         XCTAssertNotNil(r1)
         XCTAssertEqual(r1?.httpMethod, httpM.post)
         XCTAssertEqual(r1?.value(forHTTPHeaderField: httpH.authorization), auth)
@@ -232,7 +236,9 @@ final class JsonFactoryAndRequestFactoryTests: XCTestCase {
         XCTAssertEqual(m1[q.subscriptionId], "oldT")
         XCTAssertEqual(m1[q.sync], "true")
 
-        let r2 = createUpdateRequest(data: partial, requestBody: try! JSONSerialization.data(withJSONObject: d2))
+        let body2 = createUpdateJSONBody(data: partial)
+        XCTAssertNotNil(body2)
+        let r2 = createTokenUpdateRequest(data: partial, requestBody: body2!)
         XCTAssertNotNil(r2)
         let m2 = queryMap(from: r2?.url)
         XCTAssertEqual(m2[q.provider], "ios-firebase")
@@ -240,7 +246,7 @@ final class JsonFactoryAndRequestFactoryTests: XCTestCase {
         XCTAssertEqual(m2[q.sync], "false")
     }
 
-    /// test_4: unSuspend → JSON and request
+    /// test_4: unSuspend → JSON and request.
     func test_4_unSuspend_json_and_request() throws {
         let u = UnSuspendRequestData(
             url: baseURL,
@@ -271,7 +277,7 @@ final class JsonFactoryAndRequestFactoryTests: XCTestCase {
         XCTAssertEqual(qm[q.subscriptionId], "tok-1")
     }
 
-    /// test_5: pushEvent → JSON and request
+    /// test_5: pushEvent → JSON and request.
     func test_5_pushEvent_json_and_request() throws {
         let p = PushEventRequestData(
             url: baseURL,
@@ -300,9 +306,9 @@ final class JsonFactoryAndRequestFactoryTests: XCTestCase {
         XCTAssertNil(qm[q.subscriptionId])
     }
 
-    /// test_6: profile → GET request
+    /// test_6: profile → GET request.
     func test_6_profile_get_request() {
-        let pr = ProfileRequestData(
+        let pr = ProfileStatusRequestData(
             url: baseURL,
             requestId: "req-pr-9",
             authHeader: auth,
@@ -310,7 +316,7 @@ final class JsonFactoryAndRequestFactoryTests: XCTestCase {
             provider: "ios-apns",
             token: "tok-xyz"
         )
-        let req = createProfileRequest(data: pr)
+        let req = createProfileStatusRequest(data: pr)
         XCTAssertNotNil(req)
         XCTAssertEqual(req?.httpMethod, httpM.get)
         XCTAssertEqual(req?.value(forHTTPHeaderField: httpH.authorization), auth)
@@ -321,6 +327,37 @@ final class JsonFactoryAndRequestFactoryTests: XCTestCase {
         XCTAssertEqual(qm[q.provider], "ios-apns")
         XCTAssertEqual(qm[q.matchingMode], "latest_for_provider")
         XCTAssertEqual(qm[q.subscriptionId], "tok-xyz")
+    }
+
+    /// test_7: profileUpdate → JSON null/defaults.
+    func test_7_profileUpdate_json_null_defaults() throws {
+        let d1 = ProfileUpdateRequestData(
+            url: baseURL,
+            requestId: "req-pu-1",
+            authHeader: auth,
+            profileFields: ["age": 31, "city": "AMS"],
+            skipTriggers: true
+        )
+
+        let body1 = createProfileUpdateJSONBody(data: d1)
+        let root1 = asDict(try decode(body1))
+        let pf1 = root1[keys.profileFields] as? [String: Any]
+        XCTAssertEqual(pf1?["age"] as? Int, 31)
+        XCTAssertEqual(pf1?["city"] as? String, "AMS")
+        XCTAssertEqual(root1[keys.skipTriggers] as? Bool, true)
+
+        let d2 = ProfileUpdateRequestData(
+            url: baseURL,
+            requestId: "req-pu-2",
+            authHeader: auth,
+            profileFields: nil,
+            skipTriggers: nil
+        )
+
+        let body2 = createProfileUpdateJSONBody(data: d2)
+        let root2 = asDict(try decode(body2))
+        XCTAssertTrue(root2[keys.profileFields] is NSNull)
+        XCTAssertEqual(root2[keys.skipTriggers] as? Bool, false)
     }
 }
 

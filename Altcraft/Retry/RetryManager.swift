@@ -11,7 +11,7 @@ import Foundation
 /// A singleton manager that provides dedicated queues and cancellable work items
 /// for retry operations (subscribe, token update, push event, and mobile event).
 /// Allows cancellation of all scheduled retries at once.
-final class RetryManager {
+final class RetryManager: @unchecked Sendable {
     static let shared = RetryManager()
     private init() {}
 
@@ -26,6 +26,9 @@ final class RetryManager {
     
     /// Serial queue for mobile event retries.
     let mobileEventQueue = DispatchQueue(label: Constants.Queues.retryMobileEventQueue, qos: .utility)
+    
+    /// Serial queue for profile update retries.
+    let profileUpdateQueue = DispatchQueue(label: Constants.Queues.retryProfileUpdateQueue, qos: .utility)
 
     /// Active retry tasks, stored by key.
     var tasks: [String: DispatchWorkItem] = [:]

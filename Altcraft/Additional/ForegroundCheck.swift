@@ -9,76 +9,181 @@
 import UIKit
 import Foundation
 
-/// A tiny helper that fires a single callback when the app is in the foreground.
-/// Works on iOS 12+; scene-aware on iOS 13+. Calls the handler on the main queue.
+/// Executes callbacks once the app becomes active (foreground) for the first time
+/// during the current process lifetime.
+///
+/// Design:
+/// - The type is isolated to the main actor because it reads UIApplication state
+///   and subscribes to UI lifecycle notifications.
+/// - A one-shot gate is used so multiple callers can await the same first activation.
+/// - If the app is already active, the gate is opened immediately.
+/// - Otherwise, the class waits for the first activation event and then opens the gate.
 @available(iOSApplicationExtension, unavailable)
+@MainActor
 final class ForegroundCheck {
+    static let shared = ForegroundCheck()
 
-    /// Shared singleton instance.
-    public static let shared = ForegroundCheck()
+    /// One-shot gate opened after the first foreground activation.
+    private let gate = OneShotGate()
 
-    private init() {}
+    /// Strong reference to the activation observer.
+    ///
+    /// This is the key fix for the leaked continuation issue:
+    /// the observer must stay alive until one of activation notifications arrives.
+    private var activationObserver: FirstActivationObserver?
 
-    /// Invokes `handler` exactly once when the app becomes foreground/active.
-    /// If the app is already in the foreground, the handler is invoked immediately.
-    /// - Parameter handler: Closure to run once the app is in the foreground.
-    func isForeground(_ handler: @escaping () -> Void) {
-        let call = { DispatchQueue.main.async { handler() } }
-
-        if Thread.isMainThread {
-            if Self.isForegroundMain() { call(); return }
-        } else {
-            var fg = false
-            DispatchQueue.main.sync { fg = Self.isForegroundMain() }
-            if fg { call(); return }
+    private init() {
+        if UIApplication.shared.applicationState == .active {
+            Task { await gate.fire() }
+            return
         }
 
-        let center = NotificationCenter.default
-        var tokens = [NSObjectProtocol]()
-
-        let fire: () -> Void = {
-            for t in tokens { center.removeObserver(t) }
-            tokens.removeAll()
-            call()
-        }
-
-        tokens.append(center.addObserver(
-            forName: UIApplication.didBecomeActiveNotification,
-            object: nil, queue: .main
-        ) { _ in fire() })
-
-        if #available(iOS 13.0, *) {
-            tokens.append(center.addObserver(
-                forName: UIScene.didActivateNotification,
-                object: nil, queue: .main
-            ) { _ in fire() })
+        Task { @MainActor in
+            await waitForFirstActivationEvent()
+            await gate.fire()
         }
     }
 
-    /// Returns `true` if the app is currently in the foreground, otherwise `false`.
-    /// Safe to call from any thread and in background tasks.
-    func isForegroundNow() -> Bool {
-        if Thread.isMainThread {
-            return Self.isForegroundMain()
-        } else {
-            var fg = false
-            DispatchQueue.main.sync {
-                fg = Self.isForegroundMain()
+    /// Executes `handler` after the first foreground activation.
+    ///
+    /// If activation already happened, `handler` runs immediately.
+    ///
+    /// - Parameter handler: Closure executed on the main actor.
+    func isForeground(_ handler: @escaping @Sendable () -> Void) {
+        Task { @MainActor in
+            await gate.wait()
+            handler()
+        }
+    }
+
+    /// Suspends until the first foreground activation occurs.
+    func waitUntilForeground() async {
+        await gate.wait()
+    }
+
+    /// Waits for the first activation notification.
+    ///
+    /// Returns immediately if the application is already active.
+    private func waitForFirstActivationEvent() async {
+        if UIApplication.shared.applicationState == .active {
+            return
+        }
+
+        await withCheckedContinuation { (cont: CheckedContinuation<Void, Never>) in
+            if UIApplication.shared.applicationState == .active {
+                cont.resume()
+                return
             }
-            return fg
+
+            let observer = FirstActivationObserver(continuation: cont)
+
+            observer.onFinish = { [weak self] in
+                self?.activationObserver = nil
+            }
+
+            activationObserver = observer
+            observer.start()
+        }
+    }
+}
+
+/// A one-shot synchronization gate.
+///
+/// Once fired:
+/// - all current waiters are resumed
+/// - all future waiters pass immediately
+private actor OneShotGate {
+    private var fired = false
+    private var waiters: [CheckedContinuation<Void, Never>] = []
+
+    /// Opens the gate and resumes all waiting continuations.
+    func fire() {
+        guard !fired else { return }
+
+        fired = true
+
+        let currentWaiters = waiters
+        waiters.removeAll()
+
+        for waiter in currentWaiters {
+            waiter.resume()
         }
     }
 
-    /// Main-thread only: foreground check for iOS 12 and 13+ with scenes.
-    @inline(__always)
-    private static func isForegroundMain() -> Bool {
-        if #available(iOS 13.0, *) {
-            // Scenes may be empty during BGTask, return false safely
-            return UIApplication.shared.connectedScenes
-                .compactMap { $0 as? UIWindowScene }
-                .contains { $0.activationState == .foregroundActive }
-        } else {
-            return UIApplication.shared.applicationState == .active
+    /// Suspends until the gate is opened.
+    func wait() async {
+        if fired { return }
+
+        await withCheckedContinuation { cont in
+            if fired {
+                cont.resume()
+            } else {
+                waiters.append(cont)
+            }
         }
+    }
+}
+
+/// Observes activation notifications and resumes a continuation exactly once.
+///
+/// Important:
+/// - This object must be strongly retained while waiting.
+/// - It removes all NotificationCenter subscriptions on completion.
+/// - It resumes the continuation exactly once.
+@MainActor
+private final class FirstActivationObserver: NSObject {
+    private var continuation: CheckedContinuation<Void, Never>?
+    private var didFinish = false
+
+    /// Called after completion so the owner can release its strong reference.
+    var onFinish: (() -> Void)?
+
+    /// Creates an observer that resumes the continuation on activation.
+    ///
+    /// - Parameter continuation: Continuation to resume.
+    init(continuation: CheckedContinuation<Void, Never>) {
+        self.continuation = continuation
+        super.init()
+    }
+
+    /// Starts observing activation notifications.
+    func start() {
+        NotificationCenter.default.addObserver(
+            self,
+            selector: #selector(handleBecameActive),
+            name: UIApplication.didBecomeActiveNotification,
+            object: nil
+        )
+
+        NotificationCenter.default.addObserver(
+            self,
+            selector: #selector(handleBecameActive),
+            name: UIScene.didActivateNotification,
+            object: nil
+        )
+    }
+
+    deinit {
+        NotificationCenter.default.removeObserver(self)
+    }
+
+    /// Handles activation and resumes the continuation once.
+    @objc private func handleBecameActive() {
+        finishIfNeeded()
+    }
+
+    /// Finishes observation, removes subscriptions, resumes continuation once,
+    /// and notifies the owner that the observer can be released.
+    private func finishIfNeeded() {
+        guard !didFinish else { return }
+        didFinish = true
+
+        NotificationCenter.default.removeObserver(self)
+
+        continuation?.resume()
+        continuation = nil
+
+        onFinish?()
+        onFinish = nil
     }
 }

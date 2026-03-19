@@ -13,7 +13,7 @@ import Foundation
 ///
 /// - Parameter data: The `SubscribeRequestData` containing subscription details.
 /// - Returns: JSON-encoded `Data`, or `nil` if serialization fails.
-func createSubscribeJSONBody(data: SubscribeRequestData) -> Data? {
+func createSubscribeJSONBody(data: PushSubscribeRequestData) -> Data? {
     let keys = Constants.JSONKeys.self
 
     let catsArray: [[String: Any]] = data.cats?.map { cat in
@@ -57,7 +57,7 @@ func createSubscribeJSONBody(data: SubscribeRequestData) -> Data? {
 ///
 /// - Parameter data: The `UpdateRequestData` containing token details.
 /// - Returns: JSON-encoded `Data`, or `nil` if encoding fails.
-func createUpdateJSONBody(data: UpdateRequestData) -> Data? {
+func createUpdateJSONBody(data: TokenUpdateRequestData) -> Data? {
     let keys = Constants.JSONKeys.self
 
     let json: [String: String?] = [
@@ -118,3 +118,23 @@ func createPushEventJSONBody(data: PushEventRequestData) -> Data? {
     }
 }
 
+
+/// Creates a JSON body for the profile update request.
+///
+/// - Parameter data: The `ProfileUpdateRequestData` containing profile fields and options.
+/// - Returns: JSON-encoded `Data`, or `nil` if serialization fails.
+func createProfileUpdateJSONBody(data: ProfileUpdateRequestData) -> Data? {
+    let keys = Constants.JSONKeys.self
+
+    let json: [String: Any] = [
+        keys.profileFields: data.profileFields ?? NSNull(),
+        keys.skipTriggers: data.skipTriggers ?? false
+    ]
+
+    do {
+        return try JSONSerialization.data(withJSONObject: json, options: [])
+    } catch {
+        errorEvent(#function, error: error)
+        return nil
+    }
+}

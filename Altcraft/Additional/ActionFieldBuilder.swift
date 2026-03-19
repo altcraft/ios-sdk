@@ -17,7 +17,7 @@ public struct ActionFieldBuilder {
     /// Initializes the builder with a profile field key.
     ///
     /// - Parameter key: The profile field key that the actions will target.
-    init(key: String) {
+    public init(key: String) {
         self.key = key
     }
 
@@ -77,10 +77,7 @@ public struct ActionFieldBuilder {
     /// - Returns: A single-entry dictionary keyed by the field name with an `action`/`value` pair.
     private func buildFlat(action: String, value: Any?) -> [String: Any?] {
         return [
-            key: [
-                "action": action,
-                "value": value
-            ]
+            key: [  "action": action, "value": value]
         ]
     }
 }

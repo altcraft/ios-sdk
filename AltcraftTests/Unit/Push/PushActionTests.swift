@@ -4,129 +4,161 @@
 //
 //  Created by Andrey Pogodin.
 //
-//  © 2025 Altcraft. All rights reserved.
+//  Copyright © 2025 Altcraft. All rights reserved.
 //
 
 import XCTest
 @testable import Altcraft
 
 /**
- * PushActionTests
- *
- * Positive scenarios:
- *  - test_1: Missing buttons emits error from pushClickAction.
- *  - test_2: Invalid buttons JSON emits error from pushClickAction.
- *  - test_3: Default action uses click URL with no error if cannot open.
- *  - test_4: Button index out of range emits error from handleButtonAction.
- *  - test_5: Button two uses second button link with no error path.
- */
+* PushActionTests
+*
+* Positive scenarios:
+* - test_1: Missing buttons JSON emits error from pushClickAction.
+* - test_2: Invalid buttons JSON emits error from pushClickAction.
+* - test_3: Default action uses click URL with no error if URL cannot be opened.
+* - test_4: Button index out of range emits error from handleButtonAction.
+* - test_5: Button two uses second button link with no error path.
+*
+*/
 final class PushActionTests: XCTestCase {
 
     private final class EventSpy {
         private(set) var events: [Event] = []
-        func start() { SDKEvents.shared.subscribe { [weak self] in self?.events.append($0) } }
-        func stop()  { SDKEvents.shared.unsubscribe() }
+        private var expectation: XCTestExpectation?
+
+        func start(expectation: XCTestExpectation? = nil) {
+            self.expectation = expectation
+            SDKEvents.shared.subscribe { [weak self] event in
+                self?.events.append(event)
+                self?.expectation?.fulfill()
+            }
+        }
+
+        func stop() {
+            SDKEvents.shared.unsubscribe()
+            expectation = nil
+        }
     }
 
-    /// test_1: Missing buttons emits error from pushClickAction
-    func test_1_missingButtons_emitsError_from_pushClickAction() {
-        let spy = EventSpy(); spy.start(); defer { spy.stop() }
+    /// test_1: Missing buttons JSON emits error from pushClickAction
+    func test_1_missing_buttons_json_emits_error_from_push_click_action() async {
+        let emittedError = expectation(description: "Error event should be emitted")
 
-        PushAction.shared.pushClickAction(
-            userInfo: [:],
-            Identifier: Constants.ButtonIdentifier.defaultNotificationAction
+        let spy = EventSpy()
+        spy.start(expectation: emittedError)
+        defer { spy.stop() }
+
+        await PushAction.shared.pushClickAction(
+            buttonsJSON: nil,
+            clickURL: nil,
+            identifier: Constants.ButtonIdentifier.defaultNotificationAction
         )
 
+        await fulfillment(of: [emittedError], timeout: 1.0)
+
         XCTAssertFalse(spy.events.isEmpty)
-        let last = spy.events.last
-        XCTAssertTrue(last is ErrorEvent)
-        XCTAssertEqual(last?.function, "pushClickAction()")
+
+        let lastEvent = spy.events.last
+        XCTAssertTrue(lastEvent is ErrorEvent)
+        XCTAssertEqual(lastEvent?.function, "pushClickAction()")
     }
 
     /// test_2: Invalid buttons JSON emits error from pushClickAction
-    func test_2_invalidButtonsJSON_emitsError_from_pushClickAction() {
-        let spy = EventSpy(); spy.start(); defer { spy.stop() }
+    func test_2_invalid_buttons_json_emits_error_from_push_click_action() async {
+        let emittedError = expectation(description: "Error event should be emitted")
 
-        let payload: [String: Any] = [
-            Constants.UserInfoKeys.buttons: "{ not-json }"
-        ]
+        let spy = EventSpy()
+        spy.start(expectation: emittedError)
+        defer { spy.stop() }
 
-        PushAction.shared.pushClickAction(
-            userInfo: payload,
-            Identifier: Constants.ButtonIdentifier.defaultNotificationAction
+        await PushAction.shared.pushClickAction(
+            buttonsJSON: "{ not-json }",
+            clickURL: nil,
+            identifier: Constants.ButtonIdentifier.defaultNotificationAction
         )
+
+        await fulfillment(of: [emittedError], timeout: 1.0)
 
         XCTAssertFalse(spy.events.isEmpty)
-        let last = spy.events.last
-        XCTAssertTrue(last is ErrorEvent)
-        XCTAssertEqual(last?.function, "pushClickAction()")
+
+        let lastEvent = spy.events.last
+        XCTAssertTrue(lastEvent is ErrorEvent)
+        XCTAssertEqual(lastEvent?.function, "pushClickAction()")
     }
 
-    /// test_3: Default action uses click URL with no error if cannot open
-    func test_3_defaultAction_usesClickUrl_noErrorIfCannotOpen() {
-        let spy = EventSpy(); spy.start(); defer { spy.stop() }
+    /// test_3: Default action uses click URL with no error if URL cannot be opened
+    func test_3_default_action_uses_click_url_with_no_error_if_url_cannot_be_opened() async {
+        let spy = EventSpy()
+        spy.start()
+        defer { spy.stop() }
 
-        let payload: [String: Any] = [
-            Constants.UserInfoKeys.buttons: "[]",
-            Constants.UserInfoKeys.clickUrl: "myapp://deeplink/path"
-        ]
-
-        PushAction.shared.pushClickAction(
-            userInfo: payload,
-            Identifier: Constants.ButtonIdentifier.defaultNotificationAction
+        await PushAction.shared.pushClickAction(
+            buttonsJSON: "[]",
+            clickURL: "myapp://deeplink/path",
+            identifier: Constants.ButtonIdentifier.defaultNotificationAction
         )
 
-        let anyPushActionErrors = spy.events.contains {
+        let hasPushActionErrors = spy.events.contains {
             $0.function == "pushClickAction()" && ($0 is ErrorEvent)
         }
-        XCTAssertFalse(anyPushActionErrors)
+
+        XCTAssertFalse(hasPushActionErrors)
     }
 
     /// test_4: Button index out of range emits error from handleButtonAction
-    func test_4_buttonIndex_outOfRange_emitsError_from_handleButtonAction() throws {
-        let spy = EventSpy(); spy.start(); defer { spy.stop() }
+    func test_4_button_index_out_of_range_emits_error_from_handle_button_action() async throws {
+        let emittedError = expectation(description: "Error event should be emitted")
+
+        let spy = EventSpy()
+        spy.start(expectation: emittedError)
+        defer { spy.stop() }
 
         let buttonsJSON = try JSONEncoder().encode([
             ["label": "Only", "link": "https://example.com"]
         ])
 
-        let payload: [String: Any] = [
-            Constants.UserInfoKeys.buttons: String(data: buttonsJSON, encoding: .utf8) ?? "[]"
-        ]
+        let buttonsString = String(data: buttonsJSON, encoding: .utf8)
 
-        PushAction.shared.pushClickAction(
-            userInfo: payload,
-            Identifier: Constants.ButtonIdentifier.buttonThree
+        await PushAction.shared.pushClickAction(
+            buttonsJSON: buttonsString,
+            clickURL: nil,
+            identifier: Constants.ButtonIdentifier.buttonThree
         )
 
+        await fulfillment(of: [emittedError], timeout: 1.0)
+
         XCTAssertFalse(spy.events.isEmpty)
-        let last = spy.events.last
-        XCTAssertTrue(last is ErrorEvent)
-        XCTAssertEqual(last?.function, "handleButtonAction()")
+
+        let lastEvent = spy.events.last
+        XCTAssertTrue(lastEvent is ErrorEvent)
+        XCTAssertEqual(lastEvent?.function, "handleButtonAction()")
     }
 
     /// test_5: Button two uses second button link with no error path
-    func test_5_buttonTwo_usesSecondButtonLink_noErrorPath() throws {
-        let spy = EventSpy(); spy.start(); defer { spy.stop() }
+    func test_5_button_two_uses_second_button_link_with_no_error_path() async throws {
+        let spy = EventSpy()
+        spy.start()
+        defer { spy.stop() }
 
         let buttonsJSON = try JSONEncoder().encode([
-            ["label": "First",  "link": "myapp://first"],
+            ["label": "First", "link": "myapp://first"],
             ["label": "Second", "link": "myapp://second"]
         ])
 
-        let payload: [String: Any] = [
-            Constants.UserInfoKeys.buttons: String(data: buttonsJSON, encoding: .utf8) ?? "[]"
-        ]
+        let buttonsString = String(data: buttonsJSON, encoding: .utf8)
 
-        PushAction.shared.pushClickAction(
-            userInfo: payload,
-            Identifier: Constants.ButtonIdentifier.buttonTwo
+        await PushAction.shared.pushClickAction(
+            buttonsJSON: buttonsString,
+            clickURL: nil,
+            identifier: Constants.ButtonIdentifier.buttonTwo
         )
 
-        let anyErrors = spy.events.contains {
+        let hasErrors = spy.events.contains {
             ($0.function == "pushClickAction()" || $0.function == "handleButtonAction()")
             && ($0 is ErrorEvent)
         }
-        XCTAssertFalse(anyErrors)
+
+        XCTAssertFalse(hasErrors)
     }
 }

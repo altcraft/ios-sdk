@@ -44,10 +44,10 @@ private func updateProviderPriorityList(_ providers: [String]) {
             providerNames: providers
         )
         setConfigInUserDefaults(config: updatedConfig) { _ in
-            AltcraftSDK.shared.pushTokenFunction.changePushProviderPriorityList(providers)
+            AltcraftSDK.shared.pushTokenFunctions.changePushProviderPriorityList(providers)
         }
     } else {
-        AltcraftSDK.shared.pushTokenFunction.changePushProviderPriorityList(providers)
+        AltcraftSDK.shared.pushTokenFunctions.changePushProviderPriorityList(providers)
     }
 }
 

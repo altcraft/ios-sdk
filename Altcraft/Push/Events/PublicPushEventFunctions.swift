@@ -5,45 +5,50 @@
 //  Created by Andrey Pogodin.
 //
 //  Copyright © 2025 Altcraft. All rights reserved.
+//
 
 import Foundation
 import UserNotifications
 
 /// Public API for reporting Altcraft push events such as delivery and open.
 @objcMembers
-public class PublicPushEventFunctions: NSObject {
+public final class PublicPushEventFunctions: NSObject, @unchecked Sendable {
     
     public static let shared = PublicPushEventFunctions()
-    private var receiver = AltcraftPushReceiver()
+    private let receiver = AltcraftPushReceiver()
     private let pushEvent = PushEvent.shared
     
     /// Reports that an Altcraft push notification was delivered to the device.
     ///
-    /// - Parameters:
-    ///   - request: UNNotificationRequest from didReceive
+    /// - Parameter request: `UNNotificationRequest` from notification callbacks.
     public func deliveryEvent(from request: UNNotificationRequest) {
-        guard receiver.isAltcraftPush(request) else { return }
-        
-        guard let userInfo = request.content.userInfo as? [String: Any] else {
-            errorEvent(#function, error: errorHandleUserInfo)
-            return
-        }
-        
-        pushEvent.createPushEvent(userInfo: userInfo , type: Constants.PushEvents.delivery)
+        handlePushEvent(
+            from: request, type: Constants.PushEvents.delivery
+        )
     }
     
     /// Reports that an Altcraft push notification was opened by the user.
     ///
-    /// - Parameters:
-    ///   - request: UNNotificationRequest from didReceive
+    /// - Parameter request: `UNNotificationRequest` from notification callbacks.
     public func openEvent(from request: UNNotificationRequest) {
+        handlePushEvent(
+            from: request, type: Constants.PushEvents.open
+        )
+    }
+    
+    /// Validates an Altcraft push request, extracts its `uid`, and schedules push event creation.
+    ///
+    /// - Parameters:
+    ///   - request: The notification request to inspect.
+    ///   - type: The push event type to create.
+    private func handlePushEvent(from request: UNNotificationRequest, type: String) {
         guard receiver.isAltcraftPush(request) else { return }
+    
+        let uid = request.content.userInfo[Constants.UserInfoKeys.uid]
+        as? String
         
-        guard let userInfo = request.content.userInfo as? [String: Any] else {
-            errorEvent(#function, error: errorHandleUserInfo)
-            return
+        Task {
+            await self.pushEvent.createPushEvent(uid: uid, type: type)
         }
-
-        pushEvent.createPushEvent(userInfo: userInfo, type: Constants.PushEvents.open)
     }
 }

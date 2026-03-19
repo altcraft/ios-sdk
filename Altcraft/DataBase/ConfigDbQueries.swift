@@ -5,6 +5,7 @@
 //  Created by Andrey Pogodin.
 //
 //  Copyright © 2025 Altcraft. All rights reserved.
+//
 
 import Foundation
 import CoreData
@@ -17,47 +18,62 @@ import CoreData
 ///   - url: The Altcraft API endpoint.
 ///   - rToken: The new resource token.
 ///   - appInfo: Additional app metadata.
-///   - providerPriorityList: Sets the priority order of push notification providers.
-///   - completion: Closure returning `true` on success, `false` on failure.
+///   - providerPriorityList: Priority order of push notification providers.
+/// - Returns: `true` on success, `false` on failure.
 func setConfig(
     url: String,
     rToken: String?,
     appInfo: AppInfo?,
-    providerPriorityList: [String]?,
-    completion: @escaping (Bool) -> Void
-) {
+    providerPriorityList: [String]?
+) async -> Bool {
     guard !StoredVariablesManager.shared.getDbErrorStatus() else {
         errorEvent(#function, error: coreDataError)
-        completion(false)
-        return
+        return false
     }
 
-    withBackgroundContext{ context in
-        let fetchRequest: NSFetchRequest<ConfigurationEntity> = ConfigurationEntity.fetchRequest()
-    
-        do {
-            let existing = try context.fetch(fetchRequest).first
-            if let storedToken = existing?.rToken {
-                checkRTokenChange(context: context, rToken: rToken, existingRToken: storedToken)
+    let appInfoData = encodeAppInfo(appInfo)
+
+    do {
+        return try await CoreDataManager.shared.performBackgroundTask { context in
+            do {
+                let req: NSFetchRequest<ConfigurationEntity> = ConfigurationEntity.fetchRequest()
+                
+                let existingConfig = try context.fetch(req).first
+
+                if let existingRToken = existingConfig?.rToken {
+                    checkRTokenChange(
+                        context: context,
+                        rToken: rToken,
+                        existingRToken: existingRToken
+                    )
+                }
+
+                let entity = existingConfig ?? ConfigurationEntity(context: context)
+                entity.url = url
+                entity.rToken = rToken
+                entity.appInfo = appInfoData
+                entity.providerPriorityList = encodeProviderPriorityList(
+                    providerPriorityList
+                )
+
+                if context.hasChanges {
+                    try context.save()
+                }
+
+                return true
+            } catch {
+                errorEvent(#function, error: error)
+                return false
             }
-
-            let entity = existing ?? ConfigurationEntity(context: context)
-            entity.url = url
-            entity.rToken = rToken
-            entity.appInfo = encodeAppInfo(appInfo)
-            entity.providerPriorityList = encodeProviderPriorityList(providerPriorityList)
-
-            try context.save()
-            completion(true)
-
-        } catch {
-            errorEvent(#function, error: error)
-            completion(false)
         }
+    } catch {
+        errorEvent(#function, error: error)
+        return false
     }
 }
 
-/// Checks if the `rToken` has changed and deletes all subscriptions if it did.
+/// Checks whether the `rToken` has changed.
+/// If it has, deletes subscription, mobile event, and profile update entities.
 ///
 /// - Parameters:
 ///   - context: The Core Data context to perform the operation in.
@@ -75,17 +91,24 @@ private func checkRTokenChange(
             return
         }
 
-        let fetch: NSFetchRequest<NSFetchRequestResult> = SubscribeEntity.fetchRequest()
-        let delete = NSBatchDeleteRequest(fetchRequest: fetch)
-        delete.resultType = .resultTypeObjectIDs
+        func batchDelete(_ fetch: NSFetchRequest<NSFetchRequestResult>) throws {
+            let delete = NSBatchDeleteRequest(fetchRequest: fetch)
+            delete.resultType = .resultTypeObjectIDs
 
-        if let result = try context.execute(delete) as? NSBatchDeleteResult,
-           let deletedIDs = result.result as? [NSManagedObjectID] {
-            NSManagedObjectContext.mergeChanges(
-                fromRemoteContextSave: [NSDeletedObjectsKey: deletedIDs],
-                into: [context]
-            )
+            if let result = try context.execute(delete) as? NSBatchDeleteResult,
+               let deletedIDs = result.result as? [NSManagedObjectID],
+               !deletedIDs.isEmpty {
+                NSManagedObjectContext.mergeChanges(
+                    fromRemoteContextSave: [NSDeletedObjectsKey: deletedIDs],
+                    into: [context]
+                )
+            }
         }
+
+        try batchDelete(SubscribeEntity.fetchRequest())
+        try batchDelete(MobileEventEntity.fetchRequest())
+        try batchDelete(ProfileUpdateEntity.fetchRequest())
+
     } catch {
         errorEvent(#function, error: error)
     }
@@ -93,74 +116,79 @@ private func checkRTokenChange(
 
 /// Retrieves a `Configuration` object from the Core Data store.
 ///
-/// - Parameters:
-///   - completion: A closure that is called with a `Configuration?`.
-func getConfig(completion: @escaping (Configuration?) -> Void) {
-    withBackgroundContext{ context in
-        let fetchRequest: NSFetchRequest<ConfigurationEntity> = ConfigurationEntity.fetchRequest()
-        do {
-            if let configuration = try context.fetch(fetchRequest).first {
-                completion(configFromEntity(configuration: configuration))
-            } else {
-                completion(nil)
+/// - Returns: Configuration if present, otherwise `nil`.
+func getConfig() async -> Configuration? {
+    do {
+        return try await CoreDataManager.shared.performBackgroundTask { context in
+            do {
+                let req: NSFetchRequest<ConfigurationEntity> = ConfigurationEntity.fetchRequest()
+                
+                guard let entity = try context.fetch(req).first else {
+                    return nil
+                }
+
+                return configFromEntity(configuration: entity)
+            } catch {
+                errorEvent(#function, error: error)
+                return nil
             }
-        } catch {
-            errorEvent(#function, error: error)
-            completion(nil)
         }
+    } catch {
+        errorEvent(#function, error: error)
+        return nil
     }
 }
 
 /// Checks if a `ConfigurationEntity` exists in the Core Data store.
 ///
-/// - Parameters:
-///   - resToken: Unused parameter (reserved for future filtering by resource token).
-///   - completion: A closure that is called with a `Result<Bool, Error>`
-///     indicating whether any configuration entity exists or an error occurred during the fetch.
-func doesConfigurationEntityExist(resToken: String, completion: @escaping (Result<Bool, Error>) -> Void) {
-    withBackgroundContext { context in
-        let fetchRequest: NSFetchRequest<ConfigurationEntity> = ConfigurationEntity.fetchRequest()
-        do {
-            if let _ = try context.fetch(fetchRequest).first {
-                completion(.success(true))
-            } else {
-                completion(.success(false))
+/// - Returns: `true` if any entity exists, otherwise `false`.
+func doesConfigurationEntityExist() async -> Bool {
+    do {
+        return try await CoreDataManager.shared.performBackgroundTask { context in
+            do {
+                let req: NSFetchRequest<ConfigurationEntity> = ConfigurationEntity.fetchRequest()
+                
+                return try context.fetch(req).first != nil
+            } catch {
+                errorEvent(#function, error: error)
+                return false
             }
-        } catch {
-            errorEvent(#function, error: error)
-            completion(.failure(error))
         }
+    } catch {
+        errorEvent(#function, error: error)
+        return false
     }
 }
 
 /// Updates the `providerPriorityList` in Core Data.
 ///
-/// - Parameters:
-///   - newList: The new list of provider priorities.
-///   - onSaved: Completion closure called with `.success(())` on success or `.failure(Error)` on error.
-func updateProviderPriorityList(
-    newList: [String],
-    onSaved: @escaping (Result<Void, Error>) -> Void
-) {
-    enum ConfigUpdateError: Error { case configIsNil }
+/// - Parameter newList: The new list of provider priorities.
+/// - Returns: `true` on success, `false` on failure.
+func updateProviderPriorityList(newList: [String]) async -> Bool {
+    do {
+        return try await CoreDataManager.shared.performBackgroundTask { context in
+            do {
+                let req: NSFetchRequest<ConfigurationEntity> = ConfigurationEntity.fetchRequest()
 
-    withBackgroundContext{ context in
-        let fetchRequest: NSFetchRequest<ConfigurationEntity> = ConfigurationEntity.fetchRequest()
+                guard let config = try context.fetch(req).first else {
+                    errorEvent(#function, error: configIsNil)
+                    return false
+                }
 
-        do {
-            guard let entity = try context.fetch(fetchRequest).first else {
-                errorEvent(#function, error: configIsNil)
-                onSaved(.failure(ConfigUpdateError.configIsNil))
-                return
+                config.providerPriorityList = encodeProviderPriorityList(newList)
+
+                if context.hasChanges {
+                    try context.save()
+                }
+
+                return true
+            } catch {
+                errorEvent(#function, error: error)
+                return false
             }
-
-            entity.providerPriorityList = encodeProviderPriorityList(newList)
-            try context.save()
-
-            onSaved(.success(()))
-        } catch {
-            errorEvent(#function, error: error)
-            onSaved(.failure(error))
         }
+    } catch {
+        errorEvent(#function, error: error)
+        return false
     }
 }

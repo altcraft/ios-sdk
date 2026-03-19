@@ -1,3 +1,12 @@
+//
+//  CoreDataManager.swift
+//  Altcraft
+//
+//  Created by Andrey Pogodin.
+//
+//  Copyright © 2025 Altcraft. All rights reserved.
+//
+
 import Foundation
 import CoreData
 
@@ -10,7 +19,7 @@ import CoreData
  provided, the SQLite store will be placed in the shared container; otherwise,
  it falls back to the app’s document directory.
  */
-final class CoreDataManager {
+final class CoreDataManager: @unchecked Sendable {
 
     /// The shared instance of `CoreDataManager`.
     public static let shared = CoreDataManager()
@@ -23,12 +32,11 @@ final class CoreDataManager {
     ///
     /// - Parameter appGroup: Optional App Group ID. If nil, `StoredVariablesManager.shared.getGroupName()` is used.
     init(appGroup: String? = nil) {
-
         let modelName     = Constants.CoreData.modelName
-        let storeFileName = Constants.CoreData.storeFileName
         let userDefaults  = StoredVariablesManager.shared
+        let storeFileName = Constants.CoreData.storeFileName
         let groupId       = appGroup ?? userDefaults.getGroupName()
-
+        
         /// Loads the Core Data model (single .momd/.mom) from bundle, without using mergedModel.
         ///
         /// We explicitly load exactly one model by name to avoid duplicate entities
@@ -82,11 +90,13 @@ final class CoreDataManager {
                     return docs.appendingPathComponent(subdirName, isDirectory: true)
                 }
             }()
+
             do {
                 try fm.createDirectory(at: baseDir, withIntermediateDirectories: true)
             } catch {
                 errorEvent(#function, error: error)
             }
+
             return baseDir.appendingPathComponent(storeFileName)
         }
 
@@ -99,12 +109,17 @@ final class CoreDataManager {
             description.shouldInferMappingModelAutomatically = true
 
             description.setOption(true as NSNumber, forKey: NSPersistentHistoryTrackingKey)
-            description.setOption(true as NSNumber, forKey: NSPersistentStoreRemoteChangeNotificationPostOptionKey)
+            description.setOption(
+                true as NSNumber,
+                forKey: NSPersistentStoreRemoteChangeNotificationPostOptionKey
+            )
 
             let isExtension = Bundle.main.bundlePath.hasSuffix(".appex")
             if isExtension {
-                description.setOption(FileProtectionType.none as NSObject,
-                                      forKey: NSPersistentStoreFileProtectionKey)
+                description.setOption(
+                    FileProtectionType.none as NSObject,
+                    forKey: NSPersistentStoreFileProtectionKey
+                )
             }
             return description
         }
@@ -123,11 +138,14 @@ final class CoreDataManager {
         func configureContainer(model: NSManagedObjectModel) -> NSPersistentContainer {
             let container = NSPersistentContainer(name: modelName, managedObjectModel: model)
             let storeURL = makeStoreURL()
+            
             container.persistentStoreDescriptions = [makeStoreDescription(for: storeURL)]
             container.loadPersistentStores(completionHandler: makeStoreLoadHandler())
 
             container.viewContext.automaticallyMergesChangesFromParent = true
-            container.viewContext.mergePolicy = NSMergeByPropertyObjectTrumpMergePolicy
+            container.viewContext.mergePolicy = NSMergePolicy(
+                merge: .mergeByPropertyObjectTrumpMergePolicyType
+            )
             container.viewContext.name = "ViewContext"
             return container
         }
@@ -150,39 +168,56 @@ final class CoreDataManager {
             persistentContainer = fallbackContainer()
         }
     }
+    
+    func getContext() -> NSManagedObjectContext {
+        let context = persistentContainer.newBackgroundContext()
+        context.mergePolicy = NSMergePolicy(
+            merge: .mergeByPropertyObjectTrumpMergePolicyType
+        )
+        context.automaticallyMergesChangesFromParent = true
+        context.undoManager = nil
+        return context
+    }
+    
+    /// Executes work on a new configured background Core Data context.
+    ///
+    /// Creates a private background `NSManagedObjectContext`, applies standard SDK configuration,
+    /// runs `block` on that context's queue, and returns its result.
+    ///
+    /// - Parameter block: A closure that performs Core Data work using the provided background context.
+    /// - Returns: The value returned by `block`.
+    /// - Throws: Any error thrown by `block`.
+    func performBackgroundTask<T>(
+        _ block: @Sendable @escaping (NSManagedObjectContext) throws -> T
+    ) async throws -> T {
+        let context = persistentContainer.newBackgroundContext()
+        context.mergePolicy = NSMergePolicy(merge: .mergeByPropertyObjectTrumpMergePolicyType)
+        context.automaticallyMergesChangesFromParent = true
+        context.undoManager = nil
+
+        return try await context.performAsync {
+            try block(context)
+        }
+    }
 }
 
-/// Returns a new private-queue background `NSManagedObjectContext`.
-///
-/// The caller is responsible for performing all Core Data operations
-/// inside `context.perform { ... }` or `context.performAndWait { ... }`,
-/// and for managing the context’s lifetime.
-///
-/// Use when several async steps must share one context.
-/// For one-off tasks, prefer `withBackgroundContext(_:)`.
-func getContext() -> NSManagedObjectContext {
-    let ctx = CoreDataManager.shared.persistentContainer.newBackgroundContext()
-    ctx.mergePolicy = NSMergeByPropertyObjectTrumpMergePolicy
-    ctx.automaticallyMergesChangesFromParent = true
-    ctx.undoManager = nil
-    return ctx
-}
+extension NSManagedObjectContext {
 
-/// Executes a closure with a preconfigured background context.
-/// The context is created using `performBackgroundTask`, ensuring all Core Data work
-/// runs on a private queue without blocking the main thread.
-///
-/// The context is configured with:
-/// - `NSMergeByPropertyObjectTrumpMergePolicy` for safe merge conflict resolution
-/// - `automaticallyMergesChangesFromParent = true` to stay in sync with parent contexts
-/// - `undoManager = nil` to reduce memory overhead in background operations
-///
-/// - Parameter block: A closure receiving a configured `NSManagedObjectContext` to perform Core Data work.
-func withBackgroundContext(_ block: @escaping (NSManagedObjectContext) -> Void) {
-    CoreDataManager.shared.persistentContainer.performBackgroundTask { ctx in
-        ctx.mergePolicy = NSMergeByPropertyObjectTrumpMergePolicy
-        ctx.automaticallyMergesChangesFromParent = true
-        ctx.undoManager = nil
-        block(ctx)
+    /// Executes work on the context queue and returns a value.
+    ///
+    /// - Parameter block: Work executed on the context queue.
+    /// - Returns: Value returned by `block`.
+    func performAsync<T>(
+        _ block: @Sendable @escaping () throws -> T
+    ) async throws -> T {
+        try await withCheckedThrowingContinuation { cont in
+            self.perform { @Sendable in
+                do {
+                    cont.resume(returning: try block())
+                } catch {
+                    cont.resume(throwing: error)
+                }
+            }
+        }
     }
 }

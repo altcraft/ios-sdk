@@ -4,7 +4,8 @@
 //
 //  Created by Andrey Pogodin.
 //
-//  © 2025 Altcraft. All rights reserved.
+//  © 2026 Altcraft. All rights reserved.
+//
 
 import XCTest
 @testable import Altcraft
@@ -13,29 +14,30 @@ import XCTest
  * AltcraftInitTests
  *
  * Positive scenarios:
- *  - test_1: initSDK with nil configuration → completes false and emits error event.
- *  - test_2: initSDK with valid configuration → completes and emits configSet on success or error on failure.
- *  - test_3: initSDK when push module inactive → does not flip tokenLogShow.
- *  - test_4: initSDK when push module active → flips tokenLogShow if init succeeds.
+ *  - test_1: initSDK with nil configuration → returns false and emits error event.
+ *  - test_2: initSDK with valid configuration → returns result and emits configSet on success or error event on failure.
+ *
  */
-final class AltcraftInitTests: XCTestCase {
+final class AltcraftInitTests: IsolatedTestCase {
 
     private let appGroupPrefix = "group.altcraft.tests.init."
-    private let apiURLString   = "https://api.example.com"
-    private let rTokenString   = "R-TOKEN"
-    private let manualTokenVal = "MANUAL"
-    private let timeoutShort: TimeInterval = 2.0
-    private let timeoutLong:  TimeInterval = 5.0
+    private let apiURLString = "https://api.example.com"
+    private let rTokenString = "R-TOKEN"
 
     private final class EventSpy {
+        private let lock = NSLock()
         private(set) var events: [Event] = []
         private var isStarted = false
 
         func start() {
             guard !isStarted else { return }
             isStarted = true
-            SDKEvents.shared.subscribe { [weak self] ev in
-                self?.events.append(ev)
+
+            SDKEvents.shared.subscribe { [weak self] event in
+                guard let self else { return }
+                self.lock.lock()
+                self.events.append(event)
+                self.lock.unlock()
             }
         }
 
@@ -43,87 +45,130 @@ final class AltcraftInitTests: XCTestCase {
             SDKEvents.shared.unsubscribe()
             isStarted = false
         }
+
+        func snapshot() -> [Event] {
+            lock.lock()
+            defer { lock.unlock() }
+            return events
+        }
+
+        func contains(where predicate: (Event) -> Bool) -> Bool {
+            lock.lock()
+            defer { lock.unlock() }
+            return events.contains(where: predicate)
+        }
+    }
+
+    override func setUp() async throws {
+        try await super.setUp()
+        isolateUserDefaults()
+        await clearProviders()
+        await StoredVariablesManager.shared.clearManualToken()
+        StoredVariablesManager.shared.clearSavedToken()
+        StoredVariablesManager.shared.setCritDB(value: false)
+    }
+
+    override func tearDown() async throws {
+        await StoredVariablesManager.shared.clearManualToken()
+        StoredVariablesManager.shared.clearSavedToken()
+        await clearProviders()
+        StoredVariablesManager.shared.setCritDB(value: false)
+        try await super.tearDown()
     }
 
     private func isolateUserDefaults() {
-        StoredVariablesManager.shared.setGroupsName(value: appGroupPrefix + UUID().uuidString)
-        StoredVariablesManager.shared.clearManualToken()
-        StoredVariablesManager.shared.clearSavedToken()
+        StoredVariablesManager.shared.setGroupsName(
+            value: appGroupPrefix + UUID().uuidString
+        )
     }
 
-    private func clearProviders(_ tm: TokenManager = .shared) {
-        tm.fcmProvider = nil
-        tm.hmsProvider = nil
-        tm.apnsProvider = nil
+    private func clearProviders() async {
+        await TokenManager.shared.setFCMProvider(nil)
+        await TokenManager.shared.setHMSProvider(nil)
+        await TokenManager.shared.setAPNSProvider(nil)
     }
 
     private func makeMinimalConfig() -> AltcraftConfiguration {
-        let builder = AltcraftConfiguration.Builder()
+        guard let configuration = AltcraftConfiguration.Builder()
             .setApiUrl(apiURLString)
             .setRToken(rTokenString)
             .setAppInfo(nil)
             .setProviderPriorityList([])
-        guard let cfg = builder.build() else {
+            .build() else {
             XCTFail("Failed to build minimal AltcraftConfiguration")
             fatalError("AltcraftConfiguration.Builder returned nil")
         }
-        return cfg
+
+        return configuration
     }
 
-    override func setUp() {
-        super.setUp()
-        isolateUserDefaults()
-        clearProviders()
-    }
+    /**
+     * Waits until the event spy contains an event matching the predicate
+     * or until timeout is reached.
+     *
+     * - Parameters:
+     *   - spy: Event storage observer.
+     *   - timeoutNanoseconds: Max waiting time.
+     *   - pollNanoseconds: Polling interval.
+     *   - predicate: Event matching condition.
+     * - Returns: `true` if matching event appeared in time, otherwise `false`.
+     */
+    private func waitForEvent(
+        in spy: EventSpy,
+        timeoutNanoseconds: UInt64 = 1_000_000_000,
+        pollNanoseconds: UInt64 = 20_000_000,
+        predicate: @escaping (Event) -> Bool
+    ) async -> Bool {
+        let start = DispatchTime.now().uptimeNanoseconds
 
-    override func tearDown() {
-        StoredVariablesManager.shared.clearManualToken()
-        StoredVariablesManager.shared.clearSavedToken()
-        clearProviders()
-        super.tearDown()
-    }
-
-    /// test_1: initSDK with nil configuration completes false and emits error event
-    func test_1_initSDK_withNilConfiguration_completesFalse_andEmitsErrorEvent() {
-        let spy = EventSpy(); spy.start()
-        defer { spy.stop() }
-
-        let exp = expectation(description: "completion false for nil configuration")
-        AltcraftInit.shared.initSDK(configuration: nil) { ok in
-            XCTAssertFalse(ok, "initSDK must complete with false when configuration is nil")
-            exp.fulfill()
-        }
-        wait(for: [exp], timeout: timeoutShort)
-
-        XCTAssertTrue(spy.events.contains { $0 is ErrorEvent }, "Expected an error event when configuration is nil")
-    }
-
-    /// test_2: initSDK with valid configuration completes and emits configSet on success or error on failure
-    func test_2_initSDK_withValidConfiguration_completes_andEmitsConfigSetOnSuccess_orErrorOnFailure() {
-        let spy = EventSpy(); spy.start()
-        defer { spy.stop() }
-
-        StoredVariablesManager.shared.clearManualToken()
-        clearProviders()
-
-        let cfg = makeMinimalConfig()
-        let exp = expectation(description: "completion for valid configuration")
-
-        var completedFlag: Bool?
-        AltcraftInit.shared.initSDK(configuration: cfg) { ok in
-            completedFlag = ok
-            exp.fulfill()
-        }
-        wait(for: [exp], timeout: timeoutLong)
-
-        XCTAssertNotNil(completedFlag, "Completion must be called")
-        if completedFlag == true {
-            let hasConfigSet = spy.events.contains {
-                $0.eventCode == configSet.0 || ($0.message ?? "").contains(configSet.1)
+        while DispatchTime.now().uptimeNanoseconds - start < timeoutNanoseconds {
+            if spy.contains(where: predicate) {
+                return true
             }
-            XCTAssertTrue(hasConfigSet, "Expected configSet event on successful initSDK")
+
+            try? await Task.sleep(nanoseconds: pollNanoseconds)
+        }
+
+        return spy.contains(where: predicate)
+    }
+
+    /// test_1: initSDK with nil configuration returns false and emits error event
+    func test_1_initSDK_withNilConfiguration_returnsFalse_andEmitsErrorEvent() async {
+        let spy = EventSpy()
+        spy.start()
+        defer { spy.stop() }
+
+        let result = await AltcraftInit.shared.initSDK(configuration: nil)
+
+        let hasErrorEvent = await waitForEvent(in: spy) { event in
+            event is ErrorEvent
+        }
+
+        XCTAssertFalse(result)
+        XCTAssertTrue(hasErrorEvent)
+    }
+
+    /// test_2: initSDK with valid configuration returns result and emits configSet on success or error event on failure
+    func test_2_initSDK_withValidConfiguration_returnsResult_andEmitsConfigSetOnSuccess_orErrorEventOnFailure() async {
+        let spy = EventSpy()
+        spy.start()
+        defer { spy.stop() }
+
+        let configuration = makeMinimalConfig()
+        let result = await AltcraftInit.shared.initSDK(configuration: configuration)
+
+        if result {
+            let hasConfigSet = await waitForEvent(in: spy) { event in
+                event.eventCode == configSet.0 || (event.message ?? "").contains(configSet.1)
+            }
+
+            XCTAssertTrue(hasConfigSet)
         } else {
-            XCTAssertTrue(spy.events.contains { $0 is ErrorEvent }, "Expected an error event when init fails to persist configuration")
+            let hasErrorEvent = await waitForEvent(in: spy) { event in
+                event is ErrorEvent
+            }
+
+            XCTAssertTrue(hasErrorEvent)
         }
     }
 }

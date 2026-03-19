@@ -25,10 +25,15 @@ extension SubscribeEntity: RetryTrackable {}
 /// Enables retry logic for mobile events via `retryLimit`.
 extension MobileEventEntity: RetryTrackable {}
 
+/// Enables retry logic for profile update via `retryLimit`.
+extension ProfileUpdateEntity: RetryTrackable {}
+
+
 /// Resolves an `NSManagedObjectID` inside `context` defensively (no URI usage).
 /// Call only on the context's queue (`perform` / `performAndWait`).
 func resolveObject(
-    in context: NSManagedObjectContext, from objectID: NSManagedObjectID
+    in context: NSManagedObjectContext,
+    from objectID: NSManagedObjectID
 ) -> NSManagedObject? {
     guard !objectID.isTemporaryID, let psc = context.persistentStoreCoordinator else {
         return nil
@@ -42,6 +47,39 @@ func resolveObject(
     return obj
 }
 
+/// Materializes an `NSManagedObject` by ID inside the given context or throws if it does not exist.
+///
+/// - Parameters:
+///   - context: The `NSManagedObjectContext` used to materialize the object.
+///   - objectID: The `NSManagedObjectID` of the object to materialize.
+///   - type: The expected `NSManagedObject` subclass type.
+/// - Returns: The materialized object of type `T`.
+func existingObject<T: NSManagedObject>(
+    context: NSManagedObjectContext,
+    objectID: NSManagedObjectID,
+    as type: T.Type
+) async throws -> T {
+    try await withCheckedThrowingContinuation { continuation in
+        context.perform {
+            do {
+                guard let obj = try context.existingObject(
+                    with: objectID
+                ) as? T else {
+                    continuation.resume(
+                        throwing:ExceptionExtension.exception(
+                            entityNotFoundByID
+                        )
+                    )
+                    return
+                }
+                continuation.resume(returning: obj)
+            } catch {
+                continuation.resume(throwing: error)
+            }
+        }
+    }
+}
+
 /// Deletes a Core Data entity with the given `NSManagedObjectID`.
 ///
 /// Safely resolves and deletes any managed object, regardless of its entity type.
@@ -51,25 +89,69 @@ func resolveObject(
 /// - Parameters:
 ///   - context: The `NSManagedObjectContext` to perform the delete on (use its own queue).
 ///   - objectID: Permanent `NSManagedObjectID` of the entity to delete.
-///   - completion: Called with `true` on success (or if the object was already gone), `false` on failure.
+/// - Returns: `true` on success (or if the object was already gone), `false` on failure.
 func deleteEntity(
     context: NSManagedObjectContext,
-    objectID: NSManagedObjectID,
-    completion: ((Bool) -> Void)? = nil
-) {
-    context.perform {
-        guard let obj = resolveObject(in: context, from: objectID) else {
-            completion?(true)
-            return
+    objectID: NSManagedObjectID
+) async -> Bool {
+    await withCheckedContinuation { (cont: CheckedContinuation<Bool, Never>) in
+        context.perform {
+            guard let obj = resolveObject(in: context, from: objectID) else {
+                cont.resume(returning: true)
+                return
+            }
+
+            context.delete(obj)
+
+            do {
+                if context.hasChanges { try context.save() }
+                cont.resume(returning: true)
+            } catch {
+                errorEvent(#function, error: error)
+                cont.resume(returning: false)
+            }
         }
-        context.delete(obj)
-        do {
-            if context.hasChanges { try context.save() }
-            completion?(true)
-        } catch {
-            errorEvent(#function, error: error)
-            completion?(false)
-        }
+    }
+}
+
+/// Increments `retryCount` for a retry-trackable entity and saves the context.
+///
+/// - Parameters:
+///   - entity: The Core Data entity conforming to `RetryTrackable`.
+///   - context: The managed object context where the change should be persisted.
+///   - function: The caller function name used for error logging.
+/// - Returns: `true` if the increment and save succeeded, otherwise `false`.
+private func increaseRetryCount(
+    for entity: NSManagedObject & RetryTrackable,
+    in context: NSManagedObjectContext,
+    function: String
+){
+    entity.retryCount += 1
+    do {
+        if context.hasChanges { try context.save() }
+    } catch {
+        errorEvent(function, error: error)
+    }
+}
+
+/// Deletes the given Core Data object and saves the context if needed.
+///
+/// - Parameters:
+///   - object: The object to delete from the context.
+///   - context: The managed object context where the deletion should be persisted.
+///   - function: The caller function name used for error logging.
+/// - Returns: `true` if the deletion and save succeeded, otherwise `false`.
+private func deleteEntity(
+    object: NSManagedObject,
+    in context: NSManagedObjectContext,
+    function: String
+) -> Bool {
+    context.delete(object)
+    do {
+        if context.hasChanges { try context.save() }
+        return true
+    } catch {
+        errorEvent(function, error: error); return false
     }
 }
 
@@ -82,48 +164,40 @@ func deleteEntity(
 /// - Parameters:
 ///   - context: Background `NSManagedObjectContext` to perform Core Data operations on.
 ///   - objectID: Permanent `NSManagedObjectID` of the target entity.
-///   - completion: Called with `true` when the retry limit is reached or the object is unavailable;
-///                 `false` when the retry was incremented and more attempts are allowed.
+/// - Returns:
+///   - `true` when the retry limit is reached, the object is unavailable, or the object is not retry-trackable (and is deleted)
+///   - `false` when the retry was incremented and more attempts are allowed.
 func retryLimit(
     context: NSManagedObjectContext,
-    for objectID: NSManagedObjectID,
-    completion: @escaping (Bool) -> Void
-) {
-    context.perform {
-        guard let obj = resolveObject(in: context, from: objectID) else {
-            completion(true)
-            return
-        }
-
-        guard let entity = obj as? (NSManagedObject & RetryTrackable) else {
-            context.delete(obj)
-            do { if context.hasChanges { try context.save() } } catch {
-                errorEvent(#function, error: error)
+    objectID: NSManagedObjectID
+) async -> Bool {
+    await withCheckedContinuation { (cont: CheckedContinuation<Bool, Never>) in
+        context.perform {
+            guard let obj = resolveObject(in: context, from: objectID) else {
+                cont.resume(returning: true)
+                return
             }
-            completion(true)
-            return
-        }
-
-        let retry = Int(entity.retryCount)
-        let max = Int(entity.maxRetryCount)
-
-        if retry >= max {
-            context.delete(entity)
-            do {
-                if context.hasChanges { try context.save() }
-                completion(true)
-            } catch {
-                errorEvent(#function, error: error)
-                completion(true)
+            guard let entity = obj as? (NSManagedObject & RetryTrackable) else {
+                cont.resume(
+                    returning: deleteEntity(
+                        object: obj, in: context, function: #function
+                    )
+                )
+                return
             }
-        } else {
-            entity.retryCount = Int16(retry + 1)
-            do {
-                try context.save()
-                completion(false)
-            } catch {
-                errorEvent(#function, error: error)
-                completion(false)
+
+            let retry = Int(entity.retryCount)
+            let max = Int(entity.maxRetryCount)
+
+            if retry >= max {
+                cont.resume(
+                    returning: deleteEntity(
+                        object: entity, in: context, function: #function
+                    )
+                )
+            } else {
+                increaseRetryCount(for: entity, in: context, function: #function)
+                cont.resume( returning: false)
             }
         }
     }

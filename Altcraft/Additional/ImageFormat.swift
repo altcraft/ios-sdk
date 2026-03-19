@@ -52,9 +52,10 @@ public enum ImageFormat: String {
         if data.starts(with: Array("GIF8".utf8)) {
             self = .gif; return
         }
-        // WEBP: "RIFF" .... "WEBP"
+        // WEBP: "RIFF" + 4-byte size + "WEBP"
         if data.starts(with: Array("RIFF".utf8)),
-           data.dropFirst(8).starts(with: Array("WEBP".utf8)) {
+           data.count >= 12,
+           data[8..<12].elementsEqual("WEBP".utf8) {
             self = .webp; return
         }
         // BMP: "BM"
@@ -63,17 +64,17 @@ public enum ImageFormat: String {
         }
         // TIFF: "II*\0" or "MM\0*"
         if data.starts(with: [0x49, 0x49, 0x2A, 0x00]) ||
-           data.starts(with: [0x4D, 0x4D, 0x00, 0x2A]) {
+            data.starts(with: [0x4D, 0x4D, 0x00, 0x2A]) {
             self = .tiff; return
         }
         // ISO BMFF: offset 4..7 == "ftyp" → check brand for HEIC family
         if data[4..<8].elementsEqual("ftyp".utf8) {
             let brand = data[8..<12]
-            if brand.elementsEqual("heic".utf8) ||
-               brand.elementsEqual("heif".utf8) ||
-               brand.elementsEqual("hevc".utf8) ||
-               brand.elementsEqual("mif1".utf8) ||
-               brand.elementsEqual("msf1".utf8) {
+            if brand.elementsEqual("heic".utf8)  ||
+                brand.elementsEqual("heif".utf8) ||
+                brand.elementsEqual("hevc".utf8) ||
+                brand.elementsEqual("mif1".utf8) ||
+                brand.elementsEqual("msf1".utf8) {
                 self = .heic; return
             }
         }
@@ -81,5 +82,3 @@ public enum ImageFormat: String {
         return nil
     }
 }
-
-

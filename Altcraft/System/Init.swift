@@ -1,78 +1,56 @@
 //
-//  Init.swift
+//  AltcraftInit.swift
 //  Altcraft
 //
 //  Created by Andrey Pogodin.
 //
-//  Copyright © 2025 Altcraft. All rights reserved.
+//  Copyright © 2026 Altcraft. All rights reserved.
 
 import Foundation
 
-/// A  class responsible for initializing the Altcraft SDK.
-///
-/// This class is used internally and accessed via the `shared` singleton.
-@available(iOSApplicationExtension, unavailable)
-class AltcraftInit: NSObject {
 
-    /// A shared singleton instance of `AltcraftInit`
-    ///  used to access SDK initialization logic.
+/// Coordinates Altcraft SDK initialization.
+@available(iOSApplicationExtension, unavailable)
+actor AltcraftInit {
+
+    /// Shared singleton instance.
     internal static let shared = AltcraftInit()
 
-    private let initQueue = DispatchQueue(
-        label: Constants.Queues.initQueue
-    )
+    private init() {}
 
-    /// Initializes the Altcraft SDK with the provided configuration.
+    /// Initializes the SDK using the provided configuration.
     ///
-    /// - Parameters:
-    ///   - configuration: Optional configuration object. If `nil`, initialization fails.
-    ///   - completion: Optional callback invoked on the **main** queue with `true` on success,
-    ///                 `false` on failure (including `nil` configuration).
-    func initSDK(
-        configuration: AltcraftConfiguration?,
-        completion: ((Bool) -> Void)? = nil
-    ) {
-        let reservedGate = InitBarrier.shared.reserve()
+    /// - Parameter configuration: SDK configuration. If `nil`, initialization fails.
+    /// - Returns: `true` if initialization completed successfully, otherwise `false`.
+    func initSDK(configuration: AltcraftConfiguration?) async -> Bool {
+        
+        let reservedGate = await InitBarrier.shared.reserve()
 
-        initQueue.async {
-            var didFinish = false
-
-            func finish(_ success: Bool) {
-                guard !didFinish else { return }
-                didFinish = true
-                DispatchQueue.main.async {
-                    completion?(success)
-                }
-                InitBarrier.shared.complete(
-                    reservedGate
-                )
-            }
-
-            guard let config = configuration else {
-                errorEvent(#function, error: configIsNotSet)
-                finish(false)
-                return
-            }
-
-            Logger.shared.setStatus(
-                status: config.getEnableLogging()
-            )
-            
-            setConfig(
-                url: config.getApiUrl(),
-                rToken: config.getRToken(),
-                appInfo: config.getAppInfo(),
-                providerPriorityList: config.getProviderPriorityList()
-            ) { set in
-                self.initQueue.async {
-                    guard set else {
-                        return finish(false)
-                    }
-                    event(#function, event: configSet)
-                    performInitOperations()
-                    finish(true)
-                }
-            }
+        guard let config = configuration else {
+            errorEvent(#function, error: configIsNotSet)
+            await InitBarrier.shared.complete(reservedGate)
+            return false
         }
+
+        Logger.shared.setStatus(config.getEnableLogging())
+
+        let isSet = await setConfig(
+            url: config.getApiUrl(),
+            rToken: config.getRToken(),
+            appInfo: config.getAppInfo(),
+            providerPriorityList: config.getProviderPriorityList()
+        )
+
+        guard isSet else {
+            await InitBarrier.shared.complete(reservedGate)
+            return false
+        }
+
+        event(#function, event: configSet)
+
+        performInitOperations()
+
+        await InitBarrier.shared.complete(reservedGate)
+        return true
     }
 }

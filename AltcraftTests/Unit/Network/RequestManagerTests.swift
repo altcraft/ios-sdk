@@ -4,31 +4,36 @@
 //
 //  Created by Andrey Pogodin.
 //
-//  © 2025 Altcraft. All rights reserved.
+//  Copyright © 2025 Altcraft. All rights reserved.
+//
 
 import XCTest
 @testable import Altcraft
 
 /**
- * RequestManagerTests
- *
- * Positive scenarios:
- *  - test_1: responseProcessing success 2xx returns event with mapped code.
- *  - test_2: responseProcessing server error 5xx returns retry event with mapped code.
- *  - test_3: responseProcessing client error 4xx returns error event with mapped code.
- *  - test_4: redirect delegate preserves critical headers.
- *  - test_5: sendRequest with mock URLSession success 200 maps success pair.
- *  - test_6: sendRequest with mock URLSession server error 5xx maps retry pair.
- *  - test_7: sendRequest with mock URLSession network error maps retry event.
- *  - test_8: responseProcessing mobile event success uses name in pair.
- */
-final class RequestManagerTests: XCTestCase {
+* RequestManagerTests
+*
+* Positive scenarios:
+* - test_1: responseProcessing success 2xx → returns Event with mapped code.
+* - test_2: responseProcessing server error 5xx → returns RetryEvent with mapped code.
+* - test_3: responseProcessing client error 4xx → returns ErrorEvent with mapped code.
+* - test_4: redirect delegate preserves critical headers.
+* - test_5: sendRequest with mock URLSession success 200 → maps success pair.
+* - test_6: sendRequest with mock URLSession server error 5xx → maps retry pair.
+* - test_7: sendRequest with mock URLSession network error → maps retry event.
+* - test_8: responseProcessing mobile event success → uses name in pair.
+*
+*/
+final class RequestManagerTests: IsolatedTestCase {
 
     private final class RequestManagerAdapter {
         private let manager: RequestManager
         private let session: URLSessioning
 
-        init(manager: RequestManager = RequestManager.shared, session: URLSessioning) {
+        init(
+            manager: RequestManager = RequestManager.shared,
+            session: URLSessioning
+        ) {
             self.manager = manager
             self.session = session
         }
@@ -38,29 +43,38 @@ final class RequestManagerTests: XCTestCase {
             requestName: String,
             uid: String? = nil,
             pushEventType: String? = nil,
-            mobileEventName: String? = nil,
-            completion: @escaping (Event) -> Void
-        ) {
-            session.makeDownloadTask(with: url) { tempURL, response, error in
-                if let error = error {
-                    completion(retryEvent("sendRequestAdapter: \(requestName)", error: error))
-                    return
-                }
-                guard let http = response as? HTTPURLResponse else {
-                    completion(retryEvent("sendRequestAdapter: \(requestName)", error: invalidResponseFormat))
-                    return
-                }
-                let data = tempURL.flatMap { try? Data(contentsOf: $0) }
-                let ev = self.manager.responseProcessing(
-                    response: http,
-                    data: data,
-                    requestName: requestName,
-                    uid: uid,
-                    type: pushEventType,
-                    name: mobileEventName
-                )
-                completion(ev)
-            }.resume()
+            mobileEventName: String? = nil
+        ) async -> Event {
+            await withCheckedContinuation { continuation in
+                session.makeDownloadTask(with: url) { tempURL, response, error in
+                    if let error {
+                        continuation.resume(
+                            returning: retryEvent("sendRequestAdapter: \(requestName)", error: error)
+                        )
+                        return
+                    }
+
+                    guard let httpResponse = response as? HTTPURLResponse else {
+                        continuation.resume(
+                            returning: retryEvent("sendRequestAdapter: \(requestName)", error: invalidResponseFormat)
+                        )
+                        return
+                    }
+
+                    let data = tempURL.flatMap { try? Data(contentsOf: $0) }
+
+                    let event = self.manager.responseProcessing(
+                        response: httpResponse,
+                        data: data,
+                        requestName: requestName,
+                        uid: uid,
+                        type: pushEventType,
+                        name: mobileEventName
+                    )
+
+                    continuation.resume(returning: event)
+                }.resume()
+            }
         }
     }
 
@@ -73,25 +87,27 @@ final class RequestManagerTests: XCTestCase {
         )!
     }
 
-    private func json(_ obj: Any) -> Data {
-        try! JSONSerialization.data(withJSONObject: obj, options: [])
+    private func json(_ object: Any) -> Data {
+        try! JSONSerialization.data(withJSONObject: object, options: [])
     }
 
     private func normalize(_ raw: String?) -> String {
-        guard let raw = raw else { return "" }
-        if let idx = raw.firstIndex(of: "(") {
-            return String(raw[..<idx]).trimmingCharacters(in: .whitespacesAndNewlines)
+        guard let raw else { return "" }
+
+        if let index = raw.firstIndex(of: "(") {
+            return String(raw[..<index]).trimmingCharacters(in: .whitespacesAndNewlines)
         }
+
         return raw.hasSuffix("()")
             ? String(raw.dropLast(2)).trimmingCharacters(in: .whitespacesAndNewlines)
             : raw
     }
 
-    /// test_1: responseProcessing success 2xx returns event with mapped code
-    func test_1_responseProcessing_success_2xx_returnsEvent_withMappedCode() {
-        let mgr = RequestManager.shared
+    /// responseProcessing success 2xx returns Event with mapped code
+    func test_1_responseProcessing_success_2xx_returns_event_with_mapped_code() {
+        let manager = RequestManager.shared
 
-        let ev = mgr.responseProcessing(
+        let event = manager.responseProcessing(
             response: http(200),
             data: json([:]),
             requestName: Constants.RequestName.pushEvent,
@@ -100,59 +116,59 @@ final class RequestManagerTests: XCTestCase {
             name: nil
         )
 
-        XCTAssertTrue(Swift.type(of: ev) == Event.self)
-        XCTAssertEqual(ev.eventCode, 236) // обновлено: pushEvent success -> 236
-        XCTAssertEqual(normalize(ev.function), "responseProcessing")
-        XCTAssertNotNil(ev.value?[Constants.MapKeys.responseWithHttp] as? ResponseWithHttp)
+        XCTAssertTrue(Swift.type(of: event) == Event.self)
+        XCTAssertEqual(event.eventCode, 236)
+        XCTAssertEqual(normalize(event.function), "responseProcessing")
+        XCTAssertNotNil(event.value?[Constants.MapKeys.responseWithHttp] as? ResponseWithHttp)
     }
 
-    /// test_2: responseProcessing server error 5xx returns retry event with mapped code
-    func test_2_responseProcessing_serverError_5xx_returnsRetryEvent_withMappedCode() {
-        let mgr = RequestManager.shared
+    /// responseProcessing server error 5xx returns RetryEvent with mapped code
+    func test_2_responseProcessing_server_error_5xx_returns_retry_event_with_mapped_code() {
+        let manager = RequestManager.shared
 
-        let ev = mgr.responseProcessing(
+        let event = manager.responseProcessing(
             response: http(503),
             data: json(["error": 123, "errorText": "boom"]),
             requestName: Constants.RequestName.subscribe
         )
 
-        XCTAssertTrue(Swift.type(of: ev) == RetryEvent.self)
-        XCTAssertEqual(ev.eventCode, 530) // subscribe 5xx -> 530
-        XCTAssertTrue((ev.message ?? "").contains("http code: 503"))
-        XCTAssertEqual(normalize(ev.function), "responseProcessing")
+        XCTAssertTrue(Swift.type(of: event) == RetryEvent.self)
+        XCTAssertEqual(event.eventCode, 530)
+        XCTAssertTrue((event.message ?? "").contains("http code: 503"))
+        XCTAssertEqual(normalize(event.function), "responseProcessing")
     }
 
-    /// test_3: responseProcessing client error 4xx returns error event with mapped code
-    func test_3_responseProcessing_clientError_4xx_returnsErrorEvent_withMappedCode() {
-        let mgr = RequestManager.shared
-
-        let ev = mgr.responseProcessing(
-            response: http(409),
-            data: json(["error": 12, "errorText": "bad"]),
-            requestName: Constants.RequestName.update
-        )
-
-        XCTAssertTrue(Swift.type(of: ev) == ErrorEvent.self)
-        XCTAssertEqual(ev.eventCode, 433) // update 4xx -> 433
-        XCTAssertEqual(normalize(ev.function), "responseProcessing")
-        XCTAssertNotNil(ev.value?[Constants.MapKeys.responseWithHttp] as? ResponseWithHttp)
-    }
-
-    /// test_4: redirect delegate preserves critical headers
-    func test_4_redirect_delegate_preservesCriticalHeaders() {
+    /// responseProcessing client error 4xx returns ErrorEvent with mapped code
+    func test_3_responseProcessing_client_error_4xx_returns_error_event_with_mapped_code() {
         let manager = RequestManager.shared
 
-        let firstURL  = URL(string: "https://stub.local/redirect")!
+        let event = manager.responseProcessing(
+            response: http(409),
+            data: json(["error": 12, "errorText": "bad"]),
+            requestName: Constants.RequestName.tokenUpdate
+        )
+
+        XCTAssertTrue(Swift.type(of: event) == ErrorEvent.self)
+        XCTAssertEqual(event.eventCode, 433)
+        XCTAssertEqual(normalize(event.function), "responseProcessing")
+        XCTAssertNotNil(event.value?[Constants.MapKeys.responseWithHttp] as? ResponseWithHttp)
+    }
+
+    /// redirect delegate preserves critical headers
+    func test_4_redirect_delegate_preserves_critical_headers() {
+        let manager = RequestManager.shared
+
+        let firstURL = URL(string: "https://stub.local/redirect")!
         let secondURL = URL(string: "https://stub.local/final")!
 
-        var original = URLRequest(url: firstURL)
-        original.httpMethod = "GET"
-        original.setValue("Bearer SECRET", forHTTPHeaderField: Constants.HTTPHeader.authorization)
-        original.setValue("RID-REDIR", forHTTPHeaderField: Constants.HTTPHeader.requestId)
-        original.setValue("application/json", forHTTPHeaderField: Constants.HTTPHeader.contentType)
+        var originalRequest = URLRequest(url: firstURL)
+        originalRequest.httpMethod = "GET"
+        originalRequest.setValue("Bearer SECRET", forHTTPHeaderField: Constants.HTTPHeader.authorization)
+        originalRequest.setValue("RID-REDIR", forHTTPHeaderField: Constants.HTTPHeader.requestId)
+        originalRequest.setValue("application/json", forHTTPHeaderField: Constants.HTTPHeader.contentType)
 
         let session = URLSession(configuration: .ephemeral, delegate: nil, delegateQueue: nil)
-        let task = session.dataTask(with: original)
+        let task = session.dataTask(with: originalRequest)
 
         let redirectResponse = HTTPURLResponse(
             url: firstURL,
@@ -161,99 +177,99 @@ final class RequestManagerTests: XCTestCase {
             headerFields: ["Location": secondURL.absoluteString]
         )!
 
-        var newReq = URLRequest(url: secondURL)
-        newReq.httpMethod = "GET"
+        var newRequest = URLRequest(url: secondURL)
+        newRequest.httpMethod = "GET"
 
-        let exp = expectation(description: "delegate returns modified request")
+        let expectation = expectation(description: "Delegate returns modified request")
 
         manager.urlSession(
             session,
             task: task,
             willPerformHTTPRedirection: redirectResponse,
-            newRequest: newReq
-        ) { modified in
-            XCTAssertNotNil(modified)
-            let r = modified!
+            newRequest: newRequest
+        ) { modifiedRequest in
+            XCTAssertNotNil(modifiedRequest)
+            XCTAssertEqual(
+                modifiedRequest?.value(forHTTPHeaderField: Constants.HTTPHeader.authorization),
+                "Bearer SECRET"
+            )
+            XCTAssertEqual(
+                modifiedRequest?.value(forHTTPHeaderField: Constants.HTTPHeader.requestId),
+                "RID-REDIR"
+            )
+            XCTAssertEqual(
+                modifiedRequest?.value(forHTTPHeaderField: Constants.HTTPHeader.contentType),
+                "application/json"
+            )
+            XCTAssertEqual(modifiedRequest?.url, secondURL)
 
-            XCTAssertEqual(r.value(forHTTPHeaderField: Constants.HTTPHeader.authorization), "Bearer SECRET")
-            XCTAssertEqual(r.value(forHTTPHeaderField: Constants.HTTPHeader.requestId), "RID-REDIR")
-            XCTAssertEqual(r.value(forHTTPHeaderField: Constants.HTTPHeader.contentType), "application/json")
-            XCTAssertEqual(r.url, secondURL)
-
-            exp.fulfill()
+            expectation.fulfill()
         }
 
-        wait(for: [exp], timeout: 1.0)
+        wait(for: [expectation], timeout: 1.0)
     }
 
-    /// test_5: sendRequest with mock URLSession success 200 maps success pair
-    func test_5_sendRequest_withMockURLSession_success200_mapsSuccessPair() {
+    /// sendRequest with mock URLSession success 200 maps success pair
+    func test_5_send_request_with_mock_url_session_success_200_maps_success_pair() async {
         let body = json([:])
-        let mock = MockURLSession(result: .success(body), statusCode: 200)
-        let adapter = RequestManagerAdapter(session: mock)
+        let mockSession = MockURLSession(result: .success(body), statusCode: 200)
+        let adapter = RequestManagerAdapter(session: mockSession)
 
-        let exp = expectation(description: "success 200 via MockURLSession")
-        adapter.sendRequest(
+        let event = await adapter.sendRequest(
             url: URL(string: "https://mock.local/success")!,
             requestName: Constants.RequestName.subscribe
-        ) { ev in
-            XCTAssertTrue(Swift.type(of: ev) == Event.self)
-            XCTAssertEqual(ev.eventCode, 230) // subscribe success -> 230
-            XCTAssertEqual(self.normalize(ev.function), "responseProcessing")
-            exp.fulfill()
-        }
+        )
 
-        wait(for: [exp], timeout: 1.0)
+        XCTAssertTrue(Swift.type(of: event) == Event.self)
+        XCTAssertEqual(event.eventCode, 230)
+        XCTAssertEqual(normalize(event.function), "responseProcessing")
     }
 
-    /// test_6: sendRequest with mock URLSession server error 5xx maps retry pair
-    func test_6_sendRequest_withMockURLSession_serverError_5xx_mapsRetryPair() {
+    /// sendRequest with mock URLSession server error 5xx maps retry pair
+    func test_6_send_request_with_mock_url_session_server_error_5xx_maps_retry_pair() async {
         let body = json([:])
-        let mock = MockURLSession(result: .success(body), statusCode: 503)
-        let adapter = RequestManagerAdapter(session: mock)
+        let mockSession = MockURLSession(result: .success(body), statusCode: 503)
+        let adapter = RequestManagerAdapter(session: mockSession)
 
-        let exp = expectation(description: "server error 5xx via MockURLSession")
-
-        adapter.sendRequest(
+        let event = await adapter.sendRequest(
             url: URL(string: "https://mock.local/5xx")!,
             requestName: Constants.RequestName.pushEvent,
             uid: "U5",
             pushEventType: Constants.PushEvents.delivery
-        ) { ev in
-            XCTAssertTrue(Swift.type(of: ev) == RetryEvent.self)
-            XCTAssertEqual(ev.eventCode, 536) // pushEvent 5xx -> 536 (обновлено)
-            XCTAssertEqual(self.normalize(ev.function), "responseProcessing")
-            exp.fulfill()
-        }
+        )
 
-        wait(for: [exp], timeout: 1.0)
+        XCTAssertTrue(Swift.type(of: event) == RetryEvent.self)
+        XCTAssertEqual(event.eventCode, 536)
+        XCTAssertEqual(normalize(event.function), "responseProcessing")
     }
 
-    /// test_7: sendRequest with mock URLSession network error maps retry event
-    func test_7_sendRequest_withMockURLSession_networkError_mapsRetryEvent() {
-        let err = NSError(domain: NSURLErrorDomain, code: NSURLErrorNotConnectedToInternet, userInfo: nil)
-        let mock = MockURLSession(result: .failure(err), statusCode: 200)
-        let adapter = RequestManagerAdapter(session: mock)
+    /// sendRequest with mock URLSession network error maps retry event
+    func test_7_send_request_with_mock_url_session_network_error_maps_retry_event() async {
+        let error = NSError(
+            domain: NSURLErrorDomain,
+            code: NSURLErrorNotConnectedToInternet,
+            userInfo: nil
+        )
+        let mockSession = MockURLSession(result: .failure(error), statusCode: 200)
+        let adapter = RequestManagerAdapter(session: mockSession)
 
-        let exp = expectation(description: "network error via MockURLSession")
-
-        adapter.sendRequest(
+        let event = await adapter.sendRequest(
             url: URL(string: "https://mock.local/error")!,
-            requestName: Constants.RequestName.update
-        ) { ev in
-            XCTAssertTrue(Swift.type(of: ev) == RetryEvent.self)
-            XCTAssertEqual(self.normalize(ev.function), "sendRequestAdapter: \(Constants.RequestName.update)")
-            exp.fulfill()
-        }
+            requestName: Constants.RequestName.tokenUpdate
+        )
 
-        wait(for: [exp], timeout: 1.0)
+        XCTAssertTrue(Swift.type(of: event) == RetryEvent.self)
+        XCTAssertEqual(
+            normalize(event.function),
+            "sendRequestAdapter: \(Constants.RequestName.tokenUpdate)"
+        )
     }
 
-    /// test_8: responseProcessing mobile event success uses name in pair
-    func test_8_responseProcessing_mobileEvent_success_usesNameInPair() {
-        let mgr = RequestManager.shared
+    /// responseProcessing mobile event success uses name in pair
+    func test_8_response_processing_mobile_event_success_uses_name_in_pair() {
+        let manager = RequestManager.shared
 
-        let ev = mgr.responseProcessing(
+        let event = manager.responseProcessing(
             response: http(200),
             data: json([:]),
             requestName: Constants.RequestName.mobileEvent,
@@ -262,10 +278,9 @@ final class RequestManagerTests: XCTestCase {
             name: "open app"
         )
 
-        XCTAssertTrue(Swift.type(of: ev) == Event.self)
-        XCTAssertEqual(ev.eventCode, 237) // mobileEvent success -> 237 (обновлено)
-        XCTAssertEqual(normalize(ev.function), "responseProcessing")
-        XCTAssertNotNil(ev.value?[Constants.MapKeys.responseWithHttp] as? ResponseWithHttp)
+        XCTAssertTrue(Swift.type(of: event) == Event.self)
+        XCTAssertEqual(event.eventCode, 237)
+        XCTAssertEqual(normalize(event.function), "responseProcessing")
+        XCTAssertNotNil(event.value?[Constants.MapKeys.responseWithHttp] as? ResponseWithHttp)
     }
 }
-

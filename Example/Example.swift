@@ -1,5 +1,5 @@
 //
-//  ExampleApp.swift
+//  Example.swift
 //
 //  Example
 //
@@ -20,7 +20,6 @@ let anonJWT: String? = nil
  
 ///set the JWT value for the registered user as regJWT or in the application IU interface (config)
 let regJWT: String? = nil
-
 
 @main
 struct IOSAPNsExampleApp: App {
@@ -59,9 +58,9 @@ class AppDelegate: UIResponder, UIApplicationDelegate, UNUserNotificationCenterD
         AltcraftSDK.shared.setAppGroup(groupName: appGroupID)
         AltcraftSDK.shared.backgroundTasks.registerBackgroundTask()
         AltcraftSDK.shared.setJWTProvider(provider: JWTProvider())
-        AltcraftSDK.shared.pushTokenFunction.setFCMTokenProvider(FCMProvider())
-        AltcraftSDK.shared.pushTokenFunction.setHMSTokenProvider(HMSProvider())
-        AltcraftSDK.shared.pushTokenFunction.setAPNSTokenProvider(APNSProvider())
+        AltcraftSDK.shared.pushTokenFunctions.setFCMTokenProvider(FCMProvider())
+        AltcraftSDK.shared.pushTokenFunctions.setHMSTokenProvider(HMSProvider())
+        AltcraftSDK.shared.pushTokenFunctions.setAPNSTokenProvider(APNSProvider())
         AltcraftSDK.shared.notificationManager.registerForPushNotifications(for: application)
     
         
@@ -84,13 +83,13 @@ class AppDelegate: UIResponder, UIApplicationDelegate, UNUserNotificationCenterD
     ) {
         //APNS
         setAPNsTokenInUserDefault(apnsToken)
-        AltcraftSDK.shared.pushTokenFunction.getPushToken()
+        AltcraftSDK.shared.pushTokenFunctions.getPushToken()
     }
 }
 
 /**
  * Altcraft SDK setup on iOS
- *'
+ *
  * You can configure Altcraft SDK via your app UI (Config screen) or initialize it programmatically.
  *
  * Example (programmatic init in AppDelegate):

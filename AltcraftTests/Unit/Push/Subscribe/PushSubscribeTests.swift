@@ -4,7 +4,8 @@
 //
 //  Created by Andrey Pogodin.
 //
-//  © 2025 Altcraft. All rights reserved.
+//  Copyright © 2026 Altcraft. All rights reserved.
+//
 
 import XCTest
 import CoreData
@@ -14,17 +15,18 @@ import CoreData
  * PushSubscribeTests
  *
  * Positive scenarios:
- *  - test_1: signAll success chain deletes all subscriptions.
- *  - test_2: signAll retry without limit stops and increments retryCount.
- *  - test_3: signAll retry with limit treated as completed then continues.
- *  - test_4: processSubscriptions filters by current userTag only.
- *  - test_5: processSubscriptions returns true when no subscriptions.
- *  - test_6: responseProcessing maps status codes to event types.
- *  - test_7: signAll retry with invalid objectID treated as completed.
- *  - test_8: signAll retry with wrong type objectID deletes and completes.
- *  - test_9: signAll success saves current token and deletes subscription.
- *  - test_10: signAll error deletes subscription and continues chain.
- *  - test_11: signAll success but current token is nil stops with retry and does not delete.
+ * - test_1: pushSubscribeRequest builds valid POST JSON request with required headers.
+ * - test_2: request with invalid objectID returns RetryEvent when request data cannot be built.
+ * - test_3: processSubscription with invalid objectID is treated as completed.
+ * - test_4: processSubscription on retry path increments retryCount and returns true.
+ * - test_5: processSubscription on max retry deletes entity and returns false.
+ * - test_6: processSubscriptions stops on the first retrying entity and leaves the next one untouched.
+ * - test_7: processSubscriptions with empty queue returns true.
+ * - test_8: processSubscription with wrong type objectID deletes object and returns false.
+ * - test_9: retryLimit with invalid objectID returns true when objectID is invalid.
+ * - test_10: retryLimit increments retryCount until max, then deletes entity.
+ * - test_11: responseProcessing maps status codes to event types.
+ *
  */
 final class PushSubscribeTests: IsolatedTestCase {
 
@@ -34,382 +36,468 @@ final class PushSubscribeTests: IsolatedTestCase {
         }
     }
 
-    private final class TestablePushSubscribe: PushSubscribe {
-        enum Behavior { case success, retry, error }
-        var perObjectBehavior: [NSManagedObjectID: Behavior] = [:]
-        var defaultBehavior: Behavior = .success
-
-        override func sendSubscribeRequest(
-            context: NSManagedObjectContext,
-            objectID: NSManagedObjectID,
-            completion: @escaping (Event) -> Void
-        ) {
-            let behavior = perObjectBehavior[objectID] ?? defaultBehavior
-            switch behavior {
-            case .success:
-                completion(Event(function: "sendSubscribeRequest"))
-            case .retry:
-                completion(RetryEvent(function: "sendSubscribeRequest"))
-            case .error:
-                completion(ErrorEvent(function: "sendSubscribeRequest"))
-            }
-        }
-    }
-
-    private var sut: TestablePushSubscribe!
     private var apnsStub: TestAPNSProvider!
+    private var context: NSManagedObjectContext!
 
-    private func performSync(_ context: NSManagedObjectContext, _ block: @escaping () -> Void) {
-        if context.concurrencyType == .mainQueueConcurrencyType, Thread.isMainThread {
-            block()
-            return
-        }
-        let sema = DispatchSemaphore(value: 0)
-        context.perform {
-            block()
-            sema.signal()
-        }
-        _ = sema.wait(timeout: .now() + 5.0)
-    }
-
-    private func performSync<T>(_ context: NSManagedObjectContext, _ block: @escaping () -> T) -> T {
-        if context.concurrencyType == .mainQueueConcurrencyType, Thread.isMainThread {
-            return block()
-        }
-        let sema = DispatchSemaphore(value: 0)
-        var out: T!
-        context.perform {
-            out = block()
-            sema.signal()
-        }
-        _ = sema.wait(timeout: .now() + 5.0)
-        return out
-    }
-
-    private func waitUntil(
-        _ description: String,
+    private func waitAsync(
+        description: String = "async work",
         timeout: TimeInterval = 2.0,
-        poll: TimeInterval = 0.01,
-        file: StaticString = #filePath,
-        line: UInt = #line,
-        _ predicate: @escaping () -> Bool
+        _ work: @escaping @Sendable () async -> Void
     ) {
         let exp = expectation(description: description)
-
-        func tick(deadline: DispatchTime) {
-            if predicate() {
-                exp.fulfill()
-                return
-            }
-            if DispatchTime.now() >= deadline { return }
-            DispatchQueue.global().asyncAfter(deadline: .now() + poll) {
-                tick(deadline: deadline)
-            }
+        Task {
+            await work()
+            exp.fulfill()
         }
-
-        tick(deadline: .now() + timeout)
-        wait(for: [exp], timeout: timeout + 0.2)
-        XCTAssertTrue(predicate(), file: file, line: line)
+        wait(for: [exp], timeout: timeout)
     }
-
-    // MARK: - Setup / teardown
 
     override func setUpWithError() throws {
         try super.setUpWithError()
 
+        context = CoreDataManager.shared.getContext()
         apnsStub = TestAPNSProvider()
-        TokenManager.shared.apnsProvider = apnsStub
-        TokenManager.shared.fcmProvider = nil
-        TokenManager.shared.hmsProvider = nil
 
-        sut = TestablePushSubscribe()
+        waitAsync(description: "configure token providers") {
+            await TokenManager.shared.setAPNSProvider(self.apnsStub)
+            await TokenManager.shared.setFCMProvider(nil)
+            await TokenManager.shared.setHMSProvider(nil)
+        }
 
-        wipeInMemory([Constants.EntityNames.subscribe, Constants.EntityNames.config])
-        sdkWipe([Constants.EntityNames.subscribe, Constants.EntityNames.config])
+        waitAsync(description: "clear stored tokens") {
+            await StoredVariablesManager.shared.clearManualToken()
+            StoredVariablesManager.shared.clearSavedToken()
+        }
+
+        wipeContext([
+            Constants.EntityNames.subscribeEntity,
+            Constants.EntityNames.configurationEntity
+        ], context: context)
+
+        sdkWipe([
+            Constants.EntityNames.subscribeEntity,
+            Constants.EntityNames.configurationEntity
+        ])
     }
 
     override func tearDownWithError() throws {
-        wipeInMemory([Constants.EntityNames.subscribe, Constants.EntityNames.config])
-        sdkWipe([Constants.EntityNames.subscribe, Constants.EntityNames.config])
+        wipeContext([
+            Constants.EntityNames.subscribeEntity,
+            Constants.EntityNames.configurationEntity
+        ], context: context)
 
-        sut = nil
+        sdkWipe([
+            Constants.EntityNames.subscribeEntity,
+            Constants.EntityNames.configurationEntity
+        ])
 
-        TokenManager.shared.apnsProvider = nil
-        TokenManager.shared.fcmProvider = nil
-        TokenManager.shared.hmsProvider = nil
+        waitAsync(description: "reset token providers") {
+            await TokenManager.shared.setAPNSProvider(nil)
+            await TokenManager.shared.setFCMProvider(nil)
+            await TokenManager.shared.setHMSProvider(nil)
+        }
+
+        waitAsync(description: "clear stored tokens") {
+            await StoredVariablesManager.shared.clearManualToken()
+            StoredVariablesManager.shared.clearSavedToken()
+        }
+
         apnsStub = nil
+        context = nil
 
         try super.tearDownWithError()
-    }
-
-    // MARK: - DB helpers
-
-    private func wipeInMemory(_ entities: [String]) {
-        performSync(viewContext) {
-            for name in entities {
-                let fr = NSFetchRequest<NSFetchRequestResult>(entityName: name)
-                if let list = try? self.viewContext.fetch(fr) as? [NSManagedObject] {
-                    list.forEach { self.viewContext.delete($0) }
-                }
-            }
-            if self.viewContext.hasChanges { try? self.viewContext.save() }
-        }
-    }
-
-    private func sdkWipe(_ entityNames: [String]) {
-        let container = CoreDataManager.shared.persistentContainer
-        let bg = container.newBackgroundContext()
-        bg.mergePolicy = NSMergeByPropertyObjectTrumpMergePolicy
-
-        performSync(bg) {
-            for name in entityNames {
-                let fr = NSFetchRequest<NSFetchRequestResult>(entityName: name)
-                fr.includesPropertyValues = false
-                if let objects = try? bg.fetch(fr) as? [NSManagedObject] {
-                    objects.forEach { bg.delete($0) }
-                }
-            }
-            if bg.hasChanges { try? bg.save() }
-        }
     }
 
     @discardableResult
     private func makeSub(
         userTag: String = "user-1",
-        status: String = "subscribed",
+        status: String = Constants.SubStatus.subscribed,
         sync: Int16 = 1,
         time: Int64 = Int64(Date().timeIntervalSince1970 * 1000),
         retryCount: Int16 = 0,
-        maxRetryCount: Int16 = 3,
+        maxRetryCount: Int16 = 2,
         replace: Bool = false,
-        skipTriggers: Bool = false
-    ) throws -> SubscribeEntity {
+        skipTriggers: Bool = false,
+        profileFields: Data? = nil,
+        customFields: Data? = nil,
+        cats: Data? = nil
+    ) throws -> NSManagedObjectID {
+        var objectID: NSManagedObjectID?
 
-        var created: SubscribeEntity?
-        var caught: Error?
+        context.performAndWait {
+            let entity = NSEntityDescription.insertNewObject(
+                forEntityName: Constants.EntityNames.subscribeEntity,
+                into: context
+            )
 
-        performSync(viewContext) {
-            guard let ent = NSEntityDescription.entity(
-                forEntityName: Constants.EntityNames.subscribe,
-                in: self.viewContext
-            ) else {
-                caught = NSError(domain: "tests", code: 1001, userInfo: [
-                    NSLocalizedDescriptionKey: "Missing entity \(Constants.EntityNames.subscribe)"
-                ])
+            entity.setValue(userTag, forKey: "userTag")
+            entity.setValue(UUID().uuidString, forKey: "requestId")
+            entity.setValue(status, forKey: "status")
+            entity.setValue(sync, forKey: "sync")
+            entity.setValue(time, forKey: "time")
+            entity.setValue(retryCount, forKey: "retryCount")
+            entity.setValue(maxRetryCount, forKey: "maxRetryCount")
+            entity.setValue(replace, forKey: "replace")
+            entity.setValue(skipTriggers, forKey: "skipTriggers")
+            entity.setValue(profileFields, forKey: "profileFields")
+            entity.setValue(customFields, forKey: "customFields")
+            entity.setValue(cats, forKey: "cats")
+
+            do {
+                if entity.objectID.isTemporaryID {
+                    try context.obtainPermanentIDs(for: [entity])
+                }
+                try context.save()
+                objectID = entity.objectID
+            } catch {
+                XCTFail("Failed to save SubscribeEntity: \(error)")
+            }
+        }
+
+        return try XCTUnwrap(objectID)
+    }
+
+    @discardableResult
+    private func makeConfig(
+        url: String = "https://api.altcraft.test",
+        rToken: String = "user-1"
+    ) throws -> NSManagedObjectID {
+        var objectID: NSManagedObjectID?
+
+        context.performAndWait {
+            let entity = NSEntityDescription.insertNewObject(
+                forEntityName: Constants.EntityNames.configurationEntity,
+                into: context
+            )
+
+            entity.setValue(url, forKey: "url")
+            entity.setValue(rToken, forKey: "rToken")
+
+            do {
+                if entity.objectID.isTemporaryID {
+                    try context.obtainPermanentIDs(for: [entity])
+                }
+                try context.save()
+                objectID = entity.objectID
+            } catch {
+                XCTFail("Failed to save ConfigurationEntity: \(error)")
+            }
+        }
+
+        return try XCTUnwrap(objectID)
+    }
+
+    private func deleteObject(by id: NSManagedObjectID) throws {
+        context.performAndWait {
+            guard let object = resolveObject(in: context, from: id) else {
                 return
             }
 
-            let obj = SubscribeEntity(entity: ent, insertInto: self.viewContext)
-            obj.userTag = userTag
-            obj.status = status
-            obj.sync = sync
-            obj.time = time
-            obj.retryCount = retryCount
-            obj.maxRetryCount = maxRetryCount
-            obj.replace = replace
-            obj.skipTriggers = skipTriggers
+            context.delete(object)
 
             do {
-                try self.viewContext.obtainPermanentIDs(for: [obj])
-                try self.viewContext.save()
-                created = obj
+                if context.hasChanges {
+                    try context.save()
+                }
             } catch {
-                caught = error
+                XCTFail("Failed to delete object: \(error)")
             }
         }
-
-        if let caught { throw caught }
-        guard let created else {
-            throw NSError(domain: "tests", code: 1002, userInfo: [
-                NSLocalizedDescriptionKey: "SubscribeEntity was not created"
-            ])
-        }
-        return created
     }
 
-    private func makeConfig(url: String = "https://api", rToken: String) throws -> ConfigurationEntity {
-        var created: ConfigurationEntity?
-        var caught: Error?
+    private func fetchSub(by id: NSManagedObjectID) throws -> SubscribeEntity? {
+        var object: SubscribeEntity?
 
-        performSync(viewContext) {
-            guard let ent = NSEntityDescription.entity(
-                forEntityName: Constants.EntityNames.config,
-                in: self.viewContext
-            ) else {
-                caught = NSError(domain: "tests", code: 1101, userInfo: [
-                    NSLocalizedDescriptionKey: "Missing entity \(Constants.EntityNames.config)"
-                ])
-                return
+        context.performAndWait {
+            object = resolveObject(in: context, from: id) as? SubscribeEntity
+        }
+
+        return object
+    }
+
+    private func fetchAllSubs() throws -> [SubscribeEntity] {
+        var objects: [SubscribeEntity] = []
+
+        context.performAndWait {
+            let req = NSFetchRequest<SubscribeEntity>(entityName: Constants.EntityNames.subscribeEntity)
+            objects = (try? context.fetch(req)) ?? []
+        }
+
+        return objects
+    }
+
+    private func wipeContext(_ entities: [String], context: NSManagedObjectContext) {
+        context.performAndWait {
+            for name in entities {
+                let req = NSFetchRequest<NSFetchRequestResult>(entityName: name)
+                if let objects = try? context.fetch(req) as? [NSManagedObject] {
+                    objects.forEach { context.delete($0) }
+                }
             }
 
-            let obj = ConfigurationEntity(entity: ent, insertInto: self.viewContext)
-            obj.url = url
-            obj.rToken = rToken
-
-            do {
-                try self.viewContext.obtainPermanentIDs(for: [obj])
-                try self.viewContext.save()
-                created = obj
-            } catch {
-                caught = error
+            if context.hasChanges {
+                try? context.save()
             }
         }
-
-        if let caught { throw caught }
-        guard let created else {
-            throw NSError(domain: "tests", code: 1102, userInfo: [
-                NSLocalizedDescriptionKey: "ConfigurationEntity was not created"
-            ])
-        }
-        return created
     }
 
-    private func countSubs() -> Int {
-        performSync(viewContext) {
-            let fr = NSFetchRequest<NSFetchRequestResult>(entityName: Constants.EntityNames.subscribe)
-            return (try? self.viewContext.count(for: fr)) ?? 0
-        }
-    }
-
-    private func loadSub(_ id: NSManagedObjectID) -> SubscribeEntity? {
-        performSync(viewContext) {
-            (try? self.viewContext.existingObject(with: id)) as? SubscribeEntity
-        }
-    }
-
-    private func seedConfigToSDKStore(rToken: String) {
+    private func sdkWipe(_ entityNames: [String]) {
         let ctx = CoreDataManager.shared.persistentContainer.newBackgroundContext()
-        performSync(ctx) {
-            let req: NSFetchRequest<ConfigurationEntity> = ConfigurationEntity.fetchRequest()
-            let entity = ((try? ctx.fetch(req))?.first) ?? ConfigurationEntity(context: ctx)
-            entity.url = "https://api"
-            entity.rToken = rToken
-            try? ctx.save()
+        let sema = DispatchSemaphore(value: 0)
+
+        ctx.perform {
+            for name in entityNames {
+                let req = NSFetchRequest<NSFetchRequestResult>(entityName: name)
+                req.includesPropertyValues = false
+                if let objects = try? ctx.fetch(req) as? [NSManagedObject] {
+                    objects.forEach { ctx.delete($0) }
+                }
+            }
+
+            if ctx.hasChanges {
+                try? ctx.save()
+            }
+
+            sema.signal()
+        }
+
+        _ = sema.wait(timeout: .now() + 5.0)
+    }
+
+    /// test_1: pushSubscribeRequest builds valid POST JSON request with required headers
+    func test_1_pushSubscribeRequest_builds_valid_post_json_request_with_required_headers() throws {
+        let data = PushSubscribeRequestData(
+            url: "https://api.altcraft.test/subscribe",
+            requestId: "RID-\(UUID().uuidString)",
+            time: 1_700_000_000,
+            rToken: "user-1",
+            authHeader: "Bearer token",
+            matchingMode: "email",
+            provider: "ios-apns",
+            deviceToken: "TEST-APNS-TOKEN",
+            status: Constants.SubStatus.subscribed,
+            sync: true,
+            profileFields: ["age": 30, "name": "Ann"],
+            customFields: ["lang": "ru"],
+            cats: [],
+            replace: false,
+            skipTriggers: false
+        )
+
+        let request = pushSubscribeRequest(data: data)
+
+        XCTAssertNotNil(request)
+        XCTAssertEqual(request?.httpMethod, "POST")
+        XCTAssertEqual(
+            request?.value(forHTTPHeaderField: Constants.HTTPHeader.authorization),
+            "Bearer token"
+        )
+
+        let contentType = request?.value(forHTTPHeaderField: Constants.HTTPHeader.contentType) ?? ""
+        XCTAssertTrue(contentType.contains("application/json"))
+
+        XCTAssertNotNil(request?.httpBody)
+        if let body = request?.httpBody {
+            XCTAssertNoThrow(try JSONSerialization.jsonObject(with: body, options: []))
         }
     }
 
-    // MARK: - Tests
+    /// test_2: request with invalid objectID returns RetryEvent when request data cannot be built
+    func test_2_request_with_invalid_objectID_returns_retry_event_when_request_data_cannot_be_built() async throws {
+        let id = try makeSub()
+        try deleteObject(by: id)
 
-    /// test_1: signAll success chain deletes all subscriptions
-    func test_1_signAll_success_chain_deletes_all() throws {
-        let s1 = try makeSub(time: 1_700_000_000_001)
-        let s2 = try makeSub(time: 1_700_000_000_002)
-        let s3 = try makeSub(time: 1_700_000_000_003)
+        let event = await PushSubscribe.shared.test_push_subscribe_request(
+            context: context,
+            objectID: id
+        )
 
-        sut.defaultBehavior = .success
-
-        let exp = expectation(description: "done")
-        sut.signAll(context: viewContext, subscriptions: [s1.objectID, s2.objectID, s3.objectID]) { retryNeeded in
-            XCTAssertFalse(retryNeeded)
-            exp.fulfill()
-        }
-        wait(for: [exp], timeout: 2.0)
-
-        waitUntil("subscriptions deleted", timeout: 3.0) { self.countSubs() == 0 }
-        XCTAssertEqual(countSubs(), 0)
+        XCTAssertTrue(event is RetryEvent)
     }
 
-    /// test_2: signAll retry without limit stops and increments retryCount
-    func test_2_signAll_retry_without_limit_stops_and_increments_retryCount() throws {
-        let s = try makeSub(retryCount: 0, maxRetryCount: 2)
-        sut.perObjectBehavior[s.objectID] = .retry
+    /// test_3: processSubscription with invalid objectID is treated as completed
+    func test_3_processSubscription_with_invalid_objectID_is_treated_as_completed() async throws {
+        let id = try makeSub()
+        try deleteObject(by: id)
 
-        let exp = expectation(description: "stopped on retry")
-        sut.signAll(context: viewContext, subscriptions: [s.objectID]) { retryNeeded in
-            XCTAssertTrue(retryNeeded)
-            exp.fulfill()
-        }
-        wait(for: [exp], timeout: 2.0)
+        let result = await PushSubscribe.shared.test_push_subscribe_isRetry(
+            context: context,
+            subscription: id
+        )
 
-        waitUntil("retryCount incremented", timeout: 3.0) {
-            (self.loadSub(s.objectID)?.retryCount ?? 0) == 1
-        }
-
-        let after = loadSub(s.objectID)
-        XCTAssertNotNil(after)
-        XCTAssertEqual(after?.retryCount, 1)
-        XCTAssertEqual(countSubs(), 1)
+        XCTAssertFalse(result)
     }
 
-    /// test_3: signAll retry with limit treated as completed then continues
-    func test_3_signAll_retry_with_limit_treated_as_completed_then_continues() throws {
-        let first  = try makeSub(retryCount: 2, maxRetryCount: 2)
-        let second = try makeSub(retryCount: 0, maxRetryCount: 3)
+    /// test_4: processSubscription on retry path increments retryCount and returns true
+    func test_4_processSubscription_on_retry_path_increments_retryCount_and_returns_true() async throws {
+        let id = try makeSub(
+            retryCount: 0,
+            maxRetryCount: 2
+        )
 
-        sut.perObjectBehavior[first.objectID]  = .retry
-        sut.perObjectBehavior[second.objectID] = .success
+        let result = await PushSubscribe.shared.test_push_subscribe_isRetry(
+            context: context,
+            subscription: id
+        )
 
-        let exp = expectation(description: "completed chain")
-        sut.signAll(context: viewContext, subscriptions: [first.objectID, second.objectID]) { retryNeeded in
-            XCTAssertFalse(retryNeeded)
-            exp.fulfill()
-        }
-        wait(for: [exp], timeout: 2.0)
+        XCTAssertTrue(result)
 
-        waitUntil("subscriptions deleted", timeout: 3.0) { self.countSubs() == 0 }
-        XCTAssertEqual(countSubs(), 0)
+        let updated = try XCTUnwrap(fetchSub(by: id))
+        XCTAssertEqual(updated.retryCount, 1)
+        XCTAssertEqual(updated.maxRetryCount, 2)
     }
 
-    /// test_4: processSubscriptions filters by current userTag only
-    func test_4_processSubscriptions_filters_by_current_userTag_only() throws {
-        seedConfigToSDKStore(rToken: "user-1")
+    /// test_5: processSubscription on max retry deletes entity and returns false
+    func test_5_processSubscription_on_max_retry_deletes_entity_and_returns_false() async throws {
+        let id = try makeSub(
+            retryCount: 0,
+            maxRetryCount: 0
+        )
 
-        let a1 = try makeSub(userTag: "user-1", time: 1)
-        let a2 = try makeSub(userTag: "user-1", time: 2)
-        _ = try makeSub(userTag: "user-2", time: 3)
+        let result = await PushSubscribe.shared.test_push_subscribe_isRetry(
+            context: context,
+            subscription: id
+        )
 
-        sut.defaultBehavior = .success
-
-        let exp = expectation(description: "process current tag only")
-        sut.processSubscriptions(context: viewContext) { completed in
-            XCTAssertTrue(completed)
-            exp.fulfill()
-        }
-        wait(for: [exp], timeout: 2.0)
-
-        waitUntil("user-1 subscriptions removed", timeout: 3.0) {
-            self.loadSub(a1.objectID) == nil && self.loadSub(a2.objectID) == nil
-        }
-
-        let remainsForUser2: Int = performSync(viewContext) {
-            let fr = NSFetchRequest<NSFetchRequestResult>(entityName: Constants.EntityNames.subscribe)
-            fr.predicate = NSPredicate(format: "userTag == %@", "user-2")
-            return (try? self.viewContext.count(for: fr)) ?? 0
-        }
-
-        XCTAssertNil(loadSub(a1.objectID))
-        XCTAssertNil(loadSub(a2.objectID))
-        XCTAssertEqual(remainsForUser2, 1)
+        XCTAssertFalse(result)
+        XCTAssertNil(try fetchSub(by: id))
     }
 
-    /// test_5: processSubscriptions returns true when no subscriptions
-    func test_5_processSubscriptions_returns_true_when_no_subscriptions() throws {
-        seedConfigToSDKStore(rToken: "user-1")
+    /// test_6: processSubscriptions stops on the first retrying entity and leaves the next one untouched
+    func test_6_processSubscriptions_stops_on_the_first_retrying_entity_and_leaves_the_next_one_untouched() async throws {
+        let tag = "user-stop-chain-\(UUID().uuidString)"
+        let now = Int64(Date().timeIntervalSince1970 * 1000)
 
-        let exp = expectation(description: "no subs -> true")
-        sut.processSubscriptions(context: viewContext) { completed in
-            XCTAssertTrue(completed)
-            exp.fulfill()
-        }
-        wait(for: [exp], timeout: 1.0)
+        let firstID = try makeSub(
+            userTag: tag,
+            time: now,
+            retryCount: 0,
+            maxRetryCount: 2
+        )
+
+        let secondID = try makeSub(
+            userTag: tag,
+            time: now + 1,
+            retryCount: 0,
+            maxRetryCount: 2
+        )
+
+        let firstResult = await PushSubscribe.shared.test_push_subscribe_isRetry(
+            context: context,
+            subscription: firstID
+        )
+
+        XCTAssertTrue(firstResult)
+
+        let firstUpdated = try XCTUnwrap(fetchSub(by: firstID))
+        XCTAssertEqual(firstUpdated.retryCount, 1)
+
+        let secondUpdated = try XCTUnwrap(fetchSub(by: secondID))
+        XCTAssertEqual(secondUpdated.retryCount, 0)
     }
 
-    /// test_6: responseProcessing maps status codes to event types
-    func test_6_responseProcessing_maps_status_codes_to_event_types() {
+    /// test_7: processSubscriptions with empty queue returns true
+    func test_7_processSubscriptions_with_empty_queue_returns_true() async {
+        let result = await PushSubscribe.shared.test_push_subscribe_processSubscriptions(
+            userTag: "missing-\(UUID().uuidString)"
+        )
+
+        XCTAssertTrue(result)
+    }
+
+    /// test_8: processSubscription with wrong type objectID deletes object and returns false
+    func test_8_processSubscription_with_wrong_type_objectID_deletes_object_and_returns_false() async throws {
+        let id = try makeConfig()
+
+        let result = await PushSubscribe.shared.test_push_subscribe_isRetry(
+            context: context,
+            subscription: id
+        )
+
+        XCTAssertFalse(result)
+
+        let exists = resolveObject(in: context, from: id) != nil
+        XCTAssertFalse(exists)
+    }
+
+    /// test_9: retryLimit with invalid objectID returns true when objectID is invalid
+    func test_9_retryLimit_with_invalid_objectID_returns_true_when_objectID_is_invalid() async throws {
+        let id = try makeSub()
+        try deleteObject(by: id)
+
+        let deleted = await retryLimit(
+            context: context,
+            objectID: id
+        )
+
+        XCTAssertTrue(deleted)
+    }
+
+    /// test_10: retryLimit increments retryCount until max, then deletes entity
+    func test_10_retryLimit_increments_retryCount_until_max_then_deletes_entity() async throws {
+        let id = try makeSub(maxRetryCount: 2)
+
+        let deleted1 = await retryLimit(
+            context: context,
+            objectID: id
+        )
+        XCTAssertFalse(deleted1)
+
+        let first = try XCTUnwrap(fetchSub(by: id))
+        XCTAssertEqual(first.retryCount, 1)
+
+        let deleted2 = await retryLimit(
+            context: context,
+            objectID: id
+        )
+        XCTAssertFalse(deleted2)
+
+        let second = try XCTUnwrap(fetchSub(by: id))
+        XCTAssertEqual(second.retryCount, 2)
+
+        let deleted3 = await retryLimit(
+            context: context,
+            objectID: id
+        )
+        XCTAssertTrue(deleted3)
+
+        let all = try fetchAllSubs()
+        XCTAssertTrue(all.isEmpty)
+    }
+
+    /// test_11: responseProcessing maps status codes to event types
+    func test_11_responseProcessing_maps_status_codes_to_event_types() {
         let mgr = RequestManager()
         let url = URL(string: "https://example.com")!
 
         func http(_ code: Int) -> HTTPURLResponse {
-            HTTPURLResponse(url: url, statusCode: code, httpVersion: "HTTP/1.1", headerFields: [:])!
+            HTTPURLResponse(
+                url: url,
+                statusCode: code,
+                httpVersion: "HTTP/1.1",
+                headerFields: [:]
+            )!
         }
 
         let body = """
         {"result":"ok","detail":"unit"}
         """.data(using: .utf8)
 
-        let ok = mgr.responseProcessing(response: http(200), data: body, requestName: Constants.RequestName.subscribe)
-        let srvErr = mgr.responseProcessing(response: http(503), data: body, requestName: Constants.RequestName.subscribe)
-        let cliErr = mgr.responseProcessing(response: http(404), data: body, requestName: Constants.RequestName.subscribe)
+        let ok = mgr.responseProcessing(
+            response: http(200),
+            data: body,
+            requestName: Constants.RequestName.subscribe
+        )
+        let srvErr = mgr.responseProcessing(
+            response: http(503),
+            data: body,
+            requestName: Constants.RequestName.subscribe
+        )
+        let cliErr = mgr.responseProcessing(
+            response: http(404),
+            data: body,
+            requestName: Constants.RequestName.subscribe
+        )
 
         XCTAssertTrue(type(of: ok) == Event.self)
         XCTAssertFalse(type(of: ok) == ErrorEvent.self)
@@ -417,130 +505,4 @@ final class PushSubscribeTests: IsolatedTestCase {
         XCTAssertTrue(type(of: cliErr) == ErrorEvent.self)
         XCTAssertFalse(type(of: cliErr) == RetryEvent.self)
     }
-
-    /// test_7: signAll retry with invalid objectID treated as completed
-    func test_7_signAll_retry_with_invalid_objectID_treated_as_completed() throws {
-        let s = try makeSub()
-        let id = s.objectID
-
-        performSync(viewContext) {
-            self.viewContext.delete(s)
-            try? self.viewContext.save()
-        }
-
-        sut.perObjectBehavior[id] = .retry
-
-        let exp = expectation(description: "invalid id -> completed")
-        sut.signAll(context: viewContext, subscriptions: [id]) { retryNeeded in
-            XCTAssertFalse(retryNeeded)
-            exp.fulfill()
-        }
-        wait(for: [exp], timeout: 2.0)
-
-        waitUntil("no subscriptions", timeout: 3.0) { self.countSubs() == 0 }
-        XCTAssertEqual(countSubs(), 0)
-    }
-
-    /// test_8: signAll retry with wrong type objectID deletes and completes
-    func test_8_signAll_retry_with_wrong_type_objectID_deletes_and_completes() throws {
-        _ = try makeConfig(rToken: "T")
-        let cfg = try makeConfig(url: "https://api", rToken: "T2")
-        let id = cfg.objectID
-
-        sut.perObjectBehavior[id] = .retry
-
-        let exp = expectation(description: "wrong type -> deleted & completed")
-        sut.signAll(context: viewContext, subscriptions: [id]) { retryNeeded in
-            XCTAssertFalse(retryNeeded)
-            exp.fulfill()
-        }
-        wait(for: [exp], timeout: 2.0)
-
-        waitUntil("config deleted", timeout: 3.0) {
-            self.performSync(self.viewContext) {
-                (try? self.viewContext.existingObject(with: id)) == nil
-            }
-        }
-
-        let exists: Bool = performSync(viewContext) {
-            (try? self.viewContext.existingObject(with: id)) != nil
-        }
-        XCTAssertFalse(exists)
-    }
-
-    /// test_9: signAll success saves current token and deletes subscription
-    func test_9_signAll_success_saves_current_token_and_deletes_subscription() throws {
-        seedConfigToSDKStore(rToken: "user-1")
-        let s = try makeSub(userTag: "user-1")
-
-        sut.defaultBehavior = .success
-
-        StoredVariablesManager.shared.clearSavedToken()
-        StoredVariablesManager.shared.clearManualToken()
-
-        let exp = expectation(description: "done")
-        sut.signAll(context: viewContext, subscriptions: [s.objectID]) { retryNeeded in
-            XCTAssertFalse(retryNeeded)
-            exp.fulfill()
-        }
-        wait(for: [exp], timeout: 2.0)
-
-        waitUntil("subscription deleted", timeout: 3.0) { self.loadSub(s.objectID) == nil }
-
-        let saved = StoredVariablesManager.shared.getSavedToken()
-        XCTAssertNotNil(saved)
-        XCTAssertEqual(saved?.token, "TEST-APNS-TOKEN")
-    }
-
-    /// test_10: signAll error deletes subscription and continues chain
-    func test_10_signAll_error_deletes_subscription_and_continues_chain() throws {
-        seedConfigToSDKStore(rToken: "user-1")
-        let s1 = try makeSub(userTag: "user-1", time: 1)
-        let s2 = try makeSub(userTag: "user-1", time: 2)
-
-        sut.perObjectBehavior[s1.objectID] = .error
-        sut.perObjectBehavior[s2.objectID] = .success
-
-        StoredVariablesManager.shared.clearSavedToken()
-        StoredVariablesManager.shared.clearManualToken()
-
-        let exp = expectation(description: "done")
-        sut.signAll(context: viewContext, subscriptions: [s1.objectID, s2.objectID]) { retryNeeded in
-            XCTAssertFalse(retryNeeded)
-            exp.fulfill()
-        }
-        wait(for: [exp], timeout: 2.0)
-
-        waitUntil("both subscriptions deleted", timeout: 3.0) {
-            self.loadSub(s1.objectID) == nil && self.loadSub(s2.objectID) == nil
-        }
-        XCTAssertEqual(countSubs(), 0)
-
-        let saved = StoredVariablesManager.shared.getSavedToken()
-        XCTAssertNotNil(saved)
-        XCTAssertEqual(saved?.token, "TEST-APNS-TOKEN")
-    }
-
-    /// test_11: signAll success but current token is nil stops with retry and does not delete
-    func test_11_signAll_success_but_current_token_is_nil_stops_with_retry_and_does_not_delete() throws {
-        seedConfigToSDKStore(rToken: "user-1")
-        let s = try makeSub(userTag: "user-1", retryCount: 0, maxRetryCount: 3)
-
-        TokenManager.shared.apnsProvider = nil
-        TokenManager.shared.fcmProvider = nil
-        TokenManager.shared.hmsProvider = nil
-
-        sut.defaultBehavior = .success
-
-        let exp = expectation(description: "done")
-        sut.signAll(context: viewContext, subscriptions: [s.objectID]) { retryNeeded in
-            XCTAssertTrue(retryNeeded)
-            exp.fulfill()
-        }
-        wait(for: [exp], timeout: 2.0)
-
-        waitUntil("subscription still exists", timeout: 3.0) { self.loadSub(s.objectID) != nil }
-        XCTAssertEqual(countSubs(), 1)
-    }
 }
-

@@ -5,24 +5,43 @@
 //  Created by Andrey Pogodin.
 //
 //  Copyright © 2025 Altcraft. All rights reserved.
+//
 
 import Foundation
 import UserNotifications
 
 /// `AltcraftNSE` is a facade for use inside a Notification Service Extension (NSE).
-/// It exposes methods to detect Altcraft pushes, handle incoming notification requests,
-/// and deliver the best available content on extension timeout.
+///
+/// It provides:
+/// - push detection for Altcraft notifications;
+/// - handling of incoming notification requests inside NSE;
+/// - delivery of the best available content when the extension is about to expire;
+/// - access to mobile event registration functions;
+/// - access to profile update functions;
+/// - configuration APIs for App Group and JWT provider registration.
 @objcMembers
-public class AltcraftNSE: NSObject {
-    
+public final class AltcraftNSE: NSObject, @unchecked Sendable {
+
     /// The singleton instance of the AltcraftNSE class.
     public static let shared = AltcraftNSE()
 
-    /// Internal receiver handling Altcraft push processing logic.
-    let receiver = AltcraftPushReceiver()
-    
     /// Provides access to the mobile event registration function.
     public let mobileEventFunctions = PublicMobileEventFunctions.shared
+
+    /// Provides access to the profile update functions.
+    public let profileFunctions = PublicProfileFunctions.shared
+
+    /// Internal coordinator responsible for ordered SDK state mutations.
+    private let stateCoordinator = SDKStateCoordinator()
+
+    /// Internal receiver handling Altcraft push processing logic.
+    private let receiver = AltcraftPushReceiver()
+
+    private override init() {
+        super.init()
+    }
+
+    // MARK: - Push Handling
 
     /// Determines whether the given notification request belongs to Altcraft.
     ///
@@ -34,6 +53,9 @@ public class AltcraftNSE: NSObject {
 
     /// Handles an incoming Altcraft push notification request inside the Notification Service Extension.
     ///
+    /// Before processing the request, this method ensures that any previously configured
+    /// App Group identifier is applied.
+    ///
     /// - Parameters:
     ///   - request: The `UNNotificationRequest` containing notification data.
     ///   - contentHandler: A completion handler to call with the modified notification content.
@@ -41,6 +63,7 @@ public class AltcraftNSE: NSObject {
         request: UNNotificationRequest,
         contentHandler: @escaping (UNNotificationContent) -> Void
     ) {
+        stateCoordinator.prepareAppGroupIdentifier()
         receiver.takePush(request, withContentHandler: contentHandler)
     }
 
@@ -51,6 +74,8 @@ public class AltcraftNSE: NSObject {
         receiver.serviceExtensionTimeWillExpire()
     }
 
+    // MARK: - App Group
+
     /// Sets the App Group identifier and initializes the Core Data stack with it.
     ///
     /// Call this method before performing any Core Data operations if your app uses an App Group.
@@ -58,9 +83,10 @@ public class AltcraftNSE: NSObject {
     ///
     /// - Parameter groupName: The App Group identifier used for the shared container.
     public func setAppGroup(groupName: String?) {
-        StoredVariablesManager.shared.setGroupsName(value: groupName)
-        _ = CoreDataManager(appGroup: groupName)
+        stateCoordinator.setAppGroup(groupName)
     }
+
+    // MARK: - JWT
 
     /// Registers a JWT provider for use with Altcraft SDK.
     ///

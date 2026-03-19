@@ -5,77 +5,102 @@
 //  Created by Andrey Pogodin.
 //
 //  Copyright © 2025 Altcraft. All rights reserved.
+//
 
 import Foundation
-import BackgroundTasks
 import UIKit
 
-/// Manages a single background task lifecycle.
+/// Extends execution time when the app goes to background
+/// by managing a single `UIBackgroundTask`.
 @available(iOSApplicationExtension, unavailable)
-final class AccessToBackground: NSObject {
+actor AccessToBackground {
 
     /// Shared singleton instance.
-    public static let shared = AccessToBackground()
+    static let shared = AccessToBackground()
 
-    /// Current background task identifier (`.invalid` if no task is active).
-    private var taskID: UIBackgroundTaskIdentifier = .invalid
-
-    /// Serial queue to synchronize access to `taskID`
-    /// and prevent parallel start/end of background tasks.
-    private let queue = DispatchQueue(
-        label: Constants.Queues.accessToBackgroundQueue
-    )
-
-    /// Queue-specific key to detect execution on `queue`
-    /// and avoid deadlocks when calling `queue.sync`.
-    private static let queueKey = DispatchSpecificKey<Void>()
-
-    /// Background task name used for system diagnostics.
     private let name = Constants.bgTaskName
+    private let maxLifetime: TimeInterval = 20
 
-    /// Sets up queue-specific context for safe synchronous access.
-    override init() {
-        super.init()
-        queue.setSpecific(key: Self.queueKey, value: ())
-    }
+    private var taskID: UIBackgroundTaskIdentifier = .invalid
+    private var taskStartUptime: TimeInterval?
+    private var autoEndTask: Task<Void, Never>?
 
-    /// Starts a background task if none is currently active.
+    private init() {}
+
+    /// Starts a background task if none is active.
+    ///
+    /// If a task is already active, reschedules
+    /// the internal auto-end timer.
+    ///
     /// Safe to call from any thread.
-    func accessToBackground() {
-        queue.async { [weak self] in
-            guard let self else {
-                return
-            }
-            if self.taskID == .invalid {
-                let id = UIApplication.shared.beginBackgroundTask(withName: self.name) {
-                    [weak self] in self?.endBackgroundTask()
-                }
-                guard id != .invalid else { return }; self.taskID = id
-                DispatchQueue.main.asyncAfter(deadline: .now() + 25) {
-                    [weak self] in self?.endBackgroundTask()
+    func accessToBackground() async {
+        if taskID != .invalid {
+            rescheduleAutoEndWithinCap()
+            return
+        }
+
+        let id = await MainActor.run { () -> UIBackgroundTaskIdentifier in
+            UIApplication.shared.beginBackgroundTask(withName: name) {
+                Task {
+                    await AccessToBackground.shared.endBackgroundTask()
                 }
             }
         }
+
+        guard id != .invalid else { return }
+
+        taskID = id
+        taskStartUptime = ProcessInfo.processInfo.systemUptime
+        rescheduleAutoEndWithinCap()
     }
 
-    /// Ends the currently active background task immediately.
-    /// Can be safely called from any thread, including expiration handler.
-    private func endBackgroundTask() {
-        if DispatchQueue.getSpecific(key: Self.queueKey) != nil {
-            endBackgroundTaskOnQueue()
-        } else {
-            queue.sync {
-                endBackgroundTaskOnQueue()
-            }
-        }
-    }
+    /// Ends the currently active background task.
+    ///
+    /// Safe to call from any thread, including
+    /// the system expiration handler.
+    func endBackgroundTask() async {
+        guard taskID != .invalid else { return }
 
-    /// Performs the actual background task termination.
-    /// Must be executed on `queue`.
-    private func endBackgroundTaskOnQueue() {
         let id = taskID
-        guard id != .invalid else {return}
         taskID = .invalid
-        UIApplication.shared.endBackgroundTask(id)
+        taskStartUptime = nil
+
+        autoEndTask?.cancel()
+        autoEndTask = nil
+
+        await MainActor.run {
+            UIApplication.shared.endBackgroundTask(id)
+        }
+    }
+
+    /// Cancels and reschedules the auto-end timer.
+    ///
+    /// Ensures the background task ends no later
+    /// than `maxLifetime` seconds since start.
+    private func rescheduleAutoEndWithinCap() {
+        autoEndTask?.cancel()
+        autoEndTask = nil
+
+        guard let remaining = remainingLifetime() else {
+            return
+        }
+
+        autoEndTask = Task {
+            let ns = UInt64(remaining * 1_000_000_000)
+            try? await Task.sleep(nanoseconds: ns)
+            await endBackgroundTask()
+        }
+    }
+
+    /// Calculates remaining task lifetime.
+    ///
+    /// - Returns: Remaining seconds, or `nil`
+    ///   if no task is active.
+    private func remainingLifetime() -> TimeInterval? {
+        guard taskID != .invalid, let start = taskStartUptime else {
+            return nil
+        }
+        let now = ProcessInfo.processInfo.systemUptime
+        return max(0, (start + maxLifetime) - now)
     }
 }

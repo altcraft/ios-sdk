@@ -5,16 +5,18 @@
 //  Created by Andrey Pogodin.
 //
 //  Copyright © 2025 Altcraft. All rights reserved.
+//
 
 import Foundation
 
 /// Public API for sending Altcraft mobile events to the server.
 @objcMembers
-public class PublicMobileEventFunctions: NSObject {
+public class PublicMobileEventFunctions: NSObject, @unchecked Sendable {
     
     public static let shared = PublicMobileEventFunctions()
     
     /// Sends a mobile event to the server.
+    ///
     /// This function prepares and triggers the delivery of a mobile event composed of
     /// mandatory identifiers and optional metadata. It mirrors the Android public API
     /// for consistency across platforms.
@@ -43,46 +45,34 @@ public class PublicMobileEventFunctions: NSObject {
         subscription: (any Subscription)? = nil,
         utm: UTM? = nil
     ) {
-        let smid: String = sendMessageId ?? ""
+        let utmTagsData = encodeUTM(utm)
+        let payloadData = encodeAnyMap(payload)
+        let matchingData = encodeAnyMap(matching)
+        let profileFieldsData = encodeAnyMap(profileFields)
+        let subscriptionData = encodeSubscription(subscription)
+        if (payload ?? [:]).containsNonPrimitiveValues() {
+            errorEvent(#function, error: fieldsIsObjects)
+            return
+        }
         
-        MobileEvent.shared.sendMobileEvent(
-            sid: sid,
-            eventName: eventName,
-            sendMessageId: smid,
-            payloadFields: payload,
-            matching: matching,
-            profileFields: profileFields,
-            subscription: subscription,
-            altcraftClientID: altcraftClientID,
-            matchingType: matchingType,
-            utmTags: utm
-        )
+        MobileEventQueues.entityQueue.submit {
+            await MobileEvent.shared.sendMobileEvent(
+                sid: sid,
+                eventName: eventName,
+                payloadData: payloadData,
+                matchingData: matchingData,
+                sendMessageId: sendMessageId,
+                profileFieldsData: profileFieldsData,
+                subscriptionData: subscriptionData,
+                altcraftClientID: altcraftClientID,
+                matchingType: matchingType,
+                utmTagsData: utmTagsData
+            )
+        }
     }
     
-    // MARK: - Objective-C bridge (same selector name, hidden from Swift)
-    //
-    // Selector in ObjC:
-    //  mobileEvent:
-    //  altcraftClientID:
-    //  eventName:
-    //  sendMessageId:
-    //  payload:
-    //  matching:
-    //  matchingType:
-    //  profileFields:
-    //  subscription:
-    //  utmCampaign:
-    //  utmContent:
-    //  utmKeyword:
-    //  utmMedium:
-    //  utmSource:
-    //  utmTemp:
-    //
-    // Notes:
-    // - `subscription`: ACTSubscriptionBase? (
-    // or any subclass: ACTEmailSubscription, ACTSmsSubscription, ACTPushSubscription, ACTCcDataSubscription
-    // )
-    //   will be automatically converted to a Swift `Subscription` via `.toSwift()`.
+    // MARK: - Objective-C bridge
+
     @available(swift, obsoleted: 1)
     @objc(
         mobileEvent:
@@ -118,34 +108,24 @@ public class PublicMobileEventFunctions: NSObject {
         utmSource: String? = nil,
         utmTemp: String? = nil
     ) {
-        let smid: String = sendMessageId ?? ""
-
-        let utm = UTM(
-            campaign: utmCampaign,
-            content: utmContent,
-            keyword: utmKeyword,
-            medium: utmMedium,
-            source: utmSource,
-            temp: utmTemp
-        )
-        
-        let payloadFields     = payload as? [String: Any?]
-        let matchingFields    = matching as? [String: Any?]
-        let profileFieldsAny  = profileFields as? [String: Any?]
-    
-        let swiftSubscription = subscription?.toSwift()
-        
-        MobileEvent.shared.sendMobileEvent(
+        self.mobileEvent(
             sid: sid,
-            eventName: eventName,
-            sendMessageId: smid,
-            payloadFields: payloadFields,
-            matching: matchingFields,
-            profileFields: profileFieldsAny,
-            subscription: swiftSubscription,
             altcraftClientID: altcraftClientID,
+            eventName: eventName,
+            sendMessageId: sendMessageId,
+            payload: payload as? [String: Any?],
+            matching: matching as? [String: Any?],
             matchingType: matchingType,
-            utmTags: utm
+            profileFields: profileFields as? [String: Any?],
+            subscription: subscription?.toSwift(),
+            utm: UTM(
+                campaign: utmCampaign,
+                content: utmContent,
+                keyword: utmKeyword,
+                medium: utmMedium,
+                source: utmSource,
+                temp: utmTemp
+            )
         )
     }
 }

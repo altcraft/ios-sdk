@@ -10,12 +10,13 @@ import Foundation
 
 /// Maps request names to (5xx retryable, 4xx non-retryable) error codes.
 private let errorCodeMap: [String: (code5xx: Int, code4xx: Int)] = [
-    Constants.RequestName.subscribe:   (530, 430),
-    Constants.RequestName.suspend:     (531, 431),
-    Constants.RequestName.unsubscribe: (532, 432),
-    Constants.RequestName.update:      (533, 433),
-    Constants.RequestName.pushEvent:   (536, 436),
-    Constants.RequestName.mobileEvent: (537, 437)
+    Constants.RequestName.subscribe:     (530, 430),
+    Constants.RequestName.suspend:       (531, 431),
+    Constants.RequestName.unsubscribe:   (532, 432),
+    Constants.RequestName.tokenUpdate:   (533, 433),
+    Constants.RequestName.pushEvent:     (536, 436),
+    Constants.RequestName.mobileEvent:   (537, 437),
+    Constants.RequestName.profileUpdate: (538, 438)
 ]
 
 /// Returns both the error and success pairs for a given response and request context.
@@ -128,7 +129,7 @@ internal func createSuccessPair(
     case Constants.RequestName.unsubscribe:
         return (232, Constants.SDKSuccessMessage.unsubscribeSuccess)
 
-    case Constants.RequestName.update:
+    case Constants.RequestName.tokenUpdate:
         return (233, Constants.SDKSuccessMessage.tokenUpdateSuccess)
 
     case Constants.RequestName.unsuspend:
@@ -142,6 +143,9 @@ internal func createSuccessPair(
 
     case Constants.RequestName.mobileEvent:
         return (237, Constants.SDKSuccessMessage.mobileEventDelivered + (name ?? ""))
+        
+    case Constants.RequestName.profileUpdate:
+        return (238, Constants.SDKSuccessMessage.profileUpdateSuccess)
 
     default:
         return (0, "unknown request")
@@ -156,3 +160,4 @@ internal func createSetTokenEventPair(data: TokenData) -> (Int, String) {
     let msg = "\(pushProviderSet.1)\(data.provider) token: \(data.token)"
     return (pushProviderSet.0, msg)
 }
+

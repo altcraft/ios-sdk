@@ -28,7 +28,7 @@ func subscribeURL(_ apiUrl: String) -> String {
 ///
 /// - Parameter apiUrl: The base API URL
 /// - Returns: The complete update URL string
-func updateUrl(_ apiUrl: String) -> String {
+func tokenUpdateUrl(_ apiUrl: String) -> String {
     return "\(apiUrl)/subscription/push/update/"
 }
 
@@ -54,7 +54,7 @@ func unSuspendUrl(_ apiUrl: String) -> String {
 ///
 /// - Parameter apiUrl: The base URL of the API.
 /// - Returns: A complete URL string for the push subscription status endpoint.
-func profileUrl(_ apiUrl: String) -> String {
+func profileStatusUrl(_ apiUrl: String) -> String {
     return "\(apiUrl)/subscription/push/status/"
 }
 
@@ -64,6 +64,14 @@ func profileUrl(_ apiUrl: String) -> String {
 /// - Returns: A complete URL string for the mobile event endpoint.
 func eventMobileURL(_ apiUrl: String) -> String {
     return "\(apiUrl)/event/post"
+}
+
+/// Constructs the full URL string for sending a profile update request.
+///
+/// - Parameter apiUrl: The base API URL.
+/// - Returns: A complete URL string for the profile update endpoint.
+func profileUpdateURL(_ apiUrl: String) -> String {
+    return "\(apiUrl)/profile/update"
 }
 
 /// Builds a JSON string from matching parameters.

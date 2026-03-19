@@ -17,7 +17,7 @@ import XCTest
  *  - test_2: mapValue with no parameters → omits uid/type/name but still includes ResponseWithHttp wrapper with nil values.
  */
 
-final class MapBuilderTests: XCTestCase {
+final class MapBuilderTests: IsolatedTestCase {
 
     private let inputUid = "u-123"
     private let inputType = "delivery"

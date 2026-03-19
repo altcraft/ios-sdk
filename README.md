@@ -21,6 +21,7 @@ Altcraft iOS SDK is a library for managing push notifications, user profiles, an
 * [x] Automatic push token update when it changes.
 * [x] Automatic transmission of notification delivery and open events.
 * [x] Mobile events registration.
+* [x] Update profile fields.
 * [x] Automatic retry of failed requests.
 * [x] Support for push providers: APNS, Firebase, Huawei.
 * [x] Secure requests using JWT and flexible identifier matching.
@@ -33,11 +34,11 @@ Altcraft iOS SDK is a library for managing push notifications, user profiles, an
 
 **Cocoapods:**
 
-`pod 'Altcraft', '1.0.2'`
+`pod 'Altcraft', '1.0.3'`
 
 **Swift Package Manager:**
 
-`1.0.2`
+`1.0.3`
 
 ---
 
@@ -79,16 +80,16 @@ Profile lookup is limited to the push token identifier.
 
 Detailed information on SDK setup, functionality, and usage is available on the Altcraft documentation portal. You can navigate to the required section using the links below:
 
-- [**Quick Start**](https://guides.altcraft.com/en/developer-guide/sdk/v1/ios/quick-start)
-- [**SDK Functionality**](https://guides.altcraft.com/en/developer-guide/sdk/v1/ios/functionality)
-- [**SDK Configuration**](https://guides.altcraft.com/en/developer-guide/sdk/v1/ios/setup)
-- [**Classes and Structures**](https://guides.altcraft.com/en/developer-guide/sdk/v1/ios/api)
+- [**Quick Start**](https://guides.altcraft.com/en/developer-guide/sdk/mobile/ios/quick-start)
+- [**SDK Functionality**](https://guides.altcraft.com/en/developer-guide/sdk/mobile/ios/functionality)
+- [**SDK Configuration**](https://guides.altcraft.com/en/developer-guide/sdk/mobile/ios/setup)
+- [**Classes and Structures**](https://guides.altcraft.com/en/developer-guide/sdk/mobile/ios/api)
 
 **Provider Setup**
 
-- [APNs](https://guides.altcraft.com/en/developer-guide/sdk/v1/ios/providers/apns/)
-- [FCM](https://guides.altcraft.com/en/developer-guide/sdk/v1/ios/providers/fcm/)
-- [HMS](https://guides.altcraft.com/en/developer-guide/sdk/v1/ios/providers/hms/)
+- [APNs](https://guides.altcraft.com/en/developer-guide/sdk/mobile/ios/providers/apns/)
+- [FCM](https://guides.altcraft.com/en/developer-guide/sdk/mobile/ios/providers/fcm/)
+- [HMS](https://guides.altcraft.com/en/developer-guide/sdk/mobile/ios/providers/hms/)
 
 ---
 
