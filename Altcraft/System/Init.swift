@@ -8,7 +8,6 @@
 
 import Foundation
 
-
 /// Coordinates Altcraft SDK initialization.
 @available(iOSApplicationExtension, unavailable)
 actor AltcraftInit {
