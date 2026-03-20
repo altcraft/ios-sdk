@@ -6,6 +6,8 @@
 //
 //  Copyright © 2026 Altcraft. All rights reserved.
 
+import Foundation
+
 /// Public API for updating Altcraft profile fields.
 @objcMembers
 public final class PublicProfileFunctions: NSObject, @unchecked Sendable {

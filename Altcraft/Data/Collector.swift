@@ -9,10 +9,6 @@
 import Foundation
 import CoreData
 
-
-let invalidS = invalidSubRequestData
-
-
 /// Builds `SubscribeRequestData` using entity details and SDK environment.
 /// Safely materializes the `SubscribeEntity` by its `NSManagedObjectID` inside the given context.
 ///
@@ -66,7 +62,7 @@ func getSubscribeRequestData(
         )
         
         guard result.isValid() else {
-            errorEvent(#function, error: invalidS)
+            errorEvent(#function, error: invalidSubRequestData)
             return nil
         }
 
