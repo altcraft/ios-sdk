@@ -6,6 +6,8 @@
 //
 //  Copyright © 2026 Altcraft. All rights reserved.
 
+import Foundation
+
 final class SDKStateCoordinator: @unchecked Sendable {
 
     /// Serial queue for SDK state mutations that must happen in strict order.

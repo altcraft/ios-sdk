@@ -5,7 +5,8 @@
 //  Created by Andrey Pogodin.
 //
 //  Copyright © 2026 Altcraft. All rights reserved.
-//
+
+import Foundation
 
 /// Universal box to carry non-Sendable closures across Sendable boundaries.
 /// Correctness is ensured by invoking `invoke()` on the intended thread/queue.

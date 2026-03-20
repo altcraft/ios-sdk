@@ -5,12 +5,10 @@
 //  Created by Andrey Pogodin.
 //
 //  Copyright © 2025 Altcraft. All rights reserved.
-//
 
 import Foundation
 import UIKit
 import AdSupport
-
 
 /// Provides device-related information, including system details, timezone, and advertising ID.
 final class DeviceInfo {
