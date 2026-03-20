@@ -217,7 +217,7 @@ public final class NotificationManager: NSObject, UNUserNotificationCenterDelega
         await pushEvent.createPushEvent(
             uid: uid, type: Constants.PushEvents.open
         )
-
-        completeOnMain { completionBox.invoke() }
+        
+        await MainActor.run { completionBox.invoke() }
     }
 }

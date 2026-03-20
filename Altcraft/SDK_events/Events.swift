@@ -8,8 +8,6 @@
 
 import Foundation
 
-import Foundation
-
 /// A singleton class responsible for managing event subscriptions and emissions.
 ///
 /// `SDKEvents` allows a single subscriber to listen for events and process them.
@@ -74,8 +72,15 @@ open class SDKEvents: NSObject, @unchecked Sendable {
             return
         }
 
-        completeOnMain {
+        if Thread.isMainThread {
             cb(event)
+        } else {
+            let box = ClosureBox {
+                cb(event)
+            }
+            RunLoop.main.perform {
+                box.invoke()
+            }
         }
     }
 

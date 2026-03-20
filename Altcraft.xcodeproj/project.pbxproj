@@ -69,7 +69,6 @@
 		557F2AEF2F6AF23100E9C8F9 /* AsyncLazyTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 557F2AEE2F6AF22E00E9C8F9 /* AsyncLazyTests.swift */; };
 		557F2AF12F6C1B8A00E9C8F9 /* EnvironmentTest.swift in Sources */ = {isa = PBXBuildFile; fileRef = 557F2AF02F6C1B8000E9C8F9 /* EnvironmentTest.swift */; };
 		559878EE2EB4B1B4008C6A35 /* CoreDataMigrator.swift in Sources */ = {isa = PBXBuildFile; fileRef = 559878ED2EB4B1B4008C6A35 /* CoreDataMigrator.swift */; };
-		559B07B02F4F49860016FD97 /* СompleteOnMain.swift in Sources */ = {isa = PBXBuildFile; fileRef = 559B07AF2F4F49790016FD97 /* СompleteOnMain.swift */; };
 		559B07B52F5083380016FD97 /* ClosureBox.swift in Sources */ = {isa = PBXBuildFile; fileRef = 559B07B42F5083360016FD97 /* ClosureBox.swift */; };
 		559B61B52C903EF90081192F /* Altcraft.docc in Sources */ = {isa = PBXBuildFile; fileRef = 559B61B42C903EF90081192F /* Altcraft.docc */; };
 		559B61C12C903EF90081192F /* Altcraft.h in Headers */ = {isa = PBXBuildFile; fileRef = 559B61B32C903EF90081192F /* Altcraft.h */; settings = {ATTRIBUTES = (Public, ); }; };
@@ -228,7 +227,6 @@
 		557F2AF02F6C1B8000E9C8F9 /* EnvironmentTest.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = EnvironmentTest.swift; sourceTree = "<group>"; };
 		559878ED2EB4B1B4008C6A35 /* CoreDataMigrator.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CoreDataMigrator.swift; sourceTree = "<group>"; };
 		559878EF2EB4B766008C6A35 /* Altcraft_Model_v01.xcdatamodel */ = {isa = PBXFileReference; lastKnownFileType = wrapper.xcdatamodel; path = Altcraft_Model_v01.xcdatamodel; sourceTree = "<group>"; };
-		559B07AF2F4F49790016FD97 /* СompleteOnMain.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "СompleteOnMain.swift"; sourceTree = "<group>"; };
 		559B07B42F5083360016FD97 /* ClosureBox.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ClosureBox.swift; sourceTree = "<group>"; };
 		559B61B02C903EF90081192F /* Altcraft.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; includeInIndex = 0; path = Altcraft.framework; sourceTree = BUILT_PRODUCTS_DIR; };
 		559B61B32C903EF90081192F /* Altcraft.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = Altcraft.h; sourceTree = "<group>"; };
@@ -476,7 +474,6 @@
 			children = (
 				557F2AEA2F69ABBB00E9C8F9 /* SDKStateCoordinator.swift */,
 				55CC826C2F5882B5005C22DF /* AsyncLazy.swift */,
-				559B07AF2F4F49790016FD97 /* СompleteOnMain.swift */,
 				55C3D2FD2F39CA7D005AE5BE /* UpdateCoordinator.swift */,
 				5558310C2F151557002E4A99 /* InitBarrier.swift */,
 			);
@@ -1120,7 +1117,6 @@
 				5516B3332D7AF881001FAF66 /* JWTManager.swift in Sources */,
 				559B61F72C90461F0081192F /* ClearCache.swift in Sources */,
 				559B61F22C90461F0081192F /* AccessToBackground.swift in Sources */,
-				559B07B02F4F49860016FD97 /* СompleteOnMain.swift in Sources */,
 				559B62072C90461F0081192F /* Constants.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
