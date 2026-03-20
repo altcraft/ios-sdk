@@ -70,7 +70,8 @@ internal final class Environment: @unchecked Sendable {
         return value
     }
 
-    /// Returns authorization data (header and matching mode); throws if auth data is missing.
+    /// Returns authorization data (header and matching mode);
+    /// throws if auth data is missing.
     func auth() async throws -> (header: String, matching: String) {
 
         let value = try await authLazy.get { [self] in

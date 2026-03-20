@@ -64,26 +64,41 @@ final class MobileEventTests: IsolatedTestCase {
             temp: "tmp"
         )
     ) throws -> MobileEventEntity {
-        let event = try makeMobileEventEntity()
-        event.requestId = id
-        event.userTag = "user-1"
-        event.timeZone = tz
-        event.time = time
-        event.sid = "pixel-777"
-        event.altcraftClientID = aci
-        event.eventName = name
-        event.payload = encodeAnyMap(payload)
-        event.matching = encodeAnyMap(matching)
-        event.profileFields = encodeAnyMap(profile)
-        event.subscription = nil
-        event.sendMessageId = smid
-        event.retryCount = 0
-        event.maxRetryCount = 2
-        event.matchingType = matchingType
-        event.utmTags = encodeUTM(utm)
+        var result: MobileEventEntity?
+        var thrownError: Error?
 
-        try viewContext.save()
-        return event
+        viewContext.performAndWait {
+            do {
+                let event = try makeMobileEventEntity()
+                event.requestId = id
+                event.userTag = "user-1"
+                event.timeZone = tz
+                event.time = time
+                event.sid = "pixel-777"
+                event.altcraftClientID = aci
+                event.eventName = name
+                event.payload = encodeAnyMap(payload)
+                event.matching = encodeAnyMap(matching)
+                event.profileFields = encodeAnyMap(profile)
+                event.subscription = nil
+                event.sendMessageId = smid
+                event.retryCount = 0
+                event.maxRetryCount = 2
+                event.matchingType = matchingType
+                event.utmTags = encodeUTM(utm)
+
+                try viewContext.save()
+                result = event
+            } catch {
+                thrownError = error
+            }
+        }
+
+        if let thrownError {
+            throw thrownError
+        }
+
+        return result!
     }
 
     /// test_1: PartsFactory.createMobileEventParts includes required text fields and optional JSON/text parts
@@ -285,11 +300,25 @@ final class MobileEventTests: IsolatedTestCase {
     func test_7_retry_limit_returns_true_for_invalid_object_id() async throws {
         let event = try makeEvent()
         let objectID = event.objectID
+        let context = viewContext
 
-        viewContext.delete(event)
-        try viewContext.save()
+        var deletionError: Error?
 
-        let result = await retryLimit(context: viewContext, objectID: objectID)
+        context.performAndWait {
+            do {
+                let object = try context.existingObject(with: objectID)
+                context.delete(object)
+                try context.save()
+            } catch {
+                deletionError = error
+            }
+        }
+
+        if let deletionError {
+            throw deletionError
+        }
+
+        let result = await retryLimit(context: context, objectID: objectID)
         XCTAssertTrue(result)
     }
 

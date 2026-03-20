@@ -117,7 +117,6 @@ internal actor PushSubscribe {
                 )
                 
                 if !result && enableRetry {
-                    print("retry_1")
                     pushSubscribeRetry()
                 }
             } catch {

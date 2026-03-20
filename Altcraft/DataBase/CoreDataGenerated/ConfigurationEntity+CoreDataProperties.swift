@@ -1,9 +1,9 @@
 //
 //  ConfigurationEntity+CoreDataProperties.swift
 //  
+//  Created by Andrey Pogodin.
 //
-//  Created by andrey on 03.03.2026.
-//
+//  Copyright © 2025 Altcraft. All rights reserved.
 //
 
 public import Foundation

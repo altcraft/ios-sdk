@@ -14,9 +14,6 @@ internal actor MobileEvent {
 
     static let shared = MobileEvent()
 
-    let userDefault = StoredVariablesManager.shared
-    let backgroundTask = AccessToBackground.shared
-
     /// Builds a formatted function tag for logs.
     ///
     /// - Parameter name: The source function name.

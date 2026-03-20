@@ -63,7 +63,6 @@ class AppDelegate: UIResponder, UIApplicationDelegate, UNUserNotificationCenterD
         AltcraftSDK.shared.pushTokenFunctions.setAPNSTokenProvider(APNSProvider())
         AltcraftSDK.shared.notificationManager.registerForPushNotifications(for: application)
     
-        
         initSDK(config: getConfigFromUserDefault())
 
     
