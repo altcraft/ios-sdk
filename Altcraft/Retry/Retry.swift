@@ -63,7 +63,6 @@ func pushSubscribeRetry() {
 
     let work = DispatchWorkItem {
         Task {
-            print("retry_2")
             let current = RetryCounters.shared.get(counterKey)
             guard current <= Constants.Retry.maxLocalRetryCount
             else {

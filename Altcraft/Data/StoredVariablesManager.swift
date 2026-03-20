@@ -159,7 +159,7 @@ public actor StoredVariablesManager {
         }
 
         let stored = TokenData(provider: provider, token: token)
-
+        
         if let data = try? JSONEncoder().encode(stored) {
             UserDefaults.standard.set(data, forKey: Self.manualTokenKey)
 
@@ -195,7 +195,7 @@ public actor StoredVariablesManager {
            let existing = try? JSONDecoder().decode(TokenData.self, from: data) {
             return existing
         }
-
+        
         let id = UUID()
 
         return await withCheckedContinuation { continuation in

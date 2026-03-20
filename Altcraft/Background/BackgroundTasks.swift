@@ -72,7 +72,7 @@ public actor BackgroundTask {
     ///
     /// Safe to call multiple times.
     public nonisolated func registerBackgroundTask() {
-        BGTaskScheduler.shared.register(
+        _ = BGTaskScheduler.shared.register(
             forTaskWithIdentifier: Self.taskID,
             using: nil
         ) { task in

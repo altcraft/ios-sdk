@@ -13,7 +13,6 @@ import CoreData
 internal actor ProfileUpdate {
 
     static let shared = ProfileUpdate()
-    let userDefault = StoredVariablesManager.shared
 
     /// Builds a formatted function tag for logs.
     ///

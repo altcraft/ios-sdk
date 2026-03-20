@@ -1,9 +1,9 @@
 //
 //  ProfileUpdateEntity+CoreDataClass.swift
 //  
+//  Created by Andrey Pogodin.
 //
-//  Created by andrey on 03.03.2026.
-//
+//  Copyright © 2026 Altcraft. All rights reserved.
 //
 
 public import Foundation

@@ -15,10 +15,6 @@
 		553646E62ECB3D680017AB0D /* PushService.appex in Embed Foundation Extensions */ = {isa = PBXBuildFile; fileRef = 553646DF2ECB3D680017AB0D /* PushService.appex */; settings = {ATTRIBUTES = (RemoveHeadersOnCopy, ); }; };
 		553646EE2ECB3DB00017AB0D /* JWTProvider.swift in Sources */ = {isa = PBXBuildFile; fileRef = 553646ED2ECB3DB00017AB0D /* JWTProvider.swift */; };
 		5557A9232DF026B700BEF354 /* SDKFunctions.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5557A9222DF026B700BEF354 /* SDKFunctions.swift */; };
-		556288C82ED5C048007D1633 /* Altcraft.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 55302CAD2EA13466003A1A4C /* Altcraft.framework */; };
-		556288C92ED5C048007D1633 /* Altcraft.framework in Embed Frameworks */ = {isa = PBXBuildFile; fileRef = 55302CAD2EA13466003A1A4C /* Altcraft.framework */; settings = {ATTRIBUTES = (CodeSignOnCopy, RemoveHeadersOnCopy, ); }; };
-		556288CB2ED5C052007D1633 /* Altcraft.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 55302CAD2EA13466003A1A4C /* Altcraft.framework */; };
-		556288CC2ED5C052007D1633 /* Altcraft.framework in Embed Frameworks */ = {isa = PBXBuildFile; fileRef = 55302CAD2EA13466003A1A4C /* Altcraft.framework */; settings = {ATTRIBUTES = (CodeSignOnCopy, RemoveHeadersOnCopy, ); }; };
 		556FC6FF2E27BE55000584AA /* BoxModeManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 556FC6FE2E27BE55000584AA /* BoxModeManager.swift */; };
 		556FC7012E27C15A000584AA /* AppConstants.swift in Sources */ = {isa = PBXBuildFile; fileRef = 556FC7002E27C15A000584AA /* AppConstants.swift */; };
 		556FC7032E27F5B6000584AA /* ProfileDataManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 556FC7022E27F5B6000584AA /* ProfileDataManager.swift */; };
@@ -37,6 +33,10 @@
 		557B20062F6C553500D1D162 /* AGConnectCredential.xcframework in Frameworks */ = {isa = PBXBuildFile; fileRef = 55E566482D107BE900FA2B07 /* AGConnectCredential.xcframework */; };
 		557B20082F6C553500D1D162 /* HiAnalytics.xcframework in Frameworks */ = {isa = PBXBuildFile; fileRef = 55E5664B2D107BEE00FA2B07 /* HiAnalytics.xcframework */; };
 		557B200A2F6C553500D1D162 /* HMFoundation.xcframework in Frameworks */ = {isa = PBXBuildFile; fileRef = 55E5664E2D107C0B00FA2B07 /* HMFoundation.xcframework */; };
+		557B204B2F6D824D00D1D162 /* Altcraft.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 55302CAD2EA13466003A1A4C /* Altcraft.framework */; };
+		557B204C2F6D824D00D1D162 /* Altcraft.framework in Embed Frameworks */ = {isa = PBXBuildFile; fileRef = 55302CAD2EA13466003A1A4C /* Altcraft.framework */; settings = {ATTRIBUTES = (CodeSignOnCopy, RemoveHeadersOnCopy, ); }; };
+		557B204E2F6D84A900D1D162 /* Altcraft.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 55302CAD2EA13466003A1A4C /* Altcraft.framework */; };
+		557B204F2F6D84A900D1D162 /* Altcraft.framework in Embed Frameworks */ = {isa = PBXBuildFile; fileRef = 55302CAD2EA13466003A1A4C /* Altcraft.framework */; settings = {ATTRIBUTES = (CodeSignOnCopy, RemoveHeadersOnCopy, ); }; };
 		558C47EF2C9DA6120006750E /* NavigatorView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 558C47EE2C9DA6120006750E /* NavigatorView.swift */; };
 		558C47F12C9DA6ED0006750E /* ExampleView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 558C47F02C9DA6ED0006750E /* ExampleView.swift */; };
 		558C47F32C9DB2D50006750E /* LogsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 558C47F22C9DB2D50006750E /* LogsView.swift */; };
@@ -91,24 +91,24 @@
 /* End PBXContainerItemProxy section */
 
 /* Begin PBXCopyFilesBuildPhase section */
-		556288CA2ED5C048007D1633 /* Embed Frameworks */ = {
+		557B204D2F6D824D00D1D162 /* Embed Frameworks */ = {
 			isa = PBXCopyFilesBuildPhase;
 			buildActionMask = 2147483647;
 			dstPath = "";
 			dstSubfolderSpec = 10;
 			files = (
-				556288C92ED5C048007D1633 /* Altcraft.framework in Embed Frameworks */,
+				557B204C2F6D824D00D1D162 /* Altcraft.framework in Embed Frameworks */,
 			);
 			name = "Embed Frameworks";
 			runOnlyForDeploymentPostprocessing = 0;
 		};
-		556288CD2ED5C052007D1633 /* Embed Frameworks */ = {
+		557B20502F6D84A900D1D162 /* Embed Frameworks */ = {
 			isa = PBXCopyFilesBuildPhase;
 			buildActionMask = 2147483647;
 			dstPath = "";
 			dstSubfolderSpec = 10;
 			files = (
-				556288CC2ED5C052007D1633 /* Altcraft.framework in Embed Frameworks */,
+				557B204F2F6D84A900D1D162 /* Altcraft.framework in Embed Frameworks */,
 			);
 			name = "Embed Frameworks";
 			runOnlyForDeploymentPostprocessing = 0;
@@ -200,7 +200,7 @@
 			buildActionMask = 2147483647;
 			files = (
 				0181B66E084608CC60E6F3A8 /* Pods_PushService.framework in Frameworks */,
-				556288CB2ED5C052007D1633 /* Altcraft.framework in Frameworks */,
+				557B204E2F6D84A900D1D162 /* Altcraft.framework in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -209,8 +209,8 @@
 			buildActionMask = 2147483647;
 			files = (
 				557B20062F6C553500D1D162 /* AGConnectCredential.xcframework in Frameworks */,
-				556288C82ED5C048007D1633 /* Altcraft.framework in Frameworks */,
 				55E566562D108A6500FA2B07 /* libc++.tbd in Frameworks */,
+				557B204B2F6D824D00D1D162 /* Altcraft.framework in Frameworks */,
 				550C5AF52EF1504C00D3EBC1 /* FirebaseMessaging in Frameworks */,
 				557B20042F6C553500D1D162 /* AGConnectCore.xcframework in Frameworks */,
 				55E566552D108A5100FA2B07 /* libz.tbd in Frameworks */,
@@ -458,7 +458,7 @@
 				553646DB2ECB3D680017AB0D /* Sources */,
 				553646DC2ECB3D680017AB0D /* Frameworks */,
 				553646DD2ECB3D680017AB0D /* Resources */,
-				556288CD2ED5C052007D1633 /* Embed Frameworks */,
+				557B20502F6D84A900D1D162 /* Embed Frameworks */,
 			);
 			buildRules = (
 			);
@@ -478,8 +478,8 @@
 				558C70192C9C29D10062F600 /* Frameworks */,
 				558C701A2C9C29D10062F600 /* Resources */,
 				558C476F2C9C3CE10006750E /* Embed Foundation Extensions */,
-				556288CA2ED5C048007D1633 /* Embed Frameworks */,
 				D4F9F1F8120D66E1A2A7F4A4 /* [CP] Copy Pods Resources */,
+				557B204D2F6D824D00D1D162 /* Embed Frameworks */,
 			);
 			buildRules = (
 			);
@@ -629,13 +629,9 @@
 			inputFileListPaths = (
 				"${PODS_ROOT}/Target Support Files/Pods-Example/Pods-Example-resources-${CONFIGURATION}-input-files.xcfilelist",
 			);
-			inputPaths = (
-			);
 			name = "[CP] Copy Pods Resources";
 			outputFileListPaths = (
 				"${PODS_ROOT}/Target Support Files/Pods-Example/Pods-Example-resources-${CONFIGURATION}-output-files.xcfilelist",
-			);
-			outputPaths = (
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 			shellPath = /bin/sh;

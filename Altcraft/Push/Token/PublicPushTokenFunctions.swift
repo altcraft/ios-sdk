@@ -114,7 +114,7 @@ public final class PublicPushTokenFunctions: NSObject, @unchecked Sendable {
             (pushToken as? Data).map { data in
                 data.map { String(format: "%02x", $0) }.joined()
             }
-
+    
         Task {
             await StoredVariablesManager.shared.setPushToken(
                 provider: provider,
