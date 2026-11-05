@@ -1,15 +1,45 @@
 //
 //  PushSubscribeTests.swift
-//  AltcraftTests
+//  Altcraft
 //
 //  Created by Andrey Pogodin.
 //
 //  Copyright © 2026 Altcraft. All rights reserved.
-//
 
 import XCTest
 import CoreData
-@testable import Altcraft
+@testable import AltcraftCore
+@_spi(_Altcraft) import AltcraftCore
+#if canImport(AltcraftCore)
+@_spi(_Altcraft) import AltcraftCore
+#endif
+#if canImport(AltcraftPush)
+@_spi(_Altcraft) import AltcraftPush
+#endif
+#if canImport(AltcraftProfile)
+@_spi(_Altcraft) import AltcraftProfile
+#endif
+#if canImport(AltcraftInApp)
+@_spi(_Altcraft) import AltcraftInApp
+#endif
+#if canImport(AltcraftTarget)
+@_spi(_Altcraft) import AltcraftTarget
+#endif
+#if canImport(AltcraftCore)
+@testable import AltcraftCore
+#endif
+#if canImport(AltcraftPush)
+@testable import AltcraftPush
+#endif
+#if canImport(AltcraftProfile)
+@testable import AltcraftProfile
+#endif
+#if canImport(AltcraftInApp)
+@testable import AltcraftInApp
+#endif
+#if canImport(AltcraftTarget)
+@testable import AltcraftTarget
+#endif
 
 /**
  * PushSubscribeTests
@@ -30,6 +60,7 @@ import CoreData
  */
 final class PushSubscribeTests: IsolatedTestCase {
 
+    /// APNs provider mock.
     private final class TestAPNSProvider: APNSInterface {
         func getToken(completion: @escaping (String?) -> Void) {
             completion("TEST-APNS-TOKEN")
@@ -52,10 +83,23 @@ final class PushSubscribeTests: IsolatedTestCase {
         wait(for: [exp], timeout: timeout)
     }
 
+    private func storeConfig(apiUrl: String, rToken: String) {
+        let context = CoreDataManager.shared.getContext()
+        context.performAndWait {
+            let entity = NSEntityDescription.insertNewObject(
+                forEntityName: Constants.EntityNames.configurationEntity,
+                into: context
+            )
+            entity.setValue(apiUrl, forKey: "url")
+            entity.setValue(rToken, forKey: "rToken")
+            try? context.save()
+        }
+    }
+
     override func setUpWithError() throws {
         try super.setUpWithError()
 
-        context = CoreDataManager.shared.getContext()
+        context = pushDatabase.getContext()
         apnsStub = TestAPNSProvider()
 
         waitAsync(description: "configure token providers") {
@@ -65,29 +109,25 @@ final class PushSubscribeTests: IsolatedTestCase {
         }
 
         waitAsync(description: "clear stored tokens") {
-            await StoredVariablesManager.shared.clearManualToken()
-            StoredVariablesManager.shared.clearSavedToken()
+            await PushStoredVariables.shared.clearManualToken()
+            PushStoredVariables.shared.clearSavedToken()
         }
 
         wipeContext([
-            Constants.EntityNames.subscribeEntity,
-            Constants.EntityNames.configurationEntity
+            PushConstants.EntityNames.subscribeEntity
         ], context: context)
 
         sdkWipe([
-            Constants.EntityNames.subscribeEntity,
             Constants.EntityNames.configurationEntity
         ])
     }
 
     override func tearDownWithError() throws {
         wipeContext([
-            Constants.EntityNames.subscribeEntity,
-            Constants.EntityNames.configurationEntity
+            PushConstants.EntityNames.subscribeEntity
         ], context: context)
 
         sdkWipe([
-            Constants.EntityNames.subscribeEntity,
             Constants.EntityNames.configurationEntity
         ])
 
@@ -98,8 +138,8 @@ final class PushSubscribeTests: IsolatedTestCase {
         }
 
         waitAsync(description: "clear stored tokens") {
-            await StoredVariablesManager.shared.clearManualToken()
-            StoredVariablesManager.shared.clearSavedToken()
+            await PushStoredVariables.shared.clearManualToken()
+            PushStoredVariables.shared.clearSavedToken()
         }
 
         apnsStub = nil
@@ -112,7 +152,7 @@ final class PushSubscribeTests: IsolatedTestCase {
     private func makeSub(
         userTag: String = "user-1",
         status: String = Constants.SubStatus.subscribed,
-        sync: Int16 = 1,
+        sync: Bool = true,
         time: Int64 = Int64(Date().timeIntervalSince1970 * 1000),
         retryCount: Int16 = 0,
         maxRetryCount: Int16 = 2,
@@ -126,7 +166,7 @@ final class PushSubscribeTests: IsolatedTestCase {
 
         context.performAndWait {
             let entity = NSEntityDescription.insertNewObject(
-                forEntityName: Constants.EntityNames.subscribeEntity,
+                forEntityName: PushConstants.EntityNames.subscribeEntity,
                 into: context
             )
 
@@ -150,7 +190,7 @@ final class PushSubscribeTests: IsolatedTestCase {
                 try context.save()
                 objectID = entity.objectID
             } catch {
-                XCTFail("Failed to save SubscribeEntity: \(error)")
+                XCTFail("Failed to save PushSubscribeEntity: \(error)")
             }
         }
 
@@ -164,10 +204,20 @@ final class PushSubscribeTests: IsolatedTestCase {
     ) throws -> NSManagedObjectID {
         var objectID: NSManagedObjectID?
 
-        context.performAndWait {
+        guard let configContext = TestCoreDataStack.sdkBackgroundContext(
+            containingEntity: Constants.EntityNames.configurationEntity
+        ) else {
+            throw NSError(
+                domain: "PushSubscribeTests",
+                code: 404,
+                userInfo: [NSLocalizedDescriptionKey: "Entity ConfigurationEntity not found"]
+            )
+        }
+
+        configContext.performAndWait {
             let entity = NSEntityDescription.insertNewObject(
                 forEntityName: Constants.EntityNames.configurationEntity,
-                into: context
+                into: configContext
             )
 
             entity.setValue(url, forKey: "url")
@@ -175,9 +225,9 @@ final class PushSubscribeTests: IsolatedTestCase {
 
             do {
                 if entity.objectID.isTemporaryID {
-                    try context.obtainPermanentIDs(for: [entity])
+                    try configContext.obtainPermanentIDs(for: [entity])
                 }
-                try context.save()
+                try configContext.save()
                 objectID = entity.objectID
             } catch {
                 XCTFail("Failed to save ConfigurationEntity: \(error)")
@@ -205,21 +255,21 @@ final class PushSubscribeTests: IsolatedTestCase {
         }
     }
 
-    private func fetchSub(by id: NSManagedObjectID) throws -> SubscribeEntity? {
-        var object: SubscribeEntity?
+    private func fetchSub(by id: NSManagedObjectID) throws -> PushSubscribeEntity? {
+        var object: PushSubscribeEntity?
 
         context.performAndWait {
-            object = resolveObject(in: context, from: id) as? SubscribeEntity
+            object = resolveObject(in: context, from: id) as? PushSubscribeEntity
         }
 
         return object
     }
 
-    private func fetchAllSubs() throws -> [SubscribeEntity] {
-        var objects: [SubscribeEntity] = []
+    private func fetchAllSubs() throws -> [PushSubscribeEntity] {
+        var objects: [PushSubscribeEntity] = []
 
         context.performAndWait {
-            let req = NSFetchRequest<SubscribeEntity>(entityName: Constants.EntityNames.subscribeEntity)
+            let req = NSFetchRequest<PushSubscribeEntity>(entityName: PushConstants.EntityNames.subscribeEntity)
             objects = (try? context.fetch(req)) ?? []
         }
 
@@ -242,55 +292,56 @@ final class PushSubscribeTests: IsolatedTestCase {
     }
 
     private func sdkWipe(_ entityNames: [String]) {
-        let ctx = CoreDataManager.shared.persistentContainer.newBackgroundContext()
-        let sema = DispatchSemaphore(value: 0)
+        for name in entityNames {
+            guard let ctx = TestCoreDataStack.sdkBackgroundContext(containingEntity: name) else {
+                continue
+            }
+            let sema = DispatchSemaphore(value: 0)
 
-        ctx.perform {
-            for name in entityNames {
+            ctx.perform {
                 let req = NSFetchRequest<NSFetchRequestResult>(entityName: name)
                 req.includesPropertyValues = false
                 if let objects = try? ctx.fetch(req) as? [NSManagedObject] {
                     objects.forEach { ctx.delete($0) }
                 }
+
+                if ctx.hasChanges {
+                    try? ctx.save()
+                }
+
+                sema.signal()
             }
 
-            if ctx.hasChanges {
-                try? ctx.save()
-            }
-
-            sema.signal()
+            _ = sema.wait(timeout: .now() + 5.0)
         }
-
-        _ = sema.wait(timeout: .now() + 5.0)
     }
 
     /// test_1: pushSubscribeRequest builds valid POST JSON request with required headers
-    func test_1_pushSubscribeRequest_builds_valid_post_json_request_with_required_headers() throws {
-        let data = PushSubscribeRequestData(
-            url: "https://api.altcraft.test/subscribe",
+    func test_1_pushSubscribeRequest_builds_valid_post_json_request_with_required_headers() async throws {
+        storeConfig(apiUrl: "https://api.altcraft.test", rToken: "rt")
+
+        let data = RequestModel.PushSubscribeRequestData(
+            path: PushConstants.UrlPath.subscribe,
             requestId: "RID-\(UUID().uuidString)",
             time: 1_700_000_000,
-            rToken: "user-1",
-            authHeader: "Bearer token",
-            matchingMode: "email",
             provider: "ios-apns",
             deviceToken: "TEST-APNS-TOKEN",
             status: Constants.SubStatus.subscribed,
             sync: true,
             profileFields: ["age": 30, "name": "Ann"],
-            customFields: ["lang": "ru"],
+            fields: ["lang": "ru"],
             cats: [],
             replace: false,
             skipTriggers: false
         )
 
-        let request = pushSubscribeRequest(data: data)
+        let request = await pushSubscribeRequest(data: data)
 
         XCTAssertNotNil(request)
         XCTAssertEqual(request?.httpMethod, "POST")
         XCTAssertEqual(
             request?.value(forHTTPHeaderField: Constants.HTTPHeader.authorization),
-            "Bearer token"
+            "Bearer rtoken@rt"
         )
 
         let contentType = request?.value(forHTTPHeaderField: Constants.HTTPHeader.contentType) ?? ""
@@ -307,7 +358,7 @@ final class PushSubscribeTests: IsolatedTestCase {
         let id = try makeSub()
         try deleteObject(by: id)
 
-        let event = await PushSubscribe.shared.test_push_subscribe_request(
+        let event = await PushSubscriptionProcess.shared.test_push_subscribe_request(
             context: context,
             objectID: id
         )
@@ -320,7 +371,7 @@ final class PushSubscribeTests: IsolatedTestCase {
         let id = try makeSub()
         try deleteObject(by: id)
 
-        let result = await PushSubscribe.shared.test_push_subscribe_isRetry(
+        let result = await PushSubscriptionProcess.shared.test_push_subscribe_isRetry(
             context: context,
             subscription: id
         )
@@ -335,7 +386,7 @@ final class PushSubscribeTests: IsolatedTestCase {
             maxRetryCount: 2
         )
 
-        let result = await PushSubscribe.shared.test_push_subscribe_isRetry(
+        let result = await PushSubscriptionProcess.shared.test_push_subscribe_isRetry(
             context: context,
             subscription: id
         )
@@ -354,7 +405,7 @@ final class PushSubscribeTests: IsolatedTestCase {
             maxRetryCount: 0
         )
 
-        let result = await PushSubscribe.shared.test_push_subscribe_isRetry(
+        let result = await PushSubscriptionProcess.shared.test_push_subscribe_isRetry(
             context: context,
             subscription: id
         )
@@ -382,7 +433,7 @@ final class PushSubscribeTests: IsolatedTestCase {
             maxRetryCount: 2
         )
 
-        let firstResult = await PushSubscribe.shared.test_push_subscribe_isRetry(
+        let firstResult = await PushSubscriptionProcess.shared.test_push_subscribe_isRetry(
             context: context,
             subscription: firstID
         )
@@ -398,7 +449,7 @@ final class PushSubscribeTests: IsolatedTestCase {
 
     /// test_7: processSubscriptions with empty queue returns true
     func test_7_processSubscriptions_with_empty_queue_returns_true() async {
-        let result = await PushSubscribe.shared.test_push_subscribe_processSubscriptions(
+        let result = await PushSubscriptionProcess.shared.test_push_subscribe_processSubscriptions(
             userTag: "missing-\(UUID().uuidString)"
         )
 
@@ -409,7 +460,7 @@ final class PushSubscribeTests: IsolatedTestCase {
     func test_8_processSubscription_with_wrong_type_objectID_deletes_object_and_returns_false() async throws {
         let id = try makeConfig()
 
-        let result = await PushSubscribe.shared.test_push_subscribe_isRetry(
+        let result = await PushSubscriptionProcess.shared.test_push_subscribe_isRetry(
             context: context,
             subscription: id
         )
@@ -465,44 +516,6 @@ final class PushSubscribeTests: IsolatedTestCase {
         XCTAssertTrue(all.isEmpty)
     }
 
-    /// test_11: responseProcessing maps status codes to event types
-    func test_11_responseProcessing_maps_status_codes_to_event_types() {
-        let mgr = RequestManager()
-        let url = URL(string: "https://example.com")!
-
-        func http(_ code: Int) -> HTTPURLResponse {
-            HTTPURLResponse(
-                url: url,
-                statusCode: code,
-                httpVersion: "HTTP/1.1",
-                headerFields: [:]
-            )!
-        }
-
-        let body = """
-        {"result":"ok","detail":"unit"}
-        """.data(using: .utf8)
-
-        let ok = mgr.responseProcessing(
-            response: http(200),
-            data: body,
-            requestName: Constants.RequestName.subscribe
-        )
-        let srvErr = mgr.responseProcessing(
-            response: http(503),
-            data: body,
-            requestName: Constants.RequestName.subscribe
-        )
-        let cliErr = mgr.responseProcessing(
-            response: http(404),
-            data: body,
-            requestName: Constants.RequestName.subscribe
-        )
-
-        XCTAssertTrue(type(of: ok) == Event.self)
-        XCTAssertFalse(type(of: ok) == ErrorEvent.self)
-        XCTAssertTrue(type(of: srvErr) == RetryEvent.self)
-        XCTAssertTrue(type(of: cliErr) == ErrorEvent.self)
-        XCTAssertFalse(type(of: cliErr) == RetryEvent.self)
-    }
+    // deleted: test_11_responseProcessing_maps_status_codes_to_event_types
+    // responseProcessing() was removed from RequestManager during refactoring
 }

@@ -1,13 +1,44 @@
 //
 //  ConverterTests.swift
-//  AltcraftTests
+//  Altcraft
 //
 //  Created by Andrey Pogodin.
 //
-//  Copyright © 2025 Altcraft. All rights reserved.
+//  Copyright © 2026 Altcraft. All rights reserved.
 
 import XCTest
-@testable import Altcraft
+@testable import AltcraftCore
+@_spi(_Altcraft) import AltcraftCore
+#if canImport(AltcraftCore)
+@_spi(_Altcraft) import AltcraftCore
+#endif
+#if canImport(AltcraftPush)
+@_spi(_Altcraft) import AltcraftPush
+#endif
+#if canImport(AltcraftProfile)
+@_spi(_Altcraft) import AltcraftProfile
+#endif
+#if canImport(AltcraftInApp)
+@_spi(_Altcraft) import AltcraftInApp
+#endif
+#if canImport(AltcraftTarget)
+@_spi(_Altcraft) import AltcraftTarget
+#endif
+#if canImport(AltcraftCore)
+@testable import AltcraftCore
+#endif
+#if canImport(AltcraftPush)
+@testable import AltcraftPush
+#endif
+#if canImport(AltcraftProfile)
+@testable import AltcraftProfile
+#endif
+#if canImport(AltcraftInApp)
+@testable import AltcraftInApp
+#endif
+#if canImport(AltcraftTarget)
+@testable import AltcraftTarget
+#endif
 
 /**
  * ConverterTests
@@ -16,8 +47,8 @@ import XCTest
  *  - test_1: parseResponse returns nil for nil and invalid data.
  *  - test_2: decodeAppInfo returns nil for nil/invalid data and decodes a valid round-trip.
  *  - test_3: encodeAppInfo encodes a valid AppInfo into Data.
- *  - test_4: decodeProviderPriorityList decodes a valid array of strings.
- *  - test_5: encodeProviderPriorityList encodes a valid array of strings.
+ *  - test_4: decodePriorityList decodes a valid array of strings.
+ *  - test_5: encodePriorityList encodes a valid array of strings.
  *  - test_6: encodeCats encodes a valid CategoryData array into Data.
  *  - test_7: decodeCats decodes a valid CategoryData JSON array.
  *  - test_8: decodeJSONData parses a valid JSON dictionary.
@@ -31,7 +62,7 @@ import XCTest
  *  - test_20: JSONValue convenience accessors return correct values.
  *
  * Edge scenarios:
- *  - test_11: decodeProviderPriorityList returns nil for invalid data.
+ *  - test_11: decodePriorityList returns nil for invalid data.
  *  - test_12: decodeCats returns nil for invalid data.
  *  - test_13: decodeJSONData returns nil for invalid JSON.
  *  - test_14: encodeCustomFields returns nil for non-serializable values.
@@ -43,19 +74,15 @@ import XCTest
  */
 final class ConverterTests: IsolatedTestCase {
 
-    private func jsonData(_ object: [String: Any]) -> Data {
-        return try! JSONSerialization.data(withJSONObject: object, options: [])
+    private func jsonData(_ object: [String: Any]) throws -> Data {
+        return try JSONSerialization.data(withJSONObject: object, options: [])
     }
 
     private func invalidJSONData() -> Data {
         return Data([0xFF, 0x00, 0x13, 0x37])
     }
 
-    /// test_1: parseResponse returns nil for nil and invalid data
-    func test_1_parseResponse_nilOrInvalidData() {
-        XCTAssertNil(parseResponse(data: nil))
-        XCTAssertNil(parseResponse(data: invalidJSONData()))
-    }
+    // test_1: parseResponse was deleted
 
     /// test_2: decodeAppInfo returns nil for nil/invalid data and decodes a valid round-trip
     func test_2_decodeAppInfo_nilInvalidAndValidRoundTrip() throws {
@@ -78,18 +105,18 @@ final class ConverterTests: IsolatedTestCase {
         XCTAssertNotNil(data)
     }
 
-    /// test_4: decodeProviderPriorityList decodes a valid array of strings
-    func test_4_decodeProviderPriorityList_validArray() throws {
+    /// test_4: decodePriorityList decodes a valid array of strings
+    func test_4_decodePriorityList_validArray() throws {
         let list = ["fcm", "apns", "hms"]
         let data = try JSONEncoder().encode(list)
-        let decoded = decodeProviderPriorityList(from: data)
+        let decoded = decodeList(from: data)
         XCTAssertEqual(decoded, list)
     }
 
-    /// test_5: encodeProviderPriorityList encodes a valid array of strings
-    func test_5_encodeProviderPriorityList_validArray() throws {
+    /// test_5: encodePriorityList encodes a valid array of strings
+    func test_5_encodePriorityList_validArray() throws {
         let list = ["fcm", "apns"]
-        let data = encodeProviderPriorityList(list)
+        let data = encodeList(list)
         XCTAssertNotNil(data)
         let roundTrip = try JSONDecoder().decode([String].self, from: data!)
         XCTAssertEqual(roundTrip, list)
@@ -123,9 +150,9 @@ final class ConverterTests: IsolatedTestCase {
     }
 
     /// test_8: decodeJSONData parses a valid JSON dictionary
-    func test_8_decodeJSONData_validDictionary() {
+    func test_8_decodeJSONData_validDictionary() throws {
         let dict = ["key": "value", "num": 42] as [String : Any]
-        let data = jsonData(dict)
+        let data = try jsonData(dict)
         let decoded = decodeAnyMap(data)
         XCTAssertEqual(decoded?["key"] as? String, "value")
         XCTAssertEqual(decoded?["num"] as? Int, 42)
@@ -149,9 +176,9 @@ final class ConverterTests: IsolatedTestCase {
         }
     }
 
-    /// test_11: decodeProviderPriorityList returns nil for invalid data
-    func test_11_decodeProviderPriorityList_invalidData() {
-        XCTAssertNil(decodeProviderPriorityList(from: invalidJSONData()))
+    /// test_11: decodePriorityList returns nil for invalid data
+    func test_11_decodePriorityList_invalidData() {
+        XCTAssertNil(decodeList(from: invalidJSONData()))
     }
 
     /// test_12: decodeCats returns nil for invalid data
@@ -272,6 +299,7 @@ final class ConverterTests: IsolatedTestCase {
 
     /// test_21: encodeSubscription returns nil for unsupported subscription type
     func test_21_encodeSubscription_unsupportedType() {
+        /// Subscription stub for the unsupported scenario.
         struct UnsupportedSubscription: Subscription {
             let channel: String = "unsupported"
         }
@@ -297,8 +325,8 @@ final class ConverterTests: IsolatedTestCase {
     }
 
     /// test_25: JSONValue handles unknown types with error
-    func test_25_JSONValue_unknownTypeHandling() {
-        let validData = try! JSONEncoder().encode(JSONValue.string("test"))
+    func test_25_JSONValue_unknownTypeHandling() throws {
+        let validData = try JSONEncoder().encode(JSONValue.string("test"))
         XCTAssertNoThrow(try JSONDecoder().decode(JSONValue.self, from: validData))
     }
 }

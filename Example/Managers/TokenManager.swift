@@ -1,34 +1,45 @@
 //
 //  TokenManager.swift
-//  Example
+//  Altcraft
 //
 //  Created by Andrey Pogodin.
 //
-//  Copyright © 2025 Altcraft. All rights reserved.
+//  Copyright © 2026 Altcraft. All rights reserved.
 
 import SwiftUI
+import AltcraftCore
+import AltcraftPush
+import AltcraftTarget
 import Combine
-import Altcraft
 
+/// Holds the current push token and provider.
 @MainActor
 class TokenManager: ObservableObject {
     
     @Published var token: String = ""
     @Published var provider: String = ""
 
-    // Function to update the token with a string value
+    /// Updates the token with a string value.
+    ///
+    /// - Parameter deviceToken: Token string.
     func updateToken(with deviceToken: String) {
         self.token = deviceToken
     }
 
-    // Function to update the token using Data (from APNs)
+    /// Updates the token using raw APNs data.
+    ///
+    /// - Parameter deviceToken: Raw device token data.
     func updateToken(with deviceToken: Data) {
         self.token = stringFromDeviceToken(deviceToken: deviceToken) ?? ""
     }
 
-    // Function to process an event and update the token if necessary
-    func updateToken(with event: Altcraft.Event) {
-        guard event.eventCode == 201 else { return }
+    /// Processes an SDK event and updates the token when the provider is set.
+    ///
+    /// - Parameter event: SDK event carrying the provider and token.
+    func updateToken(with event: Event) {
+        guard (event.event as? PushModuleEvents) == .pushProviderSet else {
+            return
+        }
         
         provider = event.value?["provider"] as? String ?? ""
         
@@ -39,15 +50,17 @@ class TokenManager: ObservableObject {
         }
     }
 
-    // Convert device token Data to a hex string
+    /// Converts raw device token data to a hex string.
+    ///
+    /// - Parameter deviceToken: Raw device token data.
+    /// - Returns: Hex string, or `nil`.
     private func stringFromDeviceToken(deviceToken: Data) -> String? {
         return deviceToken.map { String(format: "%02x", $0) }.joined()
     }
 }
 
 // Global singleton for accessing TokenManager
+/// Shared `TokenManager` singleton.
 @MainActor
 class GlobalTokenManager {static let shared = TokenManager()}
-
-
 

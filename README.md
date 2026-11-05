@@ -8,37 +8,93 @@
 [![Swift Package Manager](https://img.shields.io/badge/Swift_Package_Manager-compatible-orange?style=flat-square)](https://img.shields.io/badge/Swift_Package_Manager-compatible-orange?style=flat-square)
 [![CocoaPods Compatible](https://img.shields.io/cocoapods/v/Altcraft.svg?style=flat-square)](https://cocoapods.org/pods/Altcraft)
 
-Altcraft iOS SDK is a library for managing push notifications, user profiles, and interacting with the **Altcraft Marketing platform**. The SDK automates push notification delivery, event submission, request retries, and supports flexible workflows with JWT or role-based tokens.
+Altcraft iOS SDK is a library for interacting with the **Altcraft Marketing Platform**. It uses a modular architecture in which each component provides a specific set of capabilities.
 
 ---
 
-## Features
+## SDK Modules
 
-* [x] Compatible with Swift and Objective-C.
+### Core
+
+The core is the foundation of the SDK: it connects your application to the Altcraft platform and makes the optional modules available.
+
+* [x] SDK initialization and configuration.
+* [x] Authentication with JWT or a role token (*rToken*).
 * [x] Works with anonymous and registered users; supports multiple profiles on one device (JWT).
-* [x] Push subscription management: push subscribe, push suspend, push unsubscribe.
-* [x] Automatic display of push notifications configured in the platform.
-* [x] Automatic push token update when it changes.
-* [x] Automatic transmission of notification delivery and open events.
-* [x] Mobile events registration.
-* [x] Update profile fields.
-* [x] Automatic retry of failed requests.
-* [x] Support for push providers: APNS, Firebase, Huawei.
-* [x] Secure requests using JWT and flexible identifier matching.
-* [x] Support for rToken for simple subscription scenarios.
+* [x] Transmission of requests to the platform with automatic retry of failed requests.
+* [x] SDK event stream for monitoring SDK behavior in the app.
 * [x] SDK data cleanup and background tasks termination.
+
+### Push
+
+The push module is responsible for push notifications.
+
+* [x] Push subscription management: subscribe, suspend, unsubscribe.
+* [x] Automatic display of push notifications configured in the platform.
+* [x] Push token management: automatic update when the token changes, manual token operations.
+* [x] Automatic transmission of notification delivery and open events.
+* [x] Support for push providers: APNs, Firebase, Huawei.
+* [x] Custom push notification handling and access to all message data fields.
+* [x] Rich push notification processing via a Notification Service Extension (media, buttons).
+
+### Target
+
+The target module is responsible for mobile events: it sends target events to the platform to record goal achievements.
+
+* [x] Sending target events (goal conversions) from the app.
+* [x] Attaching event payloads, matching parameters, profile fields, and channel subscriptions to a target event.
+* [x] Attaching UTM tags to target events for attribution.
+
+### Profile
+
+The profile module is responsible for user profile fields.
+
+* [x] Updating profile fields from the app.
+
+### In-App
+
+The in-app module is responsible for in-app campaigns.
+
+* [x] Automatic display of in-app campaigns configured in the platform.
+* [x] In-app subscription management: subscribe, unsubscribe, status retrieval.
+* [x] Placement requests, current screen matching, and custom triggers.
+* [x] JSON in-app campaign emission to an external subscriber.
 
 ---
 
 ## Dependencies
 
-**Cocoapods:**
-
-`pod 'Altcraft', '1.0.3'`
+Altcraft iOS SDK modules are distributed via Swift Package Manager and CocoaPods. Add the modules used by your application. The Core module is included automatically as a dependency of other SDK modules and does not need to be added separately.
 
 **Swift Package Manager:**
 
-`1.0.3`
+```swift
+dependencies: [
+    .package(url: "https://github.com/altcraft/ios-sdk", from: "0.2.0")
+]
+```
+
+Add the products used by your application to the target dependencies:
+
+```swift
+.product(name: "AltcraftPush", package: "ios-sdk"),
+.product(name: "AltcraftInApp", package: "ios-sdk"),
+.product(name: "AltcraftTarget", package: "ios-sdk"),
+.product(name: "AltcraftProfile", package: "ios-sdk"),
+```
+
+If you only need Core, add the `AltcraftCore` product directly.
+
+**CocoaPods:**
+
+```ruby
+pod 'AltcraftPush', '0.2.0'
+pod 'AltcraftInApp', '0.2.0'
+pod 'AltcraftTarget', '0.2.0'
+pod 'AltcraftProfile', '0.2.0'
+```
+
+If you only need Core, add `pod 'AltcraftCore', '0.2.0'` directly.
 
 ---
 
@@ -71,8 +127,9 @@ Profile lookup is limited to the push token identifier.
 
 ## Requirements
 
-* IOS 13.0.
-* Push providers integrated SDK (APNs, Firebase, Huawei).
+* iOS 13.0+.
+* A configured push provider (APNs, Firebase, or Huawei) when using the Push module.
+* Xcode 15.3+ (Swift tools 5.10).
 
 ---
 
@@ -93,13 +150,13 @@ Detailed information on SDK setup, functionality, and usage is available on the 
 
 ---
 
-## Licenses
+## License
 
 ### EULA
 
 END USER LICENSE AGREEMENT
 
-Copyright © 2024 Altcraft LLC. All rights reserved.
+Copyright © 2026 Altcraft LLC. All rights reserved.
 
 1. LICENSE GRANT
    This agreement grants you certain rights to use the Altcraft Mobile SDK (hereinafter referred to as the “Software”).
@@ -131,12 +188,11 @@ Copyright © 2024 Altcraft LLC. All rights reserved.
    This Software may include components distributed under other licenses. The full list of such components
    and their respective licenses is provided below:
 
-Apache License 2.0
+### Third-party libraries and licenses
 
-* [Swift](https://swift.org)
-* [SwiftUI](https://developer.apple.com/documentation/swiftui)
-
-Apple Developer License Agreement
+**Apple frameworks**
+Licensed under the Apple Developer License Agreement.
+You may obtain a copy of the License at https://developer.apple.com/terms/
 
 * [Foundation](https://developer.apple.com/documentation/foundation)
 * [MobileCoreServices](https://developer.apple.com/documentation/mobilecoreservices)
@@ -148,3 +204,9 @@ Apple Developer License Agreement
 * [Network](https://developer.apple.com/documentation/network)
 * [UserNotifications](https://developer.apple.com/documentation/usernotifications)
 
+**Apache License 2.0**
+Licensed under the [Apache License, Version 2.0](http://www.apache.org/licenses/LICENSE-2.0).
+You may obtain a copy of the License at http://www.apache.org/licenses/LICENSE-2.0
+
+* [Swift](https://swift.org)
+* [SwiftUI](https://developer.apple.com/documentation/swiftui)

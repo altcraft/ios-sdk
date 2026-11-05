@@ -1,16 +1,20 @@
 //
 //  ProfileComponents.swift
-//  Example
+//  Altcraft
 //
 //  Created by Andrey Pogodin.
 //
-//  Copyright © 2025 Altcraft. All rights reserved.
+//  Copyright © 2026 Altcraft. All rights reserved.
 
 import Foundation
+import AltcraftCore
+import AltcraftPush
+import AltcraftInApp
+import AltcraftProfile
+import AltcraftTarget
 import SwiftUI
-import Altcraft
 
-
+/// Profile section box.
 struct ProfileBoxView: View {
     @ObservedObject var profileManager = GlobalProfileDataManager.shared
     @ObservedObject var boxManager = GlobalBoxModeManager.shared
@@ -35,6 +39,7 @@ struct ProfileBoxView: View {
     }
 }
 
+/// Profile data view.
 struct ProfileDataView: View {
     var profileData: ProfileData?
     var errorMessage: String?
@@ -60,12 +65,16 @@ struct ProfileDataView: View {
         .shadow(radius: 1)
     }
 
+    /// Builds the profile content section.
+    ///
+    /// - Parameter profileData: Profile data to render.
+    /// - Returns: Profile section view.
     @ViewBuilder
     private func profileContent(profileData: ProfileData) -> some View {
         ScrollView {
             VStack(spacing: 4) {
                 ProfileDataItem(label: "ID", value: profileData.id)
-                ProfileDataItem(label: "Status", value: profileData.status)
+                ProfileDataItem(label: "PushStatusProcess", value: profileData.status)
                 ProfileDataItem(label: "Is Test", value: profileData.isTest?.description)
 
                 if let subscription = profileData.subscription {
@@ -76,6 +85,10 @@ struct ProfileDataView: View {
         }
     }
 
+    /// Builds the subscription content section.
+    ///
+    /// - Parameter subscription: Subscription data to render.
+    /// - Returns: Subscription section view.
     @ViewBuilder
     private func subscriptionContent(subscription: SubscriptionData) -> some View {
         Spacer().frame(height: 5)
@@ -91,7 +104,7 @@ struct ProfileDataView: View {
         ProfileDataItem(label: "Subscription ID", value: subscription.subscriptionId)
         ProfileDataItem(label: "Hash ID", value: subscription.hashId)
         ProfileDataItem(label: "Provider", value: subscription.provider)
-        ProfileDataItem(label: "Status", value: subscription.status)
+        ProfileDataItem(label: "PushStatusProcess", value: subscription.status)
 
         if let cats = subscription.cats {
             categoriesContent(cats: cats)
@@ -102,6 +115,10 @@ struct ProfileDataView: View {
         }
     }
 
+    /// Builds the categories content section.
+    ///
+    /// - Parameter cats: Categories to render.
+    /// - Returns: Categories section view.
     @ViewBuilder
     private func categoriesContent(cats: [CategoryData]) -> some View {
         Spacer().frame(height: 5)
@@ -123,6 +140,10 @@ struct ProfileDataView: View {
         }
     }
 
+    /// Builds the profile fields content section.
+    ///
+    /// - Parameter fields: Profile fields to render.
+    /// - Returns: Fields section view.
     @ViewBuilder
     private func fieldsContent(fields: [String: Any]) -> some View {
         Spacer().frame(height: 5)
@@ -141,7 +162,7 @@ struct ProfileDataView: View {
     }
 }
 
-
+/// Profile data row.
 struct ProfileDataItem: View {
     let label: String
     let value: String?
@@ -173,6 +194,10 @@ struct ProfileDataItem: View {
     }
 }
 
+/// Formats a profile field value for display.
+///
+/// - Parameter value: Raw field value.
+/// - Returns: Display string.
 func formatFieldValue(_ value: Any) -> String {
     switch value {
     case let str as String:
@@ -194,6 +219,7 @@ func formatFieldValue(_ value: Any) -> String {
     }
 }
 
+/// Gradient shadow line.
 struct GradientShadowLine: View {
     var colors: [Color] = [
         Color(red: 0.55, green: 0.75, blue: 0.99, opacity: 0.4),
@@ -216,12 +242,12 @@ struct GradientShadowLine: View {
     }
 }
 
+/// Loading spinner.
 struct LoadingIndicatorView: View {
     var body: some View {
         VStack {
             ProgressView()
                 .progressViewStyle(CircularProgressViewStyle())
-                .tint(Color.blue)
                 .scaleEffect(1.8)
                 .padding()
         }

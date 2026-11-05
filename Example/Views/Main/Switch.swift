@@ -1,25 +1,28 @@
 //
 //  Switch.swift
-//  Example
+//  Altcraft
 //
 //  Created by Andrey Pogodin.
 //
-//  Copyright © 2025 Altcraft. All rights reserved.
+//  Copyright © 2026 Altcraft. All rights reserved.
 
-import Foundation
 import SwiftUI
 
+/// Custom toggle switch style.
 struct CustomSwitchStyle: ToggleStyle {
+    /// Builds the custom toggle switch body.
+    ///
+    /// - Parameter configuration: Toggle configuration.
+    /// - Returns: Configured switch view.
     func makeBody(configuration: Configuration) -> some View {
         HStack {
-            configuration.label
             RoundedRectangle(cornerRadius: 20)
-                .fill(configuration.isOn ? Color.white : Color.white)
+                .fill(Color.white)
                 .frame(width: 50, height: 25)
                 .shadow(radius: 2)
                 .overlay(
                     Circle()
-                        .fill(configuration.isOn ? Color(hex: "5ae0ea") : Color.black)
+                        .fill(configuration.isOn ? Color(red: 0x5a/255, green: 0xe0/255, blue: 0xea/255) : Color.black)
                         .frame(width: 15, height: 15)
                         .offset(x: configuration.isOn ? 15 : -15)
                 )

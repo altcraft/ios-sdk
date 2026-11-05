@@ -1,14 +1,44 @@
 //
 //  AsyncLazyTests.swift
-//  AltcraftTests
+//  Altcraft
 //
 //  Created by Andrey Pogodin.
 //
-//  © 2026 Altcraft. All rights reserved.
-//
+//  Copyright © 2026 Altcraft. All rights reserved.
 
 import XCTest
-@testable import Altcraft
+@testable import AltcraftCore
+@_spi(_Altcraft) import AltcraftCore
+#if canImport(AltcraftCore)
+@_spi(_Altcraft) import AltcraftCore
+#endif
+#if canImport(AltcraftPush)
+@_spi(_Altcraft) import AltcraftPush
+#endif
+#if canImport(AltcraftProfile)
+@_spi(_Altcraft) import AltcraftProfile
+#endif
+#if canImport(AltcraftInApp)
+@_spi(_Altcraft) import AltcraftInApp
+#endif
+#if canImport(AltcraftTarget)
+@_spi(_Altcraft) import AltcraftTarget
+#endif
+#if canImport(AltcraftCore)
+@testable import AltcraftCore
+#endif
+#if canImport(AltcraftPush)
+@testable import AltcraftPush
+#endif
+#if canImport(AltcraftProfile)
+@testable import AltcraftProfile
+#endif
+#if canImport(AltcraftInApp)
+@testable import AltcraftInApp
+#endif
+#if canImport(AltcraftTarget)
+@testable import AltcraftTarget
+#endif
 
 /**
  * AsyncLazyTests
@@ -20,6 +50,7 @@ import XCTest
  *  - test_4: reset → clears cached value and forces reload on next get.
  *  - test_5: get after loader failure → resets to idle and allows successful retry.
  *  - test_6: reset during in-flight load → does not affect current waiters and next get reloads value.
+ *  - test_7: reset while loading → the stale pre-reset result is never cached.
  *
  */
 final class AsyncLazyTests: IsolatedTestCase {
@@ -36,6 +67,7 @@ final class AsyncLazyTests: IsolatedTestCase {
         }
     }
 
+    /// Test error type.
     enum TestError: Error, Equatable {
         case failed
     }
@@ -166,8 +198,8 @@ final class AsyncLazyTests: IsolatedTestCase {
         XCTAssertEqual(loadCount, 2)
     }
 
-    /// test_6: reset during in-flight load forgets current task, allows a new load,
-    /// and both in-flight callers may observe different loaders
+    /// test_6: reset during in-flight load forgets the current task, starts a
+    /// new load, and the stale pre-reset result is never cached.
     func test_6_reset_duringInFlightLoad_forgetsCurrentTask_andAllowsNextGetToStartNewLoad() async throws {
         let lazy = AsyncLazy<Int>()
         let counter = Counter()
@@ -199,6 +231,60 @@ final class AsyncLazyTests: IsolatedTestCase {
         XCTAssertEqual(firstResult, 1)
         XCTAssertEqual(secondResult, 2)
         XCTAssertEqual(loadCount, 2)
-        XCTAssertTrue(thirdResult == 1 || thirdResult == 2)
+        XCTAssertEqual(
+            thirdResult,
+            2,
+            "Stale pre-reset result must not be cached"
+        )
+    }
+
+    /// test_7: reset while loading — the stale result is returned to its
+    /// caller but never written into the cache; the cache keeps only the
+    /// value loaded after the reset.
+    func test_7_reset_whileLoading_staleResultIsNotCached() async throws {
+        let lazy = AsyncLazy<Int>()
+        let counter = Counter()
+
+        // Old load starts and stays in flight.
+        async let stale: Int? = lazy.get {
+            await counter.increment()
+            try? await Task.sleep(nanoseconds: 100_000_000)
+            return 1
+        }
+
+        try? await Task.sleep(nanoseconds: 20_000_000)
+
+        // Reset while the old load is in flight.
+        await lazy.reset()
+
+        // New load after the reset.
+        let fresh = try await lazy.get {
+            await counter.increment()
+            return 2
+        }
+
+        // The stale load still delivers its own value to its caller.
+        let staleResult = try await stale
+        XCTAssertEqual(staleResult, 1)
+
+        // But it must not poison the cache: the fresh value stays.
+        let cached = try await lazy.get {
+            await counter.increment()
+            return 3
+        }
+
+        let loadCount = await counter.get()
+
+        XCTAssertEqual(fresh, 2)
+        XCTAssertEqual(
+            cached,
+            2,
+            "Stale pre-reset result must not be cached"
+        )
+        XCTAssertEqual(
+            loadCount,
+            2,
+            "Cached value must not trigger another load"
+        )
     }
 }

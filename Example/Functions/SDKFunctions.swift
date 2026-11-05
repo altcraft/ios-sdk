@@ -1,13 +1,17 @@
 //
 //  SDKFunctions.swift
-//  Example
+//  Altcraft
 //
 //  Created by Andrey Pogodin.
 //
-//  Copyright © 2025 Altcraft. All rights reserved.
+//  Copyright © 2026 Altcraft. All rights reserved.
 
 import Foundation
-import Altcraft
+import AltcraftCore
+import AltcraftPush
+import AltcraftInApp
+import AltcraftProfile
+import AltcraftTarget
 
 /// Initializes Altcraft SDK with configuration stored in UserDefaults.
 /// If configuration is missing, initialization is skipped.
@@ -15,7 +19,7 @@ import Altcraft
 /// - Parameter config: App configuration containing API URL, rToken and provider list.
 func initSDK(config: AppConfig?) {
     guard let config = config else { return }
-    
+
     let rToken: String? = {
         if let token = config.rToken, !token.isEmpty {
             return token
@@ -23,20 +27,29 @@ func initSDK(config: AppConfig?) {
         return nil
     }()
     
-    let configuration = AltcraftConfiguration.Builder()
-        .setApiUrl(config.apiUrl)
-        .setRToken(rToken)
-        .setProviderPriorityList(config.providerNames)
-        .build()
+    let configuration: AltcraftConfiguration = AltcraftConfiguration.Builder(
+        apiUrl: config.apiUrl,
+        rToken: rToken,
+        enableLogging: true
+    )
+    .pushConfig(
+        providerPriority: config.providerNames
+    )
+    .inAppConfig(
+        inAppAutoRequest: true,
+        placementsRequestInterval: .init(value: 1, unit: .minutes),
+        maxPlacements: 3
+    )
+    .build()
     
-    AltcraftSDK.shared.initialization(configuration: configuration)
+    AltcraftSDK.initialization(configuration: configuration)
 }
 
 /// Updates push provider priority list, persists it in UserDefaults,
 /// and notifies the SDK about the provider change.
 ///
 /// - Parameter providers: Ordered list of provider identifiers to use as priority.
-private func updateProviderPriorityList(_ providers: [String]) {
+private func updatePriorityList(_ providers: [String]) {
     if let config = getConfigFromUserDefault() {
         let updatedConfig = AppConfig(
             apiUrl: config.apiUrl,
@@ -44,26 +57,26 @@ private func updateProviderPriorityList(_ providers: [String]) {
             providerNames: providers
         )
         setConfigInUserDefaults(config: updatedConfig) { _ in
-            AltcraftSDK.shared.pushTokenFunctions.changePushProviderPriorityList(providers)
+            AltcraftSDK.push.token.changeProviderPriority(providers)
         }
     } else {
-        AltcraftSDK.shared.pushTokenFunctions.changePushProviderPriorityList(providers)
+        AltcraftSDK.push.token.changeProviderPriority(providers)
     }
 }
 
 /// Switches push provider priority to APNs.
 func switchToAPNS() {
-    updateProviderPriorityList([Constants.ProviderName.apns])
+    updatePriorityList([PushConstants.ProviderName.apns])
 }
 
 /// Switches push provider priority to Firebase Cloud Messaging (FCM).
 func switchToFCM() {
-    updateProviderPriorityList([Constants.ProviderName.firebase])
+    updatePriorityList([PushConstants.ProviderName.firebase])
 }
 
 /// Switches push provider priority to Huawei Mobile Services (HMS).
 func switchToHMS() {
-    updateProviderPriorityList([Constants.ProviderName.huawei])
+    updatePriorityList([PushConstants.ProviderName.huawei])
 }
 
 /// Performs login transition.
@@ -73,11 +86,11 @@ func switchToHMS() {
 /// performs pushSubscribe() with stored settings.
 func logIn() {
     JWTManager.shared.setAuthStatus(true)
-    AltcraftSDK.shared.pushSubscriptionFunctions.unSuspendPushSubscription { result in
+    AltcraftSDK.push.subscription.unSuspend { result in
         if result?.httpCode == 200, result?.response?.profile?.subscription == nil {
             let subscriptionSetting = getSubscriptionSettingFromUserDefaults()
             
-            AltcraftSDK.shared.pushSubscriptionFunctions.pushSubscribe(
+            AltcraftSDK.push.subscription.subscribe(
                 sync: subscriptionSetting.sync,
                 profileFields: subscriptionSetting.profileFields,
                 customFields: subscriptionSetting.customFields,
@@ -95,11 +108,11 @@ func logIn() {
 /// and if the anonymous profile has no subscription, creates a new one.
 func logOut() {
     JWTManager.shared.setAuthStatus(false)
-    AltcraftSDK.shared.pushSubscriptionFunctions.unSuspendPushSubscription { result in
+    AltcraftSDK.push.subscription.unSuspend { result in
         if result?.httpCode == 200, result?.response?.profile?.subscription == nil {
             let subscriptionSetting = getSubscriptionSettingFromUserDefaults()
             
-            AltcraftSDK.shared.pushSubscriptionFunctions.pushSubscribe(
+            AltcraftSDK.push.subscription.subscribe(
                 sync: subscriptionSetting.sync,
                 profileFields: subscriptionSetting.profileFields,
                 customFields: subscriptionSetting.customFields,
@@ -116,7 +129,7 @@ func logOut() {
 func pushSubscribe() {
     let subscriptionSetting = getSubscriptionSettingFromUserDefaults()
     
-    AltcraftSDK.shared.pushSubscriptionFunctions.pushSubscribe(
+    AltcraftSDK.push.subscription.subscribe(
         sync: subscriptionSetting.sync,
         profileFields: subscriptionSetting.profileFields,
         customFields: subscriptionSetting.customFields,
@@ -128,14 +141,14 @@ func pushSubscribe() {
 
 /// Suspends the current push subscription.
 func pushSuspend() {
-    AltcraftSDK.shared.pushSubscriptionFunctions.pushSuspend()
+    AltcraftSDK.push.subscription.suspend()
 }
 
 /// Unsubscribes from push using saved subscription settings.
 func pushUnsubscribe() {
     let subscriptionSetting = getSubscriptionSettingFromUserDefaults()
     
-    AltcraftSDK.shared.pushSubscriptionFunctions.pushUnSubscribe(
+    AltcraftSDK.push.subscription.unsubscribe(
         sync: subscriptionSetting.sync,
         profileFields: subscriptionSetting.profileFields,
         customFields: subscriptionSetting.customFields,

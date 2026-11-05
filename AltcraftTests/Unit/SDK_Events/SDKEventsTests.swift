@@ -1,13 +1,44 @@
 //
 //  SDKEventsTests.swift
-//  AltcraftTests
+//  Altcraft
 //
 //  Created by Andrey Pogodin.
 //
-//  © 2025 Altcraft. All rights reserved.
+//  Copyright © 2026 Altcraft. All rights reserved.
 
 import XCTest
-@testable import Altcraft
+@testable import AltcraftCore
+@_spi(_Altcraft) import AltcraftCore
+#if canImport(AltcraftCore)
+@_spi(_Altcraft) import AltcraftCore
+#endif
+#if canImport(AltcraftPush)
+@_spi(_Altcraft) import AltcraftPush
+#endif
+#if canImport(AltcraftProfile)
+@_spi(_Altcraft) import AltcraftProfile
+#endif
+#if canImport(AltcraftInApp)
+@_spi(_Altcraft) import AltcraftInApp
+#endif
+#if canImport(AltcraftTarget)
+@_spi(_Altcraft) import AltcraftTarget
+#endif
+#if canImport(AltcraftCore)
+@testable import AltcraftCore
+#endif
+#if canImport(AltcraftPush)
+@testable import AltcraftPush
+#endif
+#if canImport(AltcraftProfile)
+@testable import AltcraftProfile
+#endif
+#if canImport(AltcraftInApp)
+@testable import AltcraftInApp
+#endif
+#if canImport(AltcraftTarget)
+@testable import AltcraftTarget
+#endif
 
 /**
  * SDKEventsTests
@@ -16,17 +47,13 @@ import XCTest
  *  - test_1: Subscribe and emit delivers event.
  *  - test_2: Unsubscribe blocks emission.
  *  - test_3: Subscribe replaces previous subscriber.
- *  - test_4: Event emits general event with code and message.
- *  - test_5: Error event extracts from string and tuples.
- *  - test_6: Error event with NSError sets code 400.
- *  - test_7: Retry event with NSError sets code 500.
+ *  - test_4: Event emits general event with message and value.
+ *  - test_5: Error event extracts from strings and SDK errors.
+ *  - test_6: Error event with NSError sets message from description.
+ *  - test_7: Retry event with NSError sets message from description.
  *  - test_8: Event value compact maps nil entries.
  */
 final class SDKEventsTests: XCTestCase {
-
-    private static let codeOK = 200
-    private static let codeClient = 400
-    private static let codeRetry = 500
 
     private static let msgHello = "hello"
     private static let msgStrError = "string-error"
@@ -70,13 +97,12 @@ final class SDKEventsTests: XCTestCase {
             received = ev
         }
 
-        let e = Event(function: marker, message: Self.msgHello, eventCode: Self.codeOK, value: ["k": 1])
+        let e = Event(function: marker, event: nil, message: Self.msgHello, value: ["k": 1])
         SDKEvents.shared.emit(event: e)
 
         waitForExpectations(timeout: 1.0)
         XCTAssertNotNil(received)
         XCTAssertEqual(received?.message, Self.msgHello)
-        XCTAssertEqual(received?.eventCode, Self.codeOK)
         XCTAssertEqual(received?.value?["k"] as? Int, 1)
     }
 
@@ -87,7 +113,7 @@ final class SDKEventsTests: XCTestCase {
         SDKEvents.shared.subscribe { _ in inverted.fulfill() }
         SDKEvents.shared.unsubscribe()
 
-        let e = Event(function: fn("t2"), message: "X", eventCode: 0, value: nil)
+        let e = Event(function: fn("t2"), message: "X", value: nil)
         SDKEvents.shared.emit(event: e)
 
         waitForExpectations(timeout: 0.5)
@@ -115,14 +141,14 @@ final class SDKEventsTests: XCTestCase {
             exp.fulfill()
         }
 
-        SDKEvents.shared.emit(event: Event(function: marker, message: "X", eventCode: 0, value: nil))
+        SDKEvents.shared.emit(event: Event(function: marker, message: "X", value: nil))
 
         waitForExpectations(timeout: 1.0)
         XCTAssertTrue(firedByNew)
     }
 
-    /// test_4: Event emits general event with code and message
-    func test_4_event_emits_general_Event_with_code_and_message() {
+    /// test_4: Event emits general event with message and value
+    func test_4_event_emits_general_Event_with_message_and_value() {
         let marker = fn("helper.t4")
         let exp = expectation(description: "general event t4")
         var evCaptured: Event?
@@ -131,18 +157,18 @@ final class SDKEventsTests: XCTestCase {
             evCaptured = e
         }
 
-        let emitted = event(marker, event: (Self.codeOK, Self.msgHello), value: ["a": 42])
+        let emitted = Event(function: marker, event: nil, message: Self.msgHello, value: ["a": 42])
+        SDKEvents.shared.emit(event: emitted)
 
         waitForExpectations(timeout: 1.0)
         XCTAssertNotNil(evCaptured)
-        XCTAssertEqual(evCaptured?.eventCode, Self.codeOK)
         XCTAssertEqual(evCaptured?.message, Self.msgHello)
         XCTAssertEqual(evCaptured?.value?["a"] as? Int, 42)
         XCTAssertEqual(emitted.id, evCaptured?.id)
     }
 
-    /// test_5: Error event extracts from string and tuples
-    func test_5_errorEvent_extracts_from_String_and_tuples() {
+    /// test_5: Error event extracts from strings and SDK errors
+    func test_5_errorEvent_extracts_from_String_and_SDKError() {
         do {
             let marker = fn("err.str.t5")
             let exp = expectation(description: "string error t5")
@@ -150,33 +176,33 @@ final class SDKEventsTests: XCTestCase {
             installSubscriber(expectation: exp, match: { $0.function.contains("Unit.err") }) { e in
                 ev = e as? ErrorEvent
             }
-            let emitted = errorEvent(marker, error: Self.msgStrError, value: nil)
+            let emitted = errorEvent(marker, error: Self.msgStrError, eventValue: nil)
             waitForExpectations(timeout: 1.0)
 
             XCTAssertNotNil(ev)
-            XCTAssertEqual(ev?.eventCode, 0)
+            XCTAssertNil(ev?.event)
             XCTAssertEqual(ev?.message, Self.msgStrError)
             XCTAssertEqual(emitted.id, ev?.id)
         }
 
         do {
-            let marker = fn("err.tuple.t5")
-            let exp = expectation(description: "tuple error t5")
+            let marker = fn("err.sdk.t5")
+            let exp = expectation(description: "sdk error t5")
             var ev: ErrorEvent?
             installSubscriber(expectation: exp, match: { $0.function.contains("Unit.err") }) { e in
                 ev = e as? ErrorEvent
             }
-            _ = errorEvent(marker, error: (Self.codeClient, Self.msgTuple), value: nil)
+            _ = errorEvent(marker, error: SDKError.sdk(event: CoreEvents.configIsNotSet, message: Self.msgTuple), eventValue: nil)
             waitForExpectations(timeout: 1.0)
 
             XCTAssertNotNil(ev)
-            XCTAssertEqual(ev?.eventCode, Self.codeClient)
+            XCTAssertEqual(ev?.event as? CoreEvents, CoreEvents.configIsNotSet)
             XCTAssertEqual(ev?.message, Self.msgTuple)
         }
     }
 
-    /// test_6: Error event with NSError sets code 400
-    func test_6_errorEvent_with_NSError_sets_code_400() {
+    /// test_6: Error event with NSError sets message from description
+    func test_6_errorEvent_with_NSError_sets_message_from_description() {
         let marker = fn("err.ns.t6")
         let exp = expectation(description: "nserror error t6")
         var ev: ErrorEvent?
@@ -185,16 +211,16 @@ final class SDKEventsTests: XCTestCase {
         }
 
         let ns = NSError(domain: Self.nsErrorDomain, code: 123, userInfo: [NSLocalizedDescriptionKey: Self.nsErrorText])
-        _ = errorEvent(marker, error: ns, value: nil)
+        _ = errorEvent(marker, error: ns, eventValue: nil)
 
         waitForExpectations(timeout: 1.0)
         XCTAssertNotNil(ev)
-        XCTAssertEqual(ev?.eventCode, Self.codeClient)
+        XCTAssertNil(ev?.event)
         XCTAssertEqual(ev?.message, Self.nsErrorText)
     }
 
-    /// test_7: Retry event with NSError sets code 500
-    func test_7_retryEvent_with_NSError_sets_code_500() {
+    /// test_7: Retry event with NSError sets message from description
+    func test_7_retryEvent_with_NSError_sets_message_from_description() {
         let marker = fn("retry.ns.t7")
         let exp = expectation(description: "nserror retry t7")
         var ev: RetryEvent?
@@ -203,11 +229,11 @@ final class SDKEventsTests: XCTestCase {
         }
 
         let ns = NSError(domain: Self.nsErrorDomain, code: 321, userInfo: [NSLocalizedDescriptionKey: Self.nsErrorText])
-        _ = retryEvent(marker, error: ns, value: nil)
+        _ = retryEvent(marker, error: ns, eventValue: nil)
 
         waitForExpectations(timeout: 1.0)
         XCTAssertNotNil(ev)
-        XCTAssertEqual(ev?.eventCode, Self.codeRetry)
+        XCTAssertNil(ev?.event)
         XCTAssertEqual(ev?.message, Self.nsErrorText)
     }
 
@@ -220,7 +246,8 @@ final class SDKEventsTests: XCTestCase {
             ev = e
         }
 
-        let emitted = event(marker, event: (1, "v"), value: ["good": 1, "bad": nil, "str": "x"])
+        let emitted = Event(function: marker, event: nil, message: "v", value: ["good": 1, "bad": nil, "str": "x"])
+        SDKEvents.shared.emit(event: emitted)
 
         waitForExpectations(timeout: 1.0)
         XCTAssertNotNil(ev)

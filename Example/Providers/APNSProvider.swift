@@ -1,14 +1,17 @@
 //
 //  APNSProvider.swift
-//  Example
+//  Altcraft
 //
 //  Created by Andrey Pogodin.
 //
-//  Copyright © 2025 Altcraft. All rights reserved.
+//  Copyright © 2026 Altcraft. All rights reserved.
 
 import Foundation
-import Altcraft
+import AltcraftCore
+import AltcraftPush
+import AltcraftTarget
 
+/// APNs token provider (`TokenProviderInterface`).
 class APNSProvider: APNSInterface {
     
     /// Retrieves the current APNs token from local storage.

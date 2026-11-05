@@ -1,6 +1,6 @@
 # END-USER LICENSE AGREEMENT
 
-Copyright © 2024 Altcraft LLC. All rights reserved.
+Copyright © 2026 Altcraft LLC. All rights reserved.
 
 1. **GRANT OF LICENSE**: This document grants you certain rights to use the Altcraft Mobile SDK (hereinafter referred to as the "Software"). All rights not expressly granted are reserved by the copyright holder.
 
@@ -30,7 +30,6 @@ Copyright © 2024 Altcraft LLC. All rights reserved.
    * [UIKit](https://developer.apple.com/documentation/uikit)
    * [BackgroundTasks](https://developer.apple.com/documentation/backgroundtasks)
    * [CoreData](https://developer.apple.com/documentation/coredata)
-   * [AdSupport](https://developer.apple.com/documentation/adsupport)
    * [Network](https://developer.apple.com/documentation/network)
    * [UserNotifications](https://developer.apple.com/documentation/usernotifications)
 

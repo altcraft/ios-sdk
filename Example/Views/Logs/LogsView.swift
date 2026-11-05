@@ -1,14 +1,19 @@
 //
 //  LogsView.swift
-//  Example
+//  Altcraft
 //
 //  Created by Andrey Pogodin.
 //
-//  Copyright © 2025 Altcraft. All rights reserved.
-
+//  Copyright © 2026 Altcraft. All rights reserved.
 
 import SwiftUI
+import AltcraftCore
+import AltcraftPush
+import AltcraftInApp
+import AltcraftProfile
+import AltcraftTarget
 
+/// SDK event log screen.
 struct LogsView: View {
     @ObservedObject var eventManager = GlobalEventManager.shared
     
@@ -41,6 +46,7 @@ struct LogsView: View {
     }
 }
 
+/// Event log list item.
 struct EventLogItemView: View {
     let date: Date?
     let message: String
@@ -67,6 +73,10 @@ struct EventLogItemView: View {
     }
 }
 
+/// Formats the date as a timestamp string for the log list.
+///
+/// - Parameter date: Date to format.
+/// - Returns: Formatted timestamp.
 func formatDateToTimestampString(_ date: Date) -> String {
     let formatter = DateFormatter()
     formatter.dateFormat = "yyyy-MM-dd HH:mm:ss.SSS"

@@ -1,14 +1,45 @@
 //
 //  PushEventTests.swift
-//  AltcraftTests
+//  Altcraft
 //
 //  Created by Andrey Pogodin.
 //
-//  © 2026 Altcraft. All rights reserved.
+//  Copyright © 2026 Altcraft. All rights reserved.
 
 import XCTest
 import CoreData
-@testable import Altcraft
+@testable import AltcraftCore
+@_spi(_Altcraft) import AltcraftCore
+#if canImport(AltcraftCore)
+@_spi(_Altcraft) import AltcraftCore
+#endif
+#if canImport(AltcraftPush)
+@_spi(_Altcraft) import AltcraftPush
+#endif
+#if canImport(AltcraftProfile)
+@_spi(_Altcraft) import AltcraftProfile
+#endif
+#if canImport(AltcraftInApp)
+@_spi(_Altcraft) import AltcraftInApp
+#endif
+#if canImport(AltcraftTarget)
+@_spi(_Altcraft) import AltcraftTarget
+#endif
+#if canImport(AltcraftCore)
+@testable import AltcraftCore
+#endif
+#if canImport(AltcraftPush)
+@testable import AltcraftPush
+#endif
+#if canImport(AltcraftProfile)
+@testable import AltcraftProfile
+#endif
+#if canImport(AltcraftInApp)
+@testable import AltcraftInApp
+#endif
+#if canImport(AltcraftTarget)
+@testable import AltcraftTarget
+#endif
 
 /**
  * PushEventTests
@@ -27,7 +58,7 @@ final class PushEventTests: IsolatedTestCase {
     override class var useSDKCoreData: Bool { true }
 
     private var sdkContainer: NSPersistentContainer {
-        CoreDataManager.shared.persistentContainer
+        pushDatabase.persistentContainer
     }
 
     private var sdkViewContext: NSManagedObjectContext {
@@ -44,11 +75,11 @@ final class PushEventTests: IsolatedTestCase {
 
     override func setUpWithError() throws {
         try super.setUpWithError()
-        sdkWipe([Constants.EntityNames.pushEventEntity])
+        sdkWipe([PushConstants.EntityNames.pushEventEntity])
     }
 
     override func tearDownWithError() throws {
-        sdkWipe([Constants.EntityNames.pushEventEntity])
+        sdkWipe([PushConstants.EntityNames.pushEventEntity])
         try super.tearDownWithError()
     }
 
@@ -90,7 +121,7 @@ final class PushEventTests: IsolatedTestCase {
 
         context.performAndWait {
             let request = NSFetchRequest<PushEventEntity>(
-                entityName: Constants.EntityNames.pushEventEntity
+                entityName: PushConstants.EntityNames.pushEventEntity
             )
             request.sortDescriptors = [NSSortDescriptor(key: "time", ascending: true)]
             list = (try? context.fetch(request)) ?? []
@@ -101,7 +132,7 @@ final class PushEventTests: IsolatedTestCase {
 
     /// test_1: createPushEvent persists entity for valid uid
     func test_1_createPushEvent_persistsEntity_forValidUID() async {
-        await PushEvent.shared.test_push_event_create(
+        await PushEventProcess.shared.test_push_event_create(
             uid: "u-123",
             type: "delivered"
         )
@@ -111,47 +142,48 @@ final class PushEventTests: IsolatedTestCase {
         XCTAssertEqual(rows.count, 1)
         XCTAssertEqual(rows[0].uid, "u-123")
         XCTAssertEqual(rows[0].type, "delivered")
-        XCTAssertEqual(sdkCount(Constants.EntityNames.pushEventEntity), 1)
+        XCTAssertEqual(sdkCount(PushConstants.EntityNames.pushEventEntity), 1)
     }
 
     /// test_2: createPushEvent does not persist entity when uid is nil
     func test_2_createPushEvent_doesNotPersistEntity_whenUIDIsNil() async {
-        await PushEvent.shared.test_push_event_create(
+        await PushEventProcess.shared.test_push_event_create(
             uid: nil,
             type: "opened"
         )
 
-        XCTAssertEqual(sdkCount(Constants.EntityNames.pushEventEntity), 0)
+        XCTAssertEqual(sdkCount(PushConstants.EntityNames.pushEventEntity), 0)
     }
 
     /// test_3: sendPushEvent deletes entity after successful request path
     func test_3_sendPushEvent_deletesEntity_afterSuccessfulRequestPath() async throws {
-        guard let objectID = await addPushEventEntity(
+        guard let objectID = await PushEventDAO.addPushEventEntity(
             uid: "ok-1",
             type: "delivered"
         ) else {
             return XCTFail("Seed failed")
         }
 
-        StoredVariablesManager.shared.setCurrentToken(
-            provider: Constants.ProviderName.firebase,
+        PushStoredVariables.shared.setCurrentToken(
+            provider: PushConstants.ProviderName.firebase,
             token: "saved-token"
         )
 
-        await StoredVariablesManager.shared.setPushToken(
-            provider: Constants.ProviderName.firebase,
+        await PushStoredVariables.shared.setPushToken(
+            provider: PushConstants.ProviderName.firebase,
             token: "saved-token"
         )
 
-        let builder = AltcraftConfiguration.Builder()
-            .setApiUrl("https://api.example.com")
-            .setRToken("rToken")
-            .setEnableLogging(false)
+        let builder = AltcraftConfiguration.Builder(
+            apiUrl: "https://api.example.com",
+            rToken: "rToken",
+            enableLogging: false
+        )
 
         _ = await AltcraftInit.shared.initSDK(configuration: builder.build())
 
-        let context = CoreDataManager.shared.getContext()
-        let event = await PushEvent.shared.test_push_event_request(
+        let context = pushDatabase.getContext()
+        let event = await PushEventProcess.shared.test_push_event_request(
             context: context,
             event: objectID
         )
@@ -160,27 +192,27 @@ final class PushEventTests: IsolatedTestCase {
             return
         }
 
-        await PushEvent.shared.test_push_event_send(
+        await PushEventProcess.shared.test_push_event_send(
             context: context,
             event: objectID,
             shouldRetry: false
         )
 
-        XCTAssertEqual(sdkCount(Constants.EntityNames.pushEventEntity), 0)
+        XCTAssertEqual(sdkCount(PushConstants.EntityNames.pushEventEntity), 0)
     }
 
     /// test_4: sendPushEvent increments retryCount after retry response path
     func test_4_sendPushEvent_incrementsRetryCount_afterRetryResponsePath() async throws {
-        guard let objectID = await addPushEventEntity(
+        guard let objectID = await PushEventDAO.addPushEventEntity(
             uid: "retry-1",
             type: "opened"
         ) else {
             return XCTFail("Seed failed")
         }
 
-        let context = CoreDataManager.shared.getContext()
+        let context = pushDatabase.getContext()
 
-        await PushEvent.shared.test_push_event_send(
+        await PushEventProcess.shared.test_push_event_send(
             context: context,
             event: objectID,
             shouldRetry: false
@@ -200,32 +232,32 @@ final class PushEventTests: IsolatedTestCase {
     /// test_5: sendAllPushEvents processes all pending events without creating duplicates
     func test_5_sendAllPushEvents_processesAllPendingEvents_withoutCreatingDuplicates() async throws {
         for index in 0..<5 {
-            _ = await addPushEventEntity(
+            _ = await PushEventDAO.addPushEventEntity(
                 uid: "uid-\(index)",
                 type: "opened"
             )
         }
 
-        XCTAssertEqual(sdkCount(Constants.EntityNames.pushEventEntity), 5)
+        XCTAssertEqual(sdkCount(PushConstants.EntityNames.pushEventEntity), 5)
 
-        await PushEvent.shared.test_push_event_send_all()
+        await PushEventProcess.shared.test_push_event_send_all()
 
-        let finalCount = sdkCount(Constants.EntityNames.pushEventEntity)
+        let finalCount = sdkCount(PushConstants.EntityNames.pushEventEntity)
         XCTAssertLessThanOrEqual(finalCount, 5)
     }
 
     /// test_6: request returns event for existing push event entity
     func test_6_request_returnsRetryEvent_whenRequestDataCannotBeBuilt() async throws {
-        guard let objectID = await addPushEventEntity(
+        guard let objectID = await PushEventDAO.addPushEventEntity(
             uid: "bad-1",
             type: "opened"
         ) else {
             return XCTFail("Seed failed")
         }
 
-        let context = CoreDataManager.shared.getContext()
+        let context = pushDatabase.getContext()
 
-        let event = await PushEvent.shared.test_push_event_request(
+        let event = await PushEventProcess.shared.test_push_event_request(
             context: context,
             event: objectID
         )

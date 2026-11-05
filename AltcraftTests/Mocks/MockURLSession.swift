@@ -1,13 +1,44 @@
 //
 //  MockURLSession.swift
-//  AltcraftTests
+//  Altcraft
 //
 //  Created by Andrey Pogodin.
 //
-//  Copyright © 2025 Altcraft. All rights reserved.
+//  Copyright © 2026 Altcraft. All rights reserved.
 
 import Foundation
-@testable import Altcraft
+@testable import AltcraftCore
+@_spi(_Altcraft) import AltcraftCore
+#if canImport(AltcraftCore)
+@_spi(_Altcraft) import AltcraftCore
+#endif
+#if canImport(AltcraftPush)
+@_spi(_Altcraft) import AltcraftPush
+#endif
+#if canImport(AltcraftProfile)
+@_spi(_Altcraft) import AltcraftProfile
+#endif
+#if canImport(AltcraftInApp)
+@_spi(_Altcraft) import AltcraftInApp
+#endif
+#if canImport(AltcraftTarget)
+@_spi(_Altcraft) import AltcraftTarget
+#endif
+#if canImport(AltcraftCore)
+@testable import AltcraftCore
+#endif
+#if canImport(AltcraftPush)
+@testable import AltcraftPush
+#endif
+#if canImport(AltcraftProfile)
+@testable import AltcraftProfile
+#endif
+#if canImport(AltcraftInApp)
+@testable import AltcraftInApp
+#endif
+#if canImport(AltcraftTarget)
+@testable import AltcraftTarget
+#endif
 
 // MARK: - Abstractions
 
@@ -40,7 +71,9 @@ extension URLSession: URLSessioning {
 
 // MARK: - Test mock
 
+/// URL session mock returning canned responses.
 public final class MockURLSession: URLSessioning {
+    /// Response scenario selector for the mock.
     public enum ResultCase {
         case success(Data)
         case failure(Error)
@@ -54,6 +87,7 @@ public final class MockURLSession: URLSessioning {
         self.statusCode = statusCode
     }
 
+    /// Download task mock.
     private final class MockTask: URLSessionDownloadTasking {
         private let work: () -> Void
         init(work: @escaping () -> Void) { self.work = work }

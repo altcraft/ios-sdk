@@ -1,15 +1,20 @@
 //
 //  NotificationDataManager.swift
-//  Example
+//  Altcraft
 //
 //  Created by Andrey Pogodin.
 //
-//  Copyright © 2025 Altcraft. All rights reserved.
+//  Copyright © 2026 Altcraft. All rights reserved.
 
 import Foundation
+import AltcraftCore
+import AltcraftPush
+import AltcraftInApp
+import AltcraftProfile
+import AltcraftTarget
 import SwiftUI
-import Altcraft
 
+/// Parsed notification content for the demo screen.
 struct NotificationPayload: Codable {
     let title: String
     let body: String
@@ -17,6 +22,7 @@ struct NotificationPayload: Codable {
     let buttons: [String]
 }
 
+/// Holds and displays the last notification payload.
 @MainActor
 class NotificationDataManager: ObservableObject {
     @Published var title: String = "Altcraft"
@@ -33,6 +39,9 @@ class NotificationDataManager: ObservableObject {
         loadImageFromStoredUrl()
     }
 
+    /// Replaces the stored notification payload.
+    ///
+    /// - Parameter data: Parsed notification payload.
     func update(from data: NotificationPayload) {
         self.title = data.title
         self.body = data.body
@@ -43,6 +52,7 @@ class NotificationDataManager: ObservableObject {
         loadImage(from: data.image) { [weak self] in self?.image = $0 }
     }
 
+    /// Loads the stored notification payload from UserDefaults.
     func loadFromUserDefaults() {
         if let data = UserDefaults.standard.data(forKey: userDefaultsKey),
            let payload = try? JSONDecoder().decode(NotificationPayload.self, from: data) {
@@ -55,6 +65,7 @@ class NotificationDataManager: ObservableObject {
         loadImageFromStoredUrl()
     }
 
+    /// Clears the stored notification payload and image.
     func clearData() {
         title = ""
         body = ""
@@ -65,6 +76,9 @@ class NotificationDataManager: ObservableObject {
         UserDefaults.standard.removeObject(forKey: imageUrlKey)
     }
 
+    /// Stores the notification image URL and starts loading.
+    ///
+    /// - Parameter url: Image URL, or `nil` to clear.
     func setImageUrl(_ url: String?) {
         self.imageUrl = url
         if let url = url {
@@ -76,12 +90,14 @@ class NotificationDataManager: ObservableObject {
         loadImage(from: url) { [weak self] in self?.image = $0 }
     }
 
+    /// Loads the image for the stored URL.
     private func loadImageFromStoredUrl() {
         let url = UserDefaults.standard.string(forKey: imageUrlKey)
         self.imageUrl = url
         loadImage(from: url) { [weak self] in self?.image = $0 }
     }
 
+     /// Persists the notification payload to UserDefaults.
      func saveToUserDefaults() {
         let payload = NotificationPayload(
             title: title,
@@ -95,6 +111,11 @@ class NotificationDataManager: ObservableObject {
         }
     }
 
+    /// Downloads the image from the URL asynchronously.
+    ///
+    /// - Parameters:
+    ///   - urlString: Image URL, or `nil`.
+    ///   - completion: Called with the downloaded image, or `nil`.
     private func loadImage(from urlString: String?, completion: @escaping (UIImage?) -> Void) {
         guard let urlString = urlString, let url = URL(string: urlString) else {
             completion(nil)
@@ -113,13 +134,11 @@ class NotificationDataManager: ObservableObject {
     }
 }
 
+/// Shared `NotificationDataManager` singleton.
 @MainActor
 class GlobalNotificationDataManager {static let shared = NotificationDataManager()}
 
-
 import UserNotifications
-import Altcraft
-
 
 @MainActor
 extension NotificationDataManager {
@@ -129,6 +148,8 @@ extension NotificationDataManager {
     /// Rich media attachment key.
     static let media = "_media"
 
+    /// Builds a local push payload and runs it through the AltcraftNSE
+    /// processing flow.
     func sendPush() {
         let content = UNMutableNotificationContent()
         content.title = self.title
@@ -157,7 +178,7 @@ extension NotificationDataManager {
         )
 
         // Handle via AltcraftNSE facade (Notification Service Extension flow)
-        AltcraftNSE.shared.handleNotificationRequest(request: request) { modifiedContent in
+        AltcraftNSE.handleNotificationRequest(request: request) { modifiedContent in
             let finalRequest = UNNotificationRequest(
                 identifier: request.identifier,
                 content: modifiedContent,
@@ -167,6 +188,9 @@ extension NotificationDataManager {
         }
 
         // Schedules the final (possibly modified) notification
+        /// Schedules the final (possibly enriched) notification for delivery.
+        ///
+        /// - Parameter request: Notification request to schedule.
         func sendFinalNotification(from request: UNNotificationRequest) {
             UNUserNotificationCenter.current().add(request) { error in
                 if let error = error {
@@ -175,6 +199,10 @@ extension NotificationDataManager {
             }
         }
     }
+    /// Serializes the object to a JSON string.
+    ///
+    /// - Parameter object: JSON-serializable object.
+    /// - Returns: JSON string, or `nil` on failure.
     private func jsonString(from object: Any) -> String {
         guard let data = try? JSONSerialization.data(withJSONObject: object, options: []),
               let string = String(data: data, encoding: .utf8) else {
@@ -183,5 +211,4 @@ extension NotificationDataManager {
         return string
     }
 }
-
 

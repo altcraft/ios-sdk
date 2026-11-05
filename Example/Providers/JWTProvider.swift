@@ -1,16 +1,21 @@
 //
 //  JWTProvider.swift
-//  Example
+//  Altcraft
 //
 //  Created by Andrey Pogodin.
 //
-//  Copyright © 2025 Altcraft. All rights reserved.
+//  Copyright © 2026 Altcraft. All rights reserved.
 
 import Foundation
-import Altcraft
+import AltcraftCore
 
-class JWTProvider: JWTInterface {
-    func getToken() -> String? {
-        JWTManager.shared.getJWT()
+/// JWT provider backed by `JWTManager` (`JWTInterface`).
+final class JWTProvider: JWTInterface {
+    /// Returns the JWT for the current authentication mode
+    /// (`JWTInterface` implementation).
+    func getToken()  -> String? {
+        let jwt = JWTManager.shared.getJWT()
+
+        return jwt
     }
 }

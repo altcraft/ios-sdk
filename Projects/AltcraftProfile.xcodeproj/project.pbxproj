@@ -1,0 +1,650 @@
+// !$*UTF8*$!
+{
+	archiveVersion = 1;
+	classes = {
+	};
+	objectVersion = 77;
+	objects = {
+
+/* Begin PBXBuildFile section */
+		2839D622958841B977A40A92 /* ProfileUpdateEntity+CoreDataProperties.swift in Sources */ = {isa = PBXBuildFile; fileRef = 99DBE282406206DCE6F8B83A /* ProfileUpdateEntity+CoreDataProperties.swift */; };
+		2B49507B639B7BB167F1E4B3 /* ProfileConstants.swift in Sources */ = {isa = PBXBuildFile; fileRef = EF6E7EE483BA219A3A7D7114 /* ProfileConstants.swift */; };
+		31FF1D07CC098BD42F343AE9 /* UpdateAPI.swift in Sources */ = {isa = PBXBuildFile; fileRef = D35BF6CD646BADDB30BB6F4D /* UpdateAPI.swift */; };
+		32C7BFAE0EFFD93DDAE278FB /* ProfileRequestDataFactory.swift in Sources */ = {isa = PBXBuildFile; fileRef = 346BA7FDDEE0CA23E7D69063 /* ProfileRequestDataFactory.swift */; };
+		420AB791EF81026B51F348F6 /* ProfileUpdateEntity+CoreDataClass.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3EDD330006EF89EB225FA411 /* ProfileUpdateEntity+CoreDataClass.swift */; };
+		43436E8A439E062EFF8F4F00 /* AltcraftNSE+Profile.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4E84396C0A319B12AAFF9D5D /* AltcraftNSE+Profile.swift */; };
+		5250BD3D0634909B63C8727F /* ProfileUpdate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 67A76B4A1D2922ABBED7669A /* ProfileUpdate.swift */; };
+		580DAA7FDA568E2952C4F49B /* ProfileLog.swift in Sources */ = {isa = PBXBuildFile; fileRef = DE3E75C8AA7EFC2B34483DB6 /* ProfileLog.swift */; };
+		7D781B94DC58889C839846BA /* Altcraft/Profile/infra/ProfileModuleLifecycle.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5EA5F969C30765658F12B0BB /* Altcraft/Profile/infra/ProfileModuleLifecycle.swift */; };
+		869FB3DF757937845A2BA1EA /* RetryTrackable+Profile.swift in Sources */ = {isa = PBXBuildFile; fileRef = A48EF33C587239A6665A0535 /* RetryTrackable+Profile.swift */; };
+		940645384B8604A21691480C /* ProfileUpdateWorker.swift in Sources */ = {isa = PBXBuildFile; fileRef = 21192A4AA1E983777B9BBC58 /* ProfileUpdateWorker.swift */; };
+		9C16265B70D4EE93C4B4BE84 /* ProfileUpdateQueue.swift in Sources */ = {isa = PBXBuildFile; fileRef = A44FBA672CAE04C385A5AD54 /* ProfileUpdateQueue.swift */; };
+		9F4BF53097BBDA61556E4D2F /* Profile.swift in Sources */ = {isa = PBXBuildFile; fileRef = F2F71C82F78E1A929F909671 /* Profile.swift */; };
+		AA10PB000000000000000003 /* ProfileDatabase.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA10PF000000000000000001 /* ProfileDatabase.swift */; };
+		AA10PB000000000000000004 /* ProfileDao.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA10PF000000000000000002 /* ProfileDao.swift */; };
+		AA10PB00000000000000000D /* AltcraftCore.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = AA10PR000000000000000001 /* AltcraftCore.framework */; };
+		B8DE3C21CD2983EBB8BDF6C5 /* AltcraftProfile.podspec in Resources */ = {isa = PBXBuildFile; fileRef = C22E0BA288844363A241BBC0 /* AltcraftProfile.podspec */; };
+		BB2F271DF2459005CC50288B /* ProfileModuleEvents.swift in Sources */ = {isa = PBXBuildFile; fileRef = A6CF6D4FCC1D365813952C2E /* ProfileModuleEvents.swift */; };
+		C32A3AC7F14D349D95048943 /* ProfileRetry.swift in Sources */ = {isa = PBXBuildFile; fileRef = AD9683F2DEEF1CB10B740C50 /* ProfileRetry.swift */; };
+		CE22FD84F4DC9B90012F1728 /* ProfileEnvironment.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8100CE1265B7C02E92EC35E7 /* ProfileEnvironment.swift */; };
+		E160473C32967669E2704D0D /* ProfileRequest.swift in Sources */ = {isa = PBXBuildFile; fileRef = E41C1D939A34DFAFB2760591 /* ProfileRequest.swift */; };
+		EF07962F450685CC7CC4FED9 /* Profile.xcdatamodeld in Sources */ = {isa = PBXBuildFile; fileRef = CAEDE2A7771C74A9002F4AEC /* Profile.xcdatamodeld */; };
+/* End PBXBuildFile section */
+
+/* Begin PBXContainerItemProxy section */
+		AA10PP000000000000000001 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 3C2460A240910833CDDEE540 /* AltcraftCore.xcodeproj */;
+			proxyType = 1;
+			remoteGlobalIDString = 9592C894CF92FAD2E3147581;
+			remoteInfo = AltcraftCore;
+		};
+		AA10PP000000000000000002 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 3C2460A240910833CDDEE540 /* AltcraftCore.xcodeproj */;
+			proxyType = 2;
+			remoteGlobalIDString = 7880C4A7CFE12EB1073DF7C2;
+			remoteInfo = AltcraftCore;
+		};
+/* End PBXContainerItemProxy section */
+
+/* Begin PBXFileReference section */
+		01F20883F571825CE43682CF /* Profile.xcdatamodel */ = {isa = PBXFileReference; lastKnownFileType = wrapper.xcdatamodel; path = Profile.xcdatamodel; sourceTree = "<group>"; };
+		21192A4AA1E983777B9BBC58 /* ProfileUpdateWorker.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ProfileUpdateWorker.swift; sourceTree = "<group>"; };
+		346BA7FDDEE0CA23E7D69063 /* ProfileRequestDataFactory.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ProfileRequestDataFactory.swift; sourceTree = "<group>"; };
+		3C2460A240910833CDDEE540 /* AltcraftCore.xcodeproj */ = {isa = PBXFileReference; lastKnownFileType = "wrapper.pb-project"; path = AltcraftCore.xcodeproj; sourceTree = "<group>"; };
+		3EDD330006EF89EB225FA411 /* ProfileUpdateEntity+CoreDataClass.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "ProfileUpdateEntity+CoreDataClass.swift"; sourceTree = "<group>"; };
+		4E84396C0A319B12AAFF9D5D /* AltcraftNSE+Profile.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "AltcraftNSE+Profile.swift"; sourceTree = "<group>"; };
+		5EA5F969C30765658F12B0BB /* Altcraft/Profile/infra/ProfileModuleLifecycle.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ../Altcraft/Profile/infra/ProfileModuleLifecycle.swift; sourceTree = SOURCE_ROOT; };
+		67A76B4A1D2922ABBED7669A /* ProfileUpdate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ProfileUpdate.swift; sourceTree = "<group>"; };
+		7B89927FB82A9E8BC83DFA07 /* AltcraftProfile.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; includeInIndex = 0; path = AltcraftProfile.framework; sourceTree = BUILT_PRODUCTS_DIR; };
+		8100CE1265B7C02E92EC35E7 /* ProfileEnvironment.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ProfileEnvironment.swift; sourceTree = "<group>"; };
+		99DBE282406206DCE6F8B83A /* ProfileUpdateEntity+CoreDataProperties.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "ProfileUpdateEntity+CoreDataProperties.swift"; sourceTree = "<group>"; };
+		A44FBA672CAE04C385A5AD54 /* ProfileUpdateQueue.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ProfileUpdateQueue.swift; sourceTree = "<group>"; };
+		A48EF33C587239A6665A0535 /* RetryTrackable+Profile.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "RetryTrackable+Profile.swift"; sourceTree = "<group>"; };
+		A6CF6D4FCC1D365813952C2E /* ProfileModuleEvents.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ProfileModuleEvents.swift; sourceTree = "<group>"; };
+		AA10PF000000000000000001 /* ProfileDatabase.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ProfileDatabase.swift; sourceTree = "<group>"; };
+		AA10PF000000000000000002 /* ProfileDao.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ProfileDao.swift; sourceTree = "<group>"; };
+		AD9683F2DEEF1CB10B740C50 /* ProfileRetry.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ProfileRetry.swift; sourceTree = "<group>"; };
+		C22E0BA288844363A241BBC0 /* AltcraftProfile.podspec */ = {isa = PBXFileReference; lastKnownFileType = text; path = ../AltcraftProfile.podspec; sourceTree = SOURCE_ROOT; };
+		D35BF6CD646BADDB30BB6F4D /* UpdateAPI.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = UpdateAPI.swift; sourceTree = "<group>"; };
+		DE3E75C8AA7EFC2B34483DB6 /* ProfileLog.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ProfileLog.swift; sourceTree = "<group>"; };
+		E41C1D939A34DFAFB2760591 /* ProfileRequest.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ProfileRequest.swift; sourceTree = "<group>"; };
+		EF6E7EE483BA219A3A7D7114 /* ProfileConstants.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ProfileConstants.swift; sourceTree = "<group>"; };
+		F2F71C82F78E1A929F909671 /* Profile.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Profile.swift; sourceTree = "<group>"; };
+/* End PBXFileReference section */
+
+/* Begin PBXFrameworksBuildPhase section */
+		BD2B021AB923F98F2BC9CB79 /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				AA10PB00000000000000000D /* AltcraftCore.framework in Frameworks */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXFrameworksBuildPhase section */
+
+/* Begin PBXGroup section */
+		0BAAFF3AC8CDF404CCADE168 /* util */ = {
+			isa = PBXGroup;
+			children = (
+				DE3E75C8AA7EFC2B34483DB6 /* ProfileLog.swift */,
+			);
+			path = util;
+			sourceTree = "<group>";
+		};
+		179A0EB3B88FFC521CB5C15E /* request */ = {
+			isa = PBXGroup;
+			children = (
+				E41C1D939A34DFAFB2760591 /* ProfileRequest.swift */,
+			);
+			path = request;
+			sourceTree = "<group>";
+		};
+		347FEE02D0D6A633ECB1E8DE = {
+			isa = PBXGroup;
+			children = (
+				63A6943C1698811D3F10965D /* Altcraft */,
+				B2961DCC6AB32A352F77A44D /* Frameworks */,
+				8BC1612F8AB65C9DA53E8F65 /* Products */,
+				5595BD6A3090D2D900D9B02B /* Recovered References */,
+			);
+			sourceTree = "<group>";
+		};
+		5264D88BA02AEF960D8B4F3E /* .swiftpm */ = {
+			isa = PBXGroup;
+			children = (
+				AFAE096FED4C8F097E336E18 /* xcode */,
+			);
+			path = .swiftpm;
+			sourceTree = "<group>";
+		};
+		5595BD6A3090D2D900D9B02B /* Recovered References */ = {
+			isa = PBXGroup;
+			children = (
+				AA10PR000000000000000001 /* AltcraftCore.framework */,
+			);
+			name = "Recovered References";
+			sourceTree = "<group>";
+		};
+		5595BD6B3090D2DA00D9B02B /* Products */ = {
+			isa = PBXGroup;
+			children = (
+			);
+			name = Products;
+			sourceTree = "<group>";
+		};
+		55DE2545D11E2FF7EF6A6665 /* platform */ = {
+			isa = PBXGroup;
+			children = (
+				70E2FAD51FC94415B4231E8C /* updateFields */,
+			);
+			path = platform;
+			sourceTree = "<group>";
+		};
+		6227317DE976AD8E31B82F44 /* events */ = {
+			isa = PBXGroup;
+			children = (
+				A6CF6D4FCC1D365813952C2E /* ProfileModuleEvents.swift */,
+			);
+			path = events;
+			sourceTree = "<group>";
+		};
+		63A6943C1698811D3F10965D /* Altcraft */ = {
+			isa = PBXGroup;
+			children = (
+				C7F219895B9B360439CA9846 /* Profile */,
+			);
+			path = ../Altcraft;
+			sourceTree = "<group>";
+		};
+		70E2FAD51FC94415B4231E8C /* updateFields */ = {
+			isa = PBXGroup;
+			children = (
+				67A76B4A1D2922ABBED7669A /* ProfileUpdate.swift */,
+				A44FBA672CAE04C385A5AD54 /* ProfileUpdateQueue.swift */,
+				D35BF6CD646BADDB30BB6F4D /* UpdateAPI.swift */,
+				179A0EB3B88FFC521CB5C15E /* request */,
+				FAC286FAF00E7245C7E0B009 /* worker */,
+			);
+			path = updateFields;
+			sourceTree = "<group>";
+		};
+		7347E96305B9D2D9D613C897 /* infra */ = {
+			isa = PBXGroup;
+			children = (
+				5EA5F969C30765658F12B0BB /* Altcraft/Profile/infra/ProfileModuleLifecycle.swift */,
+				8100CE1265B7C02E92EC35E7 /* ProfileEnvironment.swift */,
+			);
+			path = infra;
+			sourceTree = "<group>";
+		};
+		8BC1612F8AB65C9DA53E8F65 /* Products */ = {
+			isa = PBXGroup;
+			children = (
+				7B89927FB82A9E8BC83DFA07 /* AltcraftProfile.framework */,
+			);
+			name = Products;
+			sourceTree = "<group>";
+		};
+		92D29096C85D9B16D595529B /* nse */ = {
+			isa = PBXGroup;
+			children = (
+				4E84396C0A319B12AAFF9D5D /* AltcraftNSE+Profile.swift */,
+			);
+			path = nse;
+			sourceTree = "<group>";
+		};
+		AA0CFAB9B3BA4585D8DB7FCA /* entity */ = {
+			isa = PBXGroup;
+			children = (
+				3EDD330006EF89EB225FA411 /* ProfileUpdateEntity+CoreDataClass.swift */,
+				99DBE282406206DCE6F8B83A /* ProfileUpdateEntity+CoreDataProperties.swift */,
+			);
+			path = entity;
+			sourceTree = "<group>";
+		};
+		AA10PB000000000000000001 /* db */ = {
+			isa = PBXGroup;
+			children = (
+				AA10PF000000000000000001 /* ProfileDatabase.swift */,
+				CAEDE2A7771C74A9002F4AEC /* Profile.xcdatamodeld */,
+				AA10PB000000000000000002 /* dao */,
+				AA0CFAB9B3BA4585D8DB7FCA /* entity */,
+				C8F63C3D0D0CA95D76EFB63B /* repositories */,
+			);
+			path = db;
+			sourceTree = "<group>";
+		};
+		AA10PB000000000000000002 /* dao */ = {
+			isa = PBXGroup;
+			children = (
+				AA10PF000000000000000002 /* ProfileDao.swift */,
+			);
+			path = dao;
+			sourceTree = "<group>";
+		};
+		AFAE096FED4C8F097E336E18 /* xcode */ = {
+			isa = PBXGroup;
+			children = (
+			);
+			path = xcode;
+			sourceTree = "<group>";
+		};
+		B2961DCC6AB32A352F77A44D /* Frameworks */ = {
+			isa = PBXGroup;
+			children = (
+				3C2460A240910833CDDEE540 /* AltcraftCore.xcodeproj */,
+			);
+			name = Frameworks;
+			sourceTree = "<group>";
+		};
+		B2DBEC66420CF593A5D523C0 /* data */ = {
+			isa = PBXGroup;
+			children = (
+				EF6E7EE483BA219A3A7D7114 /* ProfileConstants.swift */,
+				AA10PB000000000000000001 /* db */,
+				E6638A22B5BE4A7896335E21 /* serializer */,
+			);
+			path = data;
+			sourceTree = "<group>";
+		};
+		C7F219895B9B360439CA9846 /* Profile */ = {
+			isa = PBXGroup;
+			children = (
+				C22E0BA288844363A241BBC0 /* AltcraftProfile.podspec */,
+				F2F71C82F78E1A929F909671 /* Profile.swift */,
+				5264D88BA02AEF960D8B4F3E /* .swiftpm */,
+				B2DBEC66420CF593A5D523C0 /* data */,
+				6227317DE976AD8E31B82F44 /* events */,
+				7347E96305B9D2D9D613C897 /* infra */,
+				92D29096C85D9B16D595529B /* nse */,
+				55DE2545D11E2FF7EF6A6665 /* platform */,
+				E892505F4ED9DCEC5F6C90E9 /* retry */,
+				0BAAFF3AC8CDF404CCADE168 /* util */,
+			);
+			path = Profile;
+			sourceTree = "<group>";
+		};
+		C8F63C3D0D0CA95D76EFB63B /* repositories */ = {
+			isa = PBXGroup;
+			children = (
+				A48EF33C587239A6665A0535 /* RetryTrackable+Profile.swift */,
+			);
+			path = repositories;
+			sourceTree = "<group>";
+		};
+		E6638A22B5BE4A7896335E21 /* serializer */ = {
+			isa = PBXGroup;
+			children = (
+				346BA7FDDEE0CA23E7D69063 /* ProfileRequestDataFactory.swift */,
+			);
+			path = serializer;
+			sourceTree = "<group>";
+		};
+		E892505F4ED9DCEC5F6C90E9 /* retry */ = {
+			isa = PBXGroup;
+			children = (
+				AD9683F2DEEF1CB10B740C50 /* ProfileRetry.swift */,
+			);
+			path = retry;
+			sourceTree = "<group>";
+		};
+		FAC286FAF00E7245C7E0B009 /* worker */ = {
+			isa = PBXGroup;
+			children = (
+				21192A4AA1E983777B9BBC58 /* ProfileUpdateWorker.swift */,
+			);
+			path = worker;
+			sourceTree = "<group>";
+		};
+/* End PBXGroup section */
+
+/* Begin PBXNativeTarget section */
+		9516711F8ABB8B33F9B43415 /* AltcraftProfile */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = 1853E1A7ECADA1E272C1EF59 /* Build configuration list for PBXNativeTarget "AltcraftProfile" */;
+			buildPhases = (
+				0032D13625EE625DCA68792B /* Sources */,
+				F68C6DFFBD37C194E8BCB0F4 /* Resources */,
+				BD2B021AB923F98F2BC9CB79 /* Frameworks */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+				AA10PT000000000000000001 /* PBXTargetDependency */,
+			);
+			name = AltcraftProfile;
+			packageProductDependencies = (
+			);
+			productName = AltcraftProfile;
+			productReference = 7B89927FB82A9E8BC83DFA07 /* AltcraftProfile.framework */;
+			productType = "com.apple.product-type.framework";
+		};
+/* End PBXNativeTarget section */
+
+/* Begin PBXProject section */
+		97B9E3804EE56DBB226D6484 /* Project object */ = {
+			isa = PBXProject;
+			attributes = {
+				BuildIndependentTargetsInParallel = YES;
+				LastUpgradeCheck = 1430;
+				TargetAttributes = {
+					9516711F8ABB8B33F9B43415 = {
+						DevelopmentTeam = 6G7526ELLP;
+						ProvisioningStyle = Automatic;
+					};
+				};
+			};
+			buildConfigurationList = 6258DD77BAADB8B07CD41FF0 /* Build configuration list for PBXProject "AltcraftProfile" */;
+			developmentRegion = en;
+			hasScannedForEncodings = 0;
+			knownRegions = (
+				Base,
+				en,
+			);
+			mainGroup = 347FEE02D0D6A633ECB1E8DE;
+			minimizedProjectReferenceProxies = 1;
+			preferredProjectObjectVersion = 77;
+			productRefGroup = 8BC1612F8AB65C9DA53E8F65 /* Products */;
+			projectDirPath = "";
+			projectReferences = (
+				{
+					ProductGroup = 5595BD6B3090D2DA00D9B02B /* Products */;
+					ProjectRef = 3C2460A240910833CDDEE540 /* AltcraftCore.xcodeproj */;
+				},
+			);
+			projectRoot = "";
+			targets = (
+				9516711F8ABB8B33F9B43415 /* AltcraftProfile */,
+			);
+		};
+/* End PBXProject section */
+
+/* Begin PBXReferenceProxy section */
+		AA10PR000000000000000001 /* AltcraftCore.framework */ = {
+			isa = PBXReferenceProxy;
+			fileType = wrapper.framework;
+			path = AltcraftCore.framework;
+			remoteRef = AA10PP000000000000000002 /* PBXContainerItemProxy */;
+			sourceTree = BUILT_PRODUCTS_DIR;
+		};
+/* End PBXReferenceProxy section */
+
+/* Begin PBXResourcesBuildPhase section */
+		F68C6DFFBD37C194E8BCB0F4 /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				B8DE3C21CD2983EBB8BDF6C5 /* AltcraftProfile.podspec in Resources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXResourcesBuildPhase section */
+
+/* Begin PBXSourcesBuildPhase section */
+		0032D13625EE625DCA68792B /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				AA10PB000000000000000003 /* ProfileDatabase.swift in Sources */,
+				AA10PB000000000000000004 /* ProfileDao.swift in Sources */,
+				43436E8A439E062EFF8F4F00 /* AltcraftNSE+Profile.swift in Sources */,
+				9F4BF53097BBDA61556E4D2F /* Profile.swift in Sources */,
+				EF07962F450685CC7CC4FED9 /* Profile.xcdatamodeld in Sources */,
+				2B49507B639B7BB167F1E4B3 /* ProfileConstants.swift in Sources */,
+				CE22FD84F4DC9B90012F1728 /* ProfileEnvironment.swift in Sources */,
+				580DAA7FDA568E2952C4F49B /* ProfileLog.swift in Sources */,
+				BB2F271DF2459005CC50288B /* ProfileModuleEvents.swift in Sources */,
+				E160473C32967669E2704D0D /* ProfileRequest.swift in Sources */,
+				32C7BFAE0EFFD93DDAE278FB /* ProfileRequestDataFactory.swift in Sources */,
+				C32A3AC7F14D349D95048943 /* ProfileRetry.swift in Sources */,
+				5250BD3D0634909B63C8727F /* ProfileUpdate.swift in Sources */,
+				420AB791EF81026B51F348F6 /* ProfileUpdateEntity+CoreDataClass.swift in Sources */,
+				2839D622958841B977A40A92 /* ProfileUpdateEntity+CoreDataProperties.swift in Sources */,
+				9C16265B70D4EE93C4B4BE84 /* ProfileUpdateQueue.swift in Sources */,
+				940645384B8604A21691480C /* ProfileUpdateWorker.swift in Sources */,
+				7D781B94DC58889C839846BA /* Altcraft/Profile/infra/ProfileModuleLifecycle.swift in Sources */,
+				869FB3DF757937845A2BA1EA /* RetryTrackable+Profile.swift in Sources */,
+				31FF1D07CC098BD42F343AE9 /* UpdateAPI.swift in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXSourcesBuildPhase section */
+
+/* Begin PBXTargetDependency section */
+		AA10PT000000000000000001 /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			targetProxy = AA10PP000000000000000001 /* PBXContainerItemProxy */;
+		};
+/* End PBXTargetDependency section */
+
+/* Begin XCBuildConfiguration section */
+		2E541EDF214AFC21B754A043 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				CLANG_ANALYZER_NONNULL = YES;
+				CLANG_ANALYZER_NUMBER_OBJECT_CONVERSION = YES_AGGRESSIVE;
+				CLANG_CXX_LANGUAGE_STANDARD = "gnu++14";
+				CLANG_CXX_LIBRARY = "libc++";
+				CLANG_ENABLE_MODULES = YES;
+				CLANG_ENABLE_OBJC_ARC = YES;
+				CLANG_ENABLE_OBJC_WEAK = YES;
+				CLANG_WARN_BLOCK_CAPTURE_AUTORELEASING = YES;
+				CLANG_WARN_BOOL_CONVERSION = YES;
+				CLANG_WARN_COMMA = YES;
+				CLANG_WARN_CONSTANT_CONVERSION = YES;
+				CLANG_WARN_DEPRECATED_OBJC_IMPLEMENTATIONS = YES;
+				CLANG_WARN_DIRECT_OBJC_ISA_USAGE = YES_ERROR;
+				CLANG_WARN_DOCUMENTATION_COMMENTS = YES;
+				CLANG_WARN_EMPTY_BODY = YES;
+				CLANG_WARN_ENUM_CONVERSION = YES;
+				CLANG_WARN_INFINITE_RECURSION = YES;
+				CLANG_WARN_INT_CONVERSION = YES;
+				CLANG_WARN_NON_LITERAL_NULL_CONVERSION = YES;
+				CLANG_WARN_OBJC_IMPLICIT_RETAIN_SELF = YES;
+				CLANG_WARN_OBJC_LITERAL_CONVERSION = YES;
+				CLANG_WARN_OBJC_ROOT_CLASS = YES_ERROR;
+				CLANG_WARN_QUOTED_INCLUDE_IN_FRAMEWORK_HEADER = YES;
+				CLANG_WARN_RANGE_LOOP_ANALYSIS = YES;
+				CLANG_WARN_STRICT_PROTOTYPES = YES;
+				CLANG_WARN_SUSPICIOUS_MOVE = YES;
+				CLANG_WARN_UNGUARDED_AVAILABILITY = YES_AGGRESSIVE;
+				CLANG_WARN_UNREACHABLE_CODE = YES;
+				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
+				COPY_PHASE_STRIP = NO;
+				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
+				ENABLE_NS_ASSERTIONS = NO;
+				ENABLE_STRICT_OBJC_MSGSEND = YES;
+				GCC_C_LANGUAGE_STANDARD = gnu11;
+				GCC_NO_COMMON_BLOCKS = YES;
+				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
+				GCC_WARN_ABOUT_RETURN_TYPE = YES_ERROR;
+				GCC_WARN_UNDECLARED_SELECTOR = YES;
+				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
+				GCC_WARN_UNUSED_FUNCTION = YES;
+				GCC_WARN_UNUSED_VARIABLE = YES;
+				IPHONEOS_DEPLOYMENT_TARGET = 13.0;
+				MTL_ENABLE_DEBUG_INFO = NO;
+				MTL_FAST_MATH = YES;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SDKROOT = iphoneos;
+				SWIFT_COMPILATION_MODE = wholemodule;
+				SWIFT_OPTIMIZATION_LEVEL = "-O";
+				SWIFT_VERSION = 6.0;
+			};
+			name = Release;
+		};
+		35BBD6C22A3F13B848A73769 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				CODE_SIGN_IDENTITY = "Apple Development";
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				DEFINES_MODULE = YES;
+				DYLIB_COMPATIBILITY_VERSION = 1;
+				DYLIB_CURRENT_VERSION = 1;
+				DYLIB_INSTALL_NAME_BASE = "@rpath";
+				ENABLE_STRICT_OBJC_MSGSEND = YES;
+				ENABLE_USER_SCRIPT_SANDBOXING = NO;
+				FRAMEWORK_SEARCH_PATHS = (
+					"$(inherited)",
+					"$(BUILT_PRODUCTS_DIR)",
+					"\".\"",
+				);
+				GENERATE_INFOPLIST_FILE = YES;
+				INSTALL_PATH = "$(LOCAL_LIBRARY_DIR)/Frameworks";
+				IPHONEOS_DEPLOYMENT_TARGET = 13.0;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+				);
+				MARKETING_VERSION = 0.0.1;
+				PRODUCT_BUNDLE_IDENTIFIER = com.altcraft.profile;
+				PRODUCT_NAME = AltcraftProfile;
+				SDKROOT = iphoneos;
+				SKIP_INSTALL = NO;
+				SWIFT_VERSION = 6.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+				VERSIONING_SYSTEM = "apple-generic";
+			};
+			name = Release;
+		};
+		C16BF0D4E0369027FF19EE5B /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				CODE_SIGN_IDENTITY = "Apple Development";
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				DEFINES_MODULE = YES;
+				DYLIB_COMPATIBILITY_VERSION = 1;
+				DYLIB_CURRENT_VERSION = 1;
+				DYLIB_INSTALL_NAME_BASE = "@rpath";
+				ENABLE_STRICT_OBJC_MSGSEND = YES;
+				ENABLE_USER_SCRIPT_SANDBOXING = NO;
+				FRAMEWORK_SEARCH_PATHS = (
+					"$(inherited)",
+					"$(BUILT_PRODUCTS_DIR)",
+					"\".\"",
+				);
+				GENERATE_INFOPLIST_FILE = YES;
+				INSTALL_PATH = "$(LOCAL_LIBRARY_DIR)/Frameworks";
+				IPHONEOS_DEPLOYMENT_TARGET = 13.0;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+				);
+				MARKETING_VERSION = 0.0.1;
+				PRODUCT_BUNDLE_IDENTIFIER = com.altcraft.profile;
+				PRODUCT_NAME = AltcraftProfile;
+				SDKROOT = iphoneos;
+				SKIP_INSTALL = NO;
+				SWIFT_VERSION = 6.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+				VERSIONING_SYSTEM = "apple-generic";
+			};
+			name = Debug;
+		};
+		D6DD1249C6EC34E4A4892738 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				CLANG_ANALYZER_NONNULL = YES;
+				CLANG_ANALYZER_NUMBER_OBJECT_CONVERSION = YES_AGGRESSIVE;
+				CLANG_CXX_LANGUAGE_STANDARD = "gnu++14";
+				CLANG_CXX_LIBRARY = "libc++";
+				CLANG_ENABLE_MODULES = YES;
+				CLANG_ENABLE_OBJC_ARC = YES;
+				CLANG_ENABLE_OBJC_WEAK = YES;
+				CLANG_WARN_BLOCK_CAPTURE_AUTORELEASING = YES;
+				CLANG_WARN_BOOL_CONVERSION = YES;
+				CLANG_WARN_COMMA = YES;
+				CLANG_WARN_CONSTANT_CONVERSION = YES;
+				CLANG_WARN_DEPRECATED_OBJC_IMPLEMENTATIONS = YES;
+				CLANG_WARN_DIRECT_OBJC_ISA_USAGE = YES_ERROR;
+				CLANG_WARN_DOCUMENTATION_COMMENTS = YES;
+				CLANG_WARN_EMPTY_BODY = YES;
+				CLANG_WARN_ENUM_CONVERSION = YES;
+				CLANG_WARN_INFINITE_RECURSION = YES;
+				CLANG_WARN_INT_CONVERSION = YES;
+				CLANG_WARN_NON_LITERAL_NULL_CONVERSION = YES;
+				CLANG_WARN_OBJC_IMPLICIT_RETAIN_SELF = YES;
+				CLANG_WARN_OBJC_LITERAL_CONVERSION = YES;
+				CLANG_WARN_OBJC_ROOT_CLASS = YES_ERROR;
+				CLANG_WARN_QUOTED_INCLUDE_IN_FRAMEWORK_HEADER = YES;
+				CLANG_WARN_RANGE_LOOP_ANALYSIS = YES;
+				CLANG_WARN_STRICT_PROTOTYPES = YES;
+				CLANG_WARN_SUSPICIOUS_MOVE = YES;
+				CLANG_WARN_UNGUARDED_AVAILABILITY = YES_AGGRESSIVE;
+				CLANG_WARN_UNREACHABLE_CODE = YES;
+				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
+				COPY_PHASE_STRIP = NO;
+				DEBUG_INFORMATION_FORMAT = dwarf;
+				ENABLE_STRICT_OBJC_MSGSEND = YES;
+				ENABLE_TESTABILITY = YES;
+				GCC_C_LANGUAGE_STANDARD = gnu11;
+				GCC_DYNAMIC_NO_PIC = NO;
+				GCC_NO_COMMON_BLOCKS = YES;
+				GCC_OPTIMIZATION_LEVEL = 0;
+				GCC_PREPROCESSOR_DEFINITIONS = (
+					"$(inherited)",
+					"DEBUG=1",
+				);
+				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
+				GCC_WARN_ABOUT_RETURN_TYPE = YES_ERROR;
+				GCC_WARN_UNDECLARED_SELECTOR = YES;
+				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
+				GCC_WARN_UNUSED_FUNCTION = YES;
+				GCC_WARN_UNUSED_VARIABLE = YES;
+				IPHONEOS_DEPLOYMENT_TARGET = 13.0;
+				MTL_ENABLE_DEBUG_INFO = INCLUDE_SOURCE;
+				MTL_FAST_MATH = YES;
+				ONLY_ACTIVE_ARCH = YES;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SDKROOT = iphoneos;
+				SWIFT_ACTIVE_COMPILATION_CONDITIONS = DEBUG;
+				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
+				SWIFT_VERSION = 6.0;
+			};
+			name = Debug;
+		};
+/* End XCBuildConfiguration section */
+
+/* Begin XCConfigurationList section */
+		1853E1A7ECADA1E272C1EF59 /* Build configuration list for PBXNativeTarget "AltcraftProfile" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				C16BF0D4E0369027FF19EE5B /* Debug */,
+				35BBD6C22A3F13B848A73769 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Debug;
+		};
+		6258DD77BAADB8B07CD41FF0 /* Build configuration list for PBXProject "AltcraftProfile" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				D6DD1249C6EC34E4A4892738 /* Debug */,
+				2E541EDF214AFC21B754A043 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Debug;
+		};
+/* End XCConfigurationList section */
+
+/* Begin XCVersionGroup section */
+		CAEDE2A7771C74A9002F4AEC /* Profile.xcdatamodeld */ = {
+			isa = XCVersionGroup;
+			children = (
+				01F20883F571825CE43682CF /* Profile.xcdatamodel */,
+			);
+			currentVersion = 01F20883F571825CE43682CF /* Profile.xcdatamodel */;
+			path = Profile.xcdatamodeld;
+			sourceTree = "<group>";
+			versionGroupType = wrapper.xcdatamodel;
+		};
+/* End XCVersionGroup section */
+	};
+	rootObject = 97B9E3804EE56DBB226D6484 /* Project object */;
+}

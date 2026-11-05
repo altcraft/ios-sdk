@@ -1,21 +1,53 @@
 //
-//  AltcraftInitTests.swift
-//  AltcraftTests
+//  InitTests.swift
+//  Altcraft
 //
 //  Created by Andrey Pogodin.
 //
-//  © 2026 Altcraft. All rights reserved.
-//
+//  Copyright © 2026 Altcraft. All rights reserved.
 
 import XCTest
-@testable import Altcraft
+@testable import AltcraftCore
+@_spi(_Altcraft) import AltcraftCore
+#if canImport(AltcraftCore)
+@_spi(_Altcraft) import AltcraftCore
+#endif
+#if canImport(AltcraftPush)
+@_spi(_Altcraft) import AltcraftPush
+#endif
+#if canImport(AltcraftProfile)
+@_spi(_Altcraft) import AltcraftProfile
+#endif
+#if canImport(AltcraftInApp)
+@_spi(_Altcraft) import AltcraftInApp
+#endif
+#if canImport(AltcraftTarget)
+@_spi(_Altcraft) import AltcraftTarget
+#endif
+#if canImport(AltcraftCore)
+@testable import AltcraftCore
+#endif
+#if canImport(AltcraftPush)
+@testable import AltcraftPush
+#endif
+#if canImport(AltcraftProfile)
+@testable import AltcraftProfile
+#endif
+#if canImport(AltcraftInApp)
+@testable import AltcraftInApp
+#endif
+#if canImport(AltcraftTarget)
+@testable import AltcraftTarget
+#endif
 
 /**
  * AltcraftInitTests
  *
  * Positive scenarios:
- *  - test_1: initSDK with nil configuration → returns false and emits error event.
+ *  - test_1: initSDK with an invalid configuration → returns false, deletes the
+ *    stored configuration and emits the setup error event.
  *  - test_2: initSDK with valid configuration → returns result and emits configSet on success or error event on failure.
+ *  - test_3: initSDK with a blank rToken → returns false and emits the setup error event.
  *
  */
 final class AltcraftInitTests: IsolatedTestCase {
@@ -24,6 +56,7 @@ final class AltcraftInitTests: IsolatedTestCase {
     private let apiURLString = "https://api.example.com"
     private let rTokenString = "R-TOKEN"
 
+    /// Captures emitted SDK events.
     private final class EventSpy {
         private let lock = NSLock()
         private(set) var events: [Event] = []
@@ -63,14 +96,14 @@ final class AltcraftInitTests: IsolatedTestCase {
         try await super.setUp()
         isolateUserDefaults()
         await clearProviders()
-        await StoredVariablesManager.shared.clearManualToken()
-        StoredVariablesManager.shared.clearSavedToken()
+        await PushStoredVariables.shared.clearManualToken()
+        PushStoredVariables.shared.clearSavedToken()
         StoredVariablesManager.shared.setCritDB(value: false)
     }
 
     override func tearDown() async throws {
-        await StoredVariablesManager.shared.clearManualToken()
-        StoredVariablesManager.shared.clearSavedToken()
+        await PushStoredVariables.shared.clearManualToken()
+        PushStoredVariables.shared.clearSavedToken()
         await clearProviders()
         StoredVariablesManager.shared.setCritDB(value: false)
         try await super.tearDown()
@@ -89,17 +122,11 @@ final class AltcraftInitTests: IsolatedTestCase {
     }
 
     private func makeMinimalConfig() -> AltcraftConfiguration {
-        guard let configuration = AltcraftConfiguration.Builder()
-            .setApiUrl(apiURLString)
-            .setRToken(rTokenString)
-            .setAppInfo(nil)
-            .setProviderPriorityList([])
-            .build() else {
-            XCTFail("Failed to build minimal AltcraftConfiguration")
-            fatalError("AltcraftConfiguration.Builder returned nil")
-        }
-
-        return configuration
+        AltcraftConfiguration.Builder(
+            apiUrl: apiURLString,
+            rToken: rTokenString
+        )
+        .build()
     }
 
     /**
@@ -132,20 +159,35 @@ final class AltcraftInitTests: IsolatedTestCase {
         return spy.contains(where: predicate)
     }
 
-    /// test_1: initSDK with nil configuration returns false and emits error event
-    func test_1_initSDK_withNilConfiguration_returnsFalse_andEmitsErrorEvent() async {
+    /// test_1: initSDK with an invalid configuration returns false, deletes the
+    /// stored configuration and emits the setup error event
+    func test_1_initSDK_withInvalidConfiguration_returnsFalse_deletesStoredConfig_andEmitsErrorEvent() async {
         let spy = EventSpy()
         spy.start()
         defer { spy.stop() }
 
-        let result = await AltcraftInit.shared.initSDK(configuration: nil)
+        // Seeds a stored configuration so the deletion can be verified.
+        let seeded = await ConfigManager.shared.setConfig(makeMinimalConfig())
+        XCTAssertTrue(seeded)
+
+        let invalid = AltcraftConfiguration.Builder(apiUrl: "   ")
+            .build()
+
+        let result = await AltcraftInit.shared.initSDK(configuration: invalid)
 
         let hasErrorEvent = await waitForEvent(in: spy) { event in
-            event is ErrorEvent
+            guard let errorEvent = event as? ErrorEvent else { return false }
+            return (errorEvent.event as? CoreEvents) == .invalidUrlValue
         }
+
+        let storedExists = await CoreConfigDao().exists()
 
         XCTAssertFalse(result)
         XCTAssertTrue(hasErrorEvent)
+        XCTAssertFalse(
+            storedExists,
+            "Invalid configuration must delete the stored configuration entity"
+        )
     }
 
     /// test_2: initSDK with valid configuration returns result and emits configSet on success or error event on failure
@@ -159,7 +201,8 @@ final class AltcraftInitTests: IsolatedTestCase {
 
         if result {
             let hasConfigSet = await waitForEvent(in: spy) { event in
-                event.eventCode == configSet.0 || (event.message ?? "").contains(configSet.1)
+                (event.event as? CoreEvents) == .configSet ||
+                (event.message ?? "").contains(CoreEvents.configSet.message)
             }
 
             XCTAssertTrue(hasConfigSet)
@@ -170,5 +213,28 @@ final class AltcraftInitTests: IsolatedTestCase {
 
             XCTAssertTrue(hasErrorEvent)
         }
+    }
+
+    /// test_3: initSDK with a blank rToken returns false and emits the setup error event
+    func test_3_initSDK_withBlankRToken_returnsFalse_andEmitsErrorEvent() async {
+        let spy = EventSpy()
+        spy.start()
+        defer { spy.stop() }
+
+        let invalid = AltcraftConfiguration.Builder(
+            apiUrl: apiURLString,
+            rToken: "   "
+        )
+        .build()
+
+        let result = await AltcraftInit.shared.initSDK(configuration: invalid)
+
+        let hasErrorEvent = await waitForEvent(in: spy) { event in
+            guard let errorEvent = event as? ErrorEvent else { return false }
+            return (errorEvent.event as? CoreEvents) == .invalidRTokenValue
+        }
+
+        XCTAssertFalse(result)
+        XCTAssertTrue(hasErrorEvent)
     }
 }

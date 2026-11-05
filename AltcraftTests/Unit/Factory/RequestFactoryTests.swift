@@ -1,13 +1,45 @@
 //
 //  RequestFactoryTests.swift
-//  AltcraftTests
+//  Altcraft
 //
 //  Created by Andrey Pogodin.
 //
-//  © 2025 Altcraft. All rights reserved.
+//  Copyright © 2026 Altcraft. All rights reserved.
 
 import XCTest
-@testable import Altcraft
+import CoreData
+@testable import AltcraftCore
+@_spi(_Altcraft) import AltcraftCore
+#if canImport(AltcraftCore)
+@_spi(_Altcraft) import AltcraftCore
+#endif
+#if canImport(AltcraftPush)
+@_spi(_Altcraft) import AltcraftPush
+#endif
+#if canImport(AltcraftProfile)
+@_spi(_Altcraft) import AltcraftProfile
+#endif
+#if canImport(AltcraftInApp)
+@_spi(_Altcraft) import AltcraftInApp
+#endif
+#if canImport(AltcraftTarget)
+@_spi(_Altcraft) import AltcraftTarget
+#endif
+#if canImport(AltcraftCore)
+@testable import AltcraftCore
+#endif
+#if canImport(AltcraftPush)
+@testable import AltcraftPush
+#endif
+#if canImport(AltcraftProfile)
+@testable import AltcraftProfile
+#endif
+#if canImport(AltcraftInApp)
+@testable import AltcraftInApp
+#endif
+#if canImport(AltcraftTarget)
+@testable import AltcraftTarget
+#endif
 
 /**
  * RequestFactoryTests
@@ -17,10 +49,10 @@ import XCTest
  *  - test_2: Build post request sets method headers and body.
  *  - test_3: Build get request sets method and headers.
  *  - test_4: Create subscribe request success builds post with query and headers.
- *  - test_5: Create subscribe request invalid URL emits error and returns nil.
+ *  - test_5: Create subscribe request without auth emits error and returns nil.
  *  - test_6: Create update request adds old token as subscription ID and uses new provider.
  *  - test_7: Create push event request uses requestId and matching mode param.
- *  - test_8: Create profile request builds GET with provider token matching mode.
+ *  - test_8: Create status request builds GET with provider token matching mode.
  *  - test_9: Create un-suspend request builds POST with provider token matching mode.
  *  - test_10: Subscribe request end to end non-nil body and request.
  *  - test_11: Update request end to end non-nil body and request.
@@ -29,23 +61,46 @@ import XCTest
  *  - test_14: Build mobile event URL appends query items and validates scheme host.
  *  - test_15: Build mobile event URL invalid base returns nil.
  *  - test_16: Create mobile event request builds multipart with headers boundary and URL.
- *  - test_17: Status request invalid mode returns nil quickly.
- *  - test_18: Status request no profile data emits error and returns nil.
+ *  - test_17: PushStatusProcess request without Core config returns nil.
+ *  - test_18: PushStatusProcess request builds GET with correct query params.
  *  - test_19: Create profile update request builds POST with headers.
  *  - test_20: Profile update request end to end non-nil body and request.
  */
 final class RequestFactoryTests: IsolatedTestCase {
 
+    /// Captures emitted SDK events.
     private final class EventSpy {
         private(set) var events: [Event] = []
-        func start() { SDKEvents.shared.subscribe { [weak self] in self?.events.append($0) } }
-        func stop()  { SDKEvents.shared.unsubscribe() }
+        private var expectation: XCTestExpectation?
+        private var fulfilled = false
+        func start(expectation: XCTestExpectation? = nil) {
+            self.expectation = expectation
+            self.fulfilled = false
+            SDKEvents.shared.subscribe { [weak self] event in
+                guard let self else { return }
+                self.events.append(event)
+                if !self.fulfilled, let exp = self.expectation, event is ErrorEvent {
+                    self.fulfilled = true
+                    exp.fulfill()
+                }
+            }
+        }
+        func stop() {
+            SDKEvents.shared.unsubscribe()
+            expectation = nil
+            fulfilled = false
+        }
     }
 
+    /// APNs provider mock.
     private final class MockAPNS: APNSInterface {
         var tokenToReturn: String?
         func getToken(completion: @escaping (String?) -> Void) { completion(tokenToReturn) }
     }
+
+    /// Authorization header derived from the Core environment for the test rToken.
+    private let expectedAuthHeader = "Bearer rtoken@rt"
+    private let expectedMatching = Constants.AuthKeys.rTokenMatching
 
     /// Builds URLComponents from URL and fails test if not possible.
     private func components(from url: URL) -> URLComponents {
@@ -65,14 +120,62 @@ final class RequestFactoryTests: IsolatedTestCase {
 
     /// Normalizes function name without parentheses and arguments.
     private func normalizeFunctionName(_ raw: String?) -> String {
-        guard let raw = raw else { return "" }
-        if let idx = raw.firstIndex(of: "(") {
-            return String(raw[..<idx]).trimmingCharacters(in: .whitespacesAndNewlines)
+        guard let rawElse: String = raw else { return "" }
+        var s = rawElse
+        if let spaceIdx = s.firstIndex(of: " ") {
+            let candidate = s[..<spaceIdx]
+            if candidate.first == "[" && candidate.last == "]" {
+                s = String(s[s.index(after: spaceIdx)...])
+            }
         }
-        if raw.hasSuffix("()") {
-            return String(raw.dropLast(2)).trimmingCharacters(in: .whitespacesAndNewlines)
+        if let idx = s.firstIndex(of: "(") {
+            return String(s[..<idx]).trimmingCharacters(in: .whitespacesAndNewlines)
         }
-        return raw.trimmingCharacters(in: .whitespacesAndNewlines)
+        if s.hasSuffix("()") {
+            return String(s.dropLast(2)).trimmingCharacters(in: .whitespacesAndNewlines)
+        }
+        return s.trimmingCharacters(in: .whitespacesAndNewlines)
+    }
+
+    /// Seeds the SDK CoreData configuration used by `CoreRequestBuilder`.
+    ///
+    /// - Parameters:
+    ///   - apiUrl: Base API URL resolved by Core.
+    ///   - rToken: Resource token used to derive the authorization header.
+    /// - Returns: `true` when the configuration was persisted.
+    @discardableResult
+    private func storeConfig(
+        apiUrl: String = "https://api.altcraft.test",
+        rToken: String? = "rt"
+    ) async -> Bool {
+        let ctx = CoreDataManager.shared.persistentContainer.newBackgroundContext()
+
+        let persisted: Bool = await withCheckedContinuation { continuation in
+            ctx.perform {
+                let req = NSFetchRequest<NSFetchRequestResult>(
+                    entityName: Constants.EntityNames.configurationEntity
+                )
+                req.includesPropertyValues = false
+
+                if let objects = try? ctx.fetch(req) as? [NSManagedObject] {
+                    objects.forEach { ctx.delete($0) }
+                }
+
+                let object = NSEntityDescription.insertNewObject(
+                    forEntityName: Constants.EntityNames.configurationEntity,
+                    into: ctx
+                )
+                object.setValue(apiUrl, forKey: "url")
+                object.setValue(rToken, forKey: "rToken")
+
+                try? ctx.save()
+                continuation.resume(returning: true)
+            }
+        }
+        // The config cache is process-wide: reset it so request builders
+        // observe the row just written instead of a stale cached value.
+        await ConfigManager.shared.clearCache()
+        return persisted
     }
 
     /// test_1: Build URL components includes only non-nil and encodes values
@@ -97,7 +200,7 @@ final class RequestFactoryTests: IsolatedTestCase {
         let dict = queryDict(comps!)
         XCTAssertEqual(dict[Constants.QueryItem.provider], provider)
         XCTAssertEqual(dict[Constants.QueryItem.matchingMode], mode)
-        XCTAssertEqual(dict[Constants.QueryItem.sync], String(sync))
+        XCTAssertEqual(dict[Constants.QueryItem.sync], sync ? "1" : "0")
         XCTAssertEqual(dict[Constants.QueryItem.subscriptionId], subId)
     }
 
@@ -134,286 +237,282 @@ final class RequestFactoryTests: IsolatedTestCase {
     }
 
     /// test_4: Create subscribe request success builds post with query and headers
-    func test_4_createSubscribeRequest_success_buildsPostWithQueryAndHeaders() {
-        let data = PushSubscribeRequestData(
-            url: "https://api.altcraft.test/subscribe",
+    func test_4_createSubscribeRequest_success_buildsPostWithQueryAndHeaders() async {
+        await storeConfig()
+
+        let data = RequestModel.PushSubscribeRequestData(
+            path: PushConstants.UrlPath.subscribe,
             requestId: "RID-1",
             time: 1234567890,
-            rToken: "rt",
-            authHeader: "Bearer AAA",
-            matchingMode: "match_current_context",
             provider: "ios-apns",
             deviceToken: "dev-123",
             status: "active",
             sync: true,
             profileFields: ["age": 30],
-            customFields: ["utm": "spring"],
+            fields: ["utm": "spring"],
             cats: [CategoryData(name: "news", active: true)],
             replace: true,
             skipTriggers: false
         )
-        let body = createSubscribeJSONBody(data: data)!
-        let req = createSubscribeRequest(data: data, requestBody: body)
+        let req = await pushSubscribeRequest(data: data)
         XCTAssertNotNil(req)
         XCTAssertEqual(req?.httpMethod, Constants.HTTPMethod.post)
-        XCTAssertEqual(req?.value(forHTTPHeaderField: Constants.HTTPHeader.authorization), "Bearer AAA")
+        XCTAssertEqual(req?.value(forHTTPHeaderField: Constants.HTTPHeader.authorization), expectedAuthHeader)
         XCTAssertEqual(req?.value(forHTTPHeaderField: Constants.HTTPHeader.requestId), "RID-1")
 
         let comps = components(from: req!.url!)
         let q = queryDict(comps)
         XCTAssertEqual(q[Constants.QueryItem.provider], "ios-apns")
-        XCTAssertEqual(q[Constants.QueryItem.matchingMode], "match_current_context")
-        XCTAssertEqual(q[Constants.QueryItem.sync], "true")
+        XCTAssertEqual(q[Constants.QueryItem.matchingMode], expectedMatching)
+        XCTAssertEqual(q[Constants.QueryItem.sync], "1")
         XCTAssertNil(q[Constants.QueryItem.subscriptionId])
     }
 
-    /// test_5: Create subscribe request invalid URL emits error and returns nil
-    func test_5_createSubscribeRequest_invalidURL_emitsError_andReturnsNil() {
-        let spy = EventSpy(); spy.start(); defer { spy.stop() }
-        let data = PushSubscribeRequestData(
-            url: "://bad url",
+    /// Deletes any existing configuration from the process-wide SDK store so a
+    /// following assertion may rely on "no configuration" regardless of what
+    /// sibling tests persisted earlier in this process. Also resets the
+    /// `ConfigManager` cache, which is process-wide and would otherwise serve
+    /// a stale configuration deleted here.
+    private func clearConfig() async {
+        let ctx = CoreDataManager.shared.persistentContainer.newBackgroundContext()
+        await withCheckedContinuation { continuation in
+            ctx.perform {
+                let req = NSFetchRequest<NSFetchRequestResult>(
+                    entityName: Constants.EntityNames.configurationEntity
+                )
+                req.includesPropertyValues = false
+                if let objects = try? ctx.fetch(req) as? [NSManagedObject] {
+                    objects.forEach { ctx.delete($0) }
+                }
+                try? ctx.save()
+                continuation.resume()
+            }
+        }
+        await ConfigManager.shared.clearCache()
+    }
+
+    /// test_5: Create subscribe request without Core config/auth emits error and returns nil
+    func test_5_createSubscribeRequest_withoutAuth_emitsError_andReturnsNil() async {
+        await clearConfig()
+        let emittedError = expectation(description: "Error event should be emitted")
+        let spy = EventSpy(); spy.start(expectation: emittedError); defer { spy.stop() }
+
+        let data = RequestModel.PushSubscribeRequestData(
+            path: PushConstants.UrlPath.subscribe,
             requestId: "RID-ERR",
             time: 1,
-            rToken: nil,
-            authHeader: "Bearer Z",
-            matchingMode: "m",
             provider: "ios-apns",
             deviceToken: "dev",
             status: "active",
             sync: false,
             profileFields: nil,
-            customFields: [:],
+            fields: [:],
             cats: nil,
             replace: nil,
             skipTriggers: nil
         )
-        let body = createSubscribeJSONBody(data: data)!
-        let req = createSubscribeRequest(data: data, requestBody: body)
+        let req = await pushSubscribeRequest(data: data)
         XCTAssertNil(req)
-        let hasCreateError = spy.events.contains {
-            ($0 is ErrorEvent) && normalizeFunctionName($0.function) == "createSubscribeRequest"
-        }
-        XCTAssertTrue(hasCreateError)
+
+        await fulfillment(of: [emittedError], timeout: 2.0)
+        XCTAssertTrue(spy.events.contains { $0 is ErrorEvent })
     }
 
     /// test_6: Create update request adds old token as subscription ID and uses new provider
-    func test_6_createUpdateRequest_addsOldToken_asSubscriptionId_andUsesNewProvider() {
-        let data = TokenUpdateRequestData(
-            url: "https://api.altcraft.test/update",
+    func test_6_createUpdateRequest_addsOldToken_asSubscriptionId_andUsesNewProvider() async {
+        await storeConfig()
+
+        let data = RequestModel.TokenUpdateRequestData(
+            path: PushConstants.UrlPath.update,
             requestId: "RID-U",
-            authHeader: "Bearer U",
             oldToken: "OLD",
             newToken: "NEW",
             oldProvider: "ios-apns",
             newProvider: "ios-firebase",
             sync: true
         )
-        let dummyBody = Data([9, 9, 9])
-        let req = createTokenUpdateRequest(data: data, requestBody: dummyBody)
+        let req = await tokenUpdateRequest(data: data)
         XCTAssertNotNil(req)
         XCTAssertEqual(req?.httpMethod, Constants.HTTPMethod.post)
-        XCTAssertEqual(req?.value(forHTTPHeaderField: Constants.HTTPHeader.authorization), "Bearer U")
+        XCTAssertEqual(req?.value(forHTTPHeaderField: Constants.HTTPHeader.authorization), expectedAuthHeader)
         XCTAssertEqual(req?.value(forHTTPHeaderField: Constants.HTTPHeader.requestId), "RID-U")
 
         let comps = components(from: req!.url!)
         let q = queryDict(comps)
         XCTAssertEqual(q[Constants.QueryItem.provider], "ios-firebase")
         XCTAssertEqual(q[Constants.QueryItem.subscriptionId], "OLD")
-        XCTAssertEqual(q[Constants.QueryItem.sync], "true")
-        XCTAssertNil(q[Constants.QueryItem.matchingMode])
+        XCTAssertEqual(q[Constants.QueryItem.sync], "1")
+        XCTAssertEqual(q[Constants.QueryItem.matchingMode], expectedMatching)
     }
 
     /// test_7: Create push event request uses requestId and matching mode param
-    func test_7_createPushEventRequest_usesRequestId_andMatchingModeParam() {
-        let data = PushEventRequestData(
-            url: "https://api.altcraft.test/event",
+    func test_7_createPushEventRequest_usesRequestId_andMatchingModeParam() async {
+        await storeConfig()
+
+        let data = RequestModel.PushEventRequestData(
+            path: PushConstants.UrlPath.event,
             requestId: "REQ-EV-1",
             time: 111,
-            type: Constants.PushEvents.delivery,
-            uid: "EV-1",
-            authHeader: "Bearer E",
-            matchingMode: "match_current_context"
+            type: PushConstants.PushEvents.delivery,
+            uid: "EV-1"
         )
-        let body = createPushEventJSONBody(data: data)!
-        let req = createPushEventRequest(data: data, requestBody: body)
+        let req = await pushEventRequest(data: data)
         XCTAssertNotNil(req)
         XCTAssertEqual(req?.httpMethod, Constants.HTTPMethod.post)
-        XCTAssertEqual(req?.value(forHTTPHeaderField: Constants.HTTPHeader.authorization), "Bearer E")
+        XCTAssertEqual(req?.value(forHTTPHeaderField: Constants.HTTPHeader.authorization), expectedAuthHeader)
         XCTAssertEqual(req?.value(forHTTPHeaderField: Constants.HTTPHeader.requestId), "REQ-EV-1")
 
         let comps = components(from: req!.url!)
         let q = queryDict(comps)
-        XCTAssertEqual(q[Constants.QueryItem.matchingMode], "match_current_context")
+        XCTAssertEqual(q[Constants.QueryItem.matchingMode], expectedMatching)
         XCTAssertNil(q[Constants.QueryItem.provider])
         XCTAssertNil(q[Constants.QueryItem.subscriptionId])
         XCTAssertNil(q[Constants.QueryItem.sync])
     }
 
-    /// test_8: Create profile request builds GET with provider token matching mode
-    func test_8_createProfileRequest_buildsGET_withProviderTokenMatchingMode() {
-        let data = ProfileStatusRequestData(
-            url: "https://api.altcraft.test/profile",
+    /// test_8: Create status request builds GET with provider token matching mode
+    func test_8_createStatusRequest_buildsGET_withProviderTokenMatchingMode() async {
+        await storeConfig()
+
+        let data = RequestModel.PushStatusRequestData(
+            path: PushConstants.UrlPath.status,
             requestId: "RID-PR-1",
-            authHeader: "Bearer P",
-            matchingMode: "latest_subscription",
             provider: "ios-apns",
             token: "TOK"
         )
-        let req = createProfileStatusRequest(data: data)
+        let req = await pushStatusRequest(data: data)
         XCTAssertNotNil(req)
         XCTAssertEqual(req?.httpMethod, Constants.HTTPMethod.get)
-        XCTAssertEqual(req?.value(forHTTPHeaderField: Constants.HTTPHeader.authorization), "Bearer P")
+        XCTAssertEqual(req?.value(forHTTPHeaderField: Constants.HTTPHeader.authorization), expectedAuthHeader)
         XCTAssertEqual(req?.value(forHTTPHeaderField: Constants.HTTPHeader.requestId), "RID-PR-1")
 
         let comps = components(from: req!.url!)
         let q = queryDict(comps)
-        XCTAssertEqual(q[Constants.QueryItem.matchingMode], "latest_subscription")
+        XCTAssertEqual(q[Constants.QueryItem.matchingMode], expectedMatching)
         XCTAssertEqual(q[Constants.QueryItem.provider], "ios-apns")
         XCTAssertEqual(q[Constants.QueryItem.subscriptionId], "TOK")
         XCTAssertNil(q[Constants.QueryItem.sync])
     }
 
     /// test_9: Create un-suspend request builds POST with provider token matching mode
-    func test_9_createUnSuspendRequest_buildsPOST_withProviderTokenMatchingMode() {
-        let data = UnSuspendRequestData(
-            url: "https://api.altcraft.test/uns",
+    func test_9_createUnSuspendRequest_buildsPOST_withProviderTokenMatchingMode() async {
+        await storeConfig()
+
+        let data = RequestModel.UnSuspendRequestData(
+            path: PushConstants.UrlPath.unsuspend,
             requestId: "RID-UN-1",
             provider: "ios-apns",
-            token: "TTT",
-            authHeader: "Bearer U",
-            matchingMode: "latest_for_provider"
+            token: "TTT"
         )
-        let body = createUnSuspendJSONBody(data: data)!
-        let req = createUnSuspendRequest(data: data, requestBody: body)
+        let req = await unSuspendRequest(data: data)
         XCTAssertNotNil(req)
         XCTAssertEqual(req?.httpMethod, Constants.HTTPMethod.post)
-        XCTAssertEqual(req?.value(forHTTPHeaderField: Constants.HTTPHeader.authorization), "Bearer U")
+        XCTAssertEqual(req?.value(forHTTPHeaderField: Constants.HTTPHeader.authorization), expectedAuthHeader)
         XCTAssertEqual(req?.value(forHTTPHeaderField: Constants.HTTPHeader.requestId), "RID-UN-1")
 
         let comps = components(from: req!.url!)
         let q = queryDict(comps)
-        XCTAssertEqual(q[Constants.QueryItem.matchingMode], "latest_for_provider")
+        XCTAssertEqual(q[Constants.QueryItem.matchingMode], expectedMatching)
         XCTAssertEqual(q[Constants.QueryItem.provider], "ios-apns")
         XCTAssertEqual(q[Constants.QueryItem.subscriptionId], "TTT")
         XCTAssertNil(q[Constants.QueryItem.sync])
     }
 
     /// test_10: Subscribe request end to end non-nil body and request
-    func test_10_subscribeRequest_endToEnd_nonNilBodyAndRequest() {
-        let data = PushSubscribeRequestData(
-            url: "https://api.altcraft.test/subscribe",
+    func test_10_subscribeRequest_endToEnd_nonNilBodyAndRequest() async {
+        await storeConfig()
+
+        let data = RequestModel.PushSubscribeRequestData(
+            path: PushConstants.UrlPath.subscribe,
             requestId: "RID-10",
             time: 2222,
-            rToken: nil,
-            authHeader: "Bearer S10",
-            matchingMode: "m",
             provider: "ios-firebase",
             deviceToken: "DEV10",
             status: "active",
             sync: false,
             profileFields: nil,
-            customFields: ["k": "v"],
+            fields: ["k": "v"],
             cats: nil,
             replace: nil,
             skipTriggers: nil
         )
-        let req = pushSubscribeRequest(data: data)
+        let req = await pushSubscribeRequest(data: data)
         XCTAssertNotNil(req)
         XCTAssertEqual(req?.httpMethod, Constants.HTTPMethod.post)
     }
 
     /// test_11: Update request end to end non-nil body and request
-    func test_11_updateRequest_endToEnd_nonNilBodyAndRequest() {
-        let data = TokenUpdateRequestData(
-            url: "https://api.altcraft.test/update",
+    func test_11_updateRequest_endToEnd_nonNilBodyAndRequest() async {
+        await storeConfig()
+
+        let data = RequestModel.TokenUpdateRequestData(
+            path: PushConstants.UrlPath.update,
             requestId: "RID-11",
-            authHeader: "Bearer U11",
             oldToken: "OLD11",
             newToken: "NEW11",
             oldProvider: "ios-apns",
             newProvider: "ios-firebase",
             sync: true
         )
-        let req = tokenUpdateRequest(data: data)
+        let req = await tokenUpdateRequest(data: data)
         XCTAssertNotNil(req)
         XCTAssertEqual(req?.httpMethod, Constants.HTTPMethod.post)
     }
 
     /// test_12: Push event request end to end non-nil body and request
-    func test_12_pushEventRequest_endToEnd_nonNilBodyAndRequest() {
-        let data = PushEventRequestData(
-            url: "https://api.altcraft.test/event",
+    func test_12_pushEventRequest_endToEnd_nonNilBodyAndRequest() async {
+        await storeConfig()
+
+        let data = RequestModel.PushEventRequestData(
+            path: PushConstants.UrlPath.event,
             requestId: "RID-12",
             time: 3333,
-            type: Constants.PushEvents.open,
-            uid: "RID-12-UID",
-            authHeader: "Bearer E12",
-            matchingMode: "m"
+            type: PushConstants.PushEvents.open,
+            uid: "RID-12-UID"
         )
-        XCTAssertTrue(data.isValid())
-        let req = pushEventRequest(data: data)
+        XCTAssertTrue(data.isValid)
+        let req = await pushEventRequest(data: data)
         XCTAssertNotNil(req)
         XCTAssertEqual(req?.httpMethod, Constants.HTTPMethod.post)
         XCTAssertEqual(req?.value(forHTTPHeaderField: Constants.HTTPHeader.requestId), "RID-12")
     }
 
     /// test_13: Un-suspend request end to end non-nil body and request
-    func test_13_unSuspendRequest_endToEnd_nonNilBodyAndRequest() {
-        let data = UnSuspendRequestData(
-            url: "https://api.altcraft.test/uns",
+    func test_13_unSuspendRequest_endToEnd_nonNilBodyAndRequest() async {
+        await storeConfig()
+
+        let data = RequestModel.UnSuspendRequestData(
+            path: PushConstants.UrlPath.unsuspend,
             requestId: "RID-13",
             provider: "ios-firebase",
-            token: "TOK-13",
-            authHeader: "Bearer US13",
-            matchingMode: "latest_for_provider"
+            token: "TOK-13"
         )
-        let req = unSuspendRequest(data: data)
+        let req = await unSuspendRequest(data: data)
         XCTAssertNotNil(req)
         XCTAssertEqual(req?.httpMethod, Constants.HTTPMethod.post)
         XCTAssertEqual(req?.value(forHTTPHeaderField: Constants.HTTPHeader.requestId), "RID-13")
     }
 
-    /// test_14: Build mobile event URL appends query items and validates scheme host
-    func test_14_buildMobileEventURL_appendsQueryItems_andValidatesSchemeHost() {
-        let base = "https://px.altcraft.test/pixel"
-        let url = buildMobileEventURL(baseURLString: base, sid: "SID1", tracker: "px", type: "open", version: "2")
-        XCTAssertNotNil(url)
-        let comps = components(from: url!)
-        let q = queryDict(comps)
-        XCTAssertEqual(comps.scheme, "https")
-        XCTAssertEqual(comps.host, "px.altcraft.test")
-        XCTAssertEqual(q["i"], "SID1")
-        XCTAssertEqual(q["tr"], "px")
-        XCTAssertEqual(q["t"], "open")
-        XCTAssertEqual(q["v"], "2")
-    }
-
-    /// test_15: Build mobile event URL invalid base returns nil
-    func test_15_buildMobileEventURL_invalidBase_returnsNil() {
-        XCTAssertNil(buildMobileEventURL(baseURLString: ":// broken", sid: "S", tracker: "px", type: "open", version: "2"))
-        XCTAssertNil(buildMobileEventURL(baseURLString: "file://local", sid: "S", tracker: "px", type: "open", version: "2"))
-        XCTAssertNil(buildMobileEventURL(baseURLString: "https://", sid: "S", tracker: "px", type: "open", version: "2"))
-    }
-
     /// test_16: Create mobile event request builds multipart with headers boundary and URL
-    func test_16_createMobileEventRequest_buildsMultipart_withHeadersBoundaryAndURL() {
-        let parts: [Part] = [
-            Part(name: "meta", data: Data(#"{"k":"v"}"#.utf8), mime: "application/json", filename: nil),
-            Part(name: "file", data: Data("hello".utf8), mime: "text/plain", filename: "a.txt"),
+    func test_16_createTargetEventRequest_buildsMultipart_withHeadersBoundaryAndURL() async {
+        await storeConfig()
+
+        let parts: [AltcraftTarget.Part] = [
+            AltcraftTarget.Part(name: "meta", data: Data(#"{"k":"v"}"#.utf8), mime: "application/json", filename: nil),
+            AltcraftTarget.Part(name: "file", data: Data("hello".utf8), mime: "text/plain", filename: "a.txt"),
         ]
-        let data = MobileEventRequestData(
-            url: "https://px.altcraft.test/pixel",
+        let data = RequestModel.TargetEventRequestData(
+            path: TargetConstants.UrlPath.event,
             requestId: "RID-M-1",
             sid: "SID-99",
-            eventName: "test",
-            parts: parts,
-            authHeader: "Bearer M"
+            name: "test",
+            parts: parts
         )
         let spy = EventSpy(); spy.start(); defer { spy.stop() }
-        let req = createMobileEventRequest(data: data)
+        let req = await mobileEventRequest(data: data)
         XCTAssertNotNil(req)
         XCTAssertEqual(req?.httpMethod, Constants.HTTPMethod.post)
-        XCTAssertEqual(req?.value(forHTTPHeaderField: Constants.HTTPHeader.authorization), "Bearer M")
+        XCTAssertEqual(req?.value(forHTTPHeaderField: Constants.HTTPHeader.authorization), expectedAuthHeader)
 
         let ctype = req?.value(forHTTPHeaderField: Constants.HTTPHeader.contentType) ?? ""
         XCTAssertTrue(ctype.hasPrefix("multipart/form-data; boundary="))
@@ -425,6 +524,7 @@ final class RequestFactoryTests: IsolatedTestCase {
         XCTAssertEqual(q["tr"], "px")
         XCTAssertEqual(q["t"], "open")
         XCTAssertEqual(q["v"], "2")
+        XCTAssertEqual(q[Constants.QueryItem.matchingMode], expectedMatching)
 
         let bodyStr = String(data: req!.httpBody ?? Data(), encoding: .utf8) ?? ""
         XCTAssertTrue(bodyStr.contains("Content-Disposition: form-data; name=\"meta\""))
@@ -438,104 +538,78 @@ final class RequestFactoryTests: IsolatedTestCase {
         XCTAssertFalse(spy.events.contains { $0 is ErrorEvent })
     }
 
-    /// test_17: Status request invalid mode returns nil quickly
-    func test_17_status_request_invalid_mode_returns_nil_quickly() async {
-        let apns = MockAPNS()
-        apns.tokenToReturn = "APNS"
-
-        await TokenManager.shared.setAPNSProvider(apns)
-        await TokenManager.shared.setFCMProvider(nil)
-        await TokenManager.shared.setHMSProvider(nil)
-        await StoredVariablesManager.shared.clearManualToken()
-
-        let request = await statusRequest(
-            mode: "___bad___",
-            provider: nil
+    /// test_17: Push status request without Core config returns nil
+    func test_17_pushStatusRequest_withoutCoreConfig_returnsNil() async {
+        await clearConfig()
+        let data = RequestModel.PushStatusRequestData(
+            path: PushConstants.UrlPath.status,
+            requestId: "RID-17",
+            provider: "ios-apns",
+            token: "TOK"
         )
-
-        XCTAssertNil(request)
-
-        await TokenManager.shared.setAPNSProvider(nil)
+        let req = await pushStatusRequest(data: data)
+        XCTAssertNil(req)
     }
 
-    /// test_18: Status request no profile data emits error and returns nil
-    func test_18_status_request_no_profile_data_emits_error_and_returns_nil() async {
-        let apns = MockAPNS()
-        apns.tokenToReturn = "APNS"
+    /// test_18: Push status request builds GET with correct query params
+    func test_18_pushStatusRequest_buildsGET_withCorrectQueryParams() async {
+        await storeConfig()
 
-        await TokenManager.shared.setAPNSProvider(apns)
-        await TokenManager.shared.setFCMProvider(nil)
-        await TokenManager.shared.setHMSProvider(nil)
-        await StoredVariablesManager.shared.clearManualToken()
-
-        let spy = EventSpy()
-        spy.start()
-        defer { spy.stop() }
-
-        let request = await statusRequest(
-            mode: Constants.StatusMode.matchCurrentContext,
-            provider: nil
+        let data = RequestModel.PushStatusRequestData(
+            path: PushConstants.UrlPath.status,
+            requestId: "RID-18",
+            provider: "ios-apns",
+            token: "TOK-18"
         )
+        let req = await pushStatusRequest(data: data)
+        XCTAssertNotNil(req)
+        XCTAssertEqual(req?.httpMethod, Constants.HTTPMethod.get)
+        XCTAssertEqual(req?.value(forHTTPHeaderField: Constants.HTTPHeader.authorization), expectedAuthHeader)
+        XCTAssertEqual(req?.value(forHTTPHeaderField: Constants.HTTPHeader.requestId), "RID-18")
 
-        XCTAssertNil(request)
-
-        var hasError = false
-
-        for _ in 0..<20 {
-            hasError = spy.events.contains {
-                ($0 is ErrorEvent) && (self.normalizeFunctionName($0.function) == "statusRequest")
-            }
-
-            if hasError {
-                break
-            }
-
-            try? await Task.sleep(nanoseconds: 50_000_000)
-        }
-
-        XCTAssertTrue(hasError)
-
-        await TokenManager.shared.setAPNSProvider(nil)
+        let comps = components(from: req!.url!)
+        let q = queryDict(comps)
+        XCTAssertEqual(q[Constants.QueryItem.matchingMode], expectedMatching)
+        XCTAssertEqual(q[Constants.QueryItem.provider], "ios-apns")
+        XCTAssertEqual(q[Constants.QueryItem.subscriptionId], "TOK-18")
     }
     
     /// test_19: Create profile update request builds POST with headers
-    func test_19_createProfileUpdateRequest_buildsPOST_withHeaders() {
-        let data = ProfileUpdateRequestData(
-            url: "https://api.altcraft.test/profile/update",
+    func test_19_createProfileUpdateRequest_buildsPOST_withHeaders() async {
+        await storeConfig()
+
+        let data = RequestModel.ProfileUpdateRequestData(
+            path: ProfileConstants.UrlPath.update,
             requestId: "RID-PU-1",
-            authHeader: "Bearer PU",
             profileFields: ["email": "a@b.com"],
             skipTriggers: true
         )
 
-        let body = createProfileUpdateJSONBody(data: data)
-        XCTAssertNotNil(body)
-
-        let req = createProfileUpdateRequest(data: data, requestBody: body!)
+        let req = await profileUpdateRequest(data: data)
         XCTAssertNotNil(req)
         XCTAssertEqual(req?.httpMethod, Constants.HTTPMethod.post)
-        XCTAssertEqual(req?.value(forHTTPHeaderField: Constants.HTTPHeader.authorization), "Bearer PU")
+        XCTAssertEqual(req?.value(forHTTPHeaderField: Constants.HTTPHeader.authorization), expectedAuthHeader)
         XCTAssertEqual(req?.value(forHTTPHeaderField: Constants.HTTPHeader.requestId), "RID-PU-1")
         XCTAssertEqual(req?.value(forHTTPHeaderField: Constants.HTTPHeader.contentType), "application/json")
 
         let comps = components(from: req!.url!)
-        XCTAssertTrue((comps.queryItems ?? []).isEmpty)
+        XCTAssertTrue((comps.queryItems ?? []).isEmpty == false)
     }
 
     /// test_20: Profile update request end to end non-nil body and request
-    func test_20_profileUpdateRequest_endToEnd_nonNilBodyAndRequest() {
-        let data = ProfileUpdateRequestData(
-            url: "https://api.altcraft.test/profile/update",
+    func test_20_profileUpdateRequest_endToEnd_nonNilBodyAndRequest() async {
+        await storeConfig()
+
+        let data = RequestModel.ProfileUpdateRequestData(
+            path: ProfileConstants.UrlPath.update,
             requestId: "RID-PU-2",
-            authHeader: "Bearer PU2",
             profileFields: ["a": 1],
             skipTriggers: nil
         )
 
-        let req = profileUpdateRequest(data: data)
+        let req = await profileUpdateRequest(data: data)
         XCTAssertNotNil(req)
         XCTAssertEqual(req?.httpMethod, Constants.HTTPMethod.post)
         XCTAssertEqual(req?.value(forHTTPHeaderField: Constants.HTTPHeader.requestId), "RID-PU-2")
     }
 }
-

@@ -1,14 +1,45 @@
 //
-//  CreateMessageTests.swift
-//  AltcraftTests
+//  StringBuilderTests.swift
+//  Altcraft
 //
 //  Created by Andrey Pogodin.
 //
-//  © 2025 Altcraft. All rights reserved.
+//  Copyright © 2026 Altcraft. All rights reserved.
 
 import XCTest
 import CoreData
-@testable import Altcraft
+@testable import AltcraftCore
+@_spi(_Altcraft) import AltcraftCore
+#if canImport(AltcraftCore)
+@_spi(_Altcraft) import AltcraftCore
+#endif
+#if canImport(AltcraftPush)
+@_spi(_Altcraft) import AltcraftPush
+#endif
+#if canImport(AltcraftProfile)
+@_spi(_Altcraft) import AltcraftProfile
+#endif
+#if canImport(AltcraftInApp)
+@_spi(_Altcraft) import AltcraftInApp
+#endif
+#if canImport(AltcraftTarget)
+@_spi(_Altcraft) import AltcraftTarget
+#endif
+#if canImport(AltcraftCore)
+@testable import AltcraftCore
+#endif
+#if canImport(AltcraftPush)
+@testable import AltcraftPush
+#endif
+#if canImport(AltcraftProfile)
+@testable import AltcraftProfile
+#endif
+#if canImport(AltcraftInApp)
+@testable import AltcraftInApp
+#endif
+#if canImport(AltcraftTarget)
+@testable import AltcraftTarget
+#endif
 
 /**
  * StringBuilderTests
@@ -17,15 +48,9 @@ import CoreData
  *  - test_1: formatFunctionName with single parameter → collapses parameters to "()".
  *  - test_2: formatFunctionName with multiple parameters → collapses all parameters to "()".
  *  - test_3: formatFunctionName without parameters → keeps function name unchanged.
- *  - test_4: subscribeURL with base URL → builds correct subscription endpoint.
- *  - test_5: updateUrl with base URL → builds correct update endpoint.
- *  - test_6: unSuspendUrl with base URL → builds correct unsuspend endpoint.
- *  - test_7: profileUrl with base URL → builds correct status endpoint.
- *  - test_8: eventMobileURL with base URL → builds correct mobile event endpoint.
- *  - test_9: pushEventURL with event type → appends event type to push event endpoint.
  *  - test_10: matchingAsString with valid parameters → returns properly formatted JSON with all key-value pairs.
- *  - test_11: pushEventURL with empty event type → handles gracefully and builds endpoint without type.
  *  - test_13: formatFunctionName with empty parentheses → keeps empty parentheses unchanged.
+ *  - test_14: matchingAsString with special characters in value → escapes them without corrupting JSON.
  *
  * Edge scenarios:
  *  - test_12: formatFunctionName with complex nested parameters →
@@ -33,8 +58,6 @@ import CoreData
  */
 
 final class StringBuilderTests: IsolatedTestCase {
-
-    private let baseURL = "https://pxl.altcraft.com"
 
     /// test_1: formatFunctionName with single parameter collapses parameters to "()"
     func test_1_formatFunctionName_collapsesSingleParam() {
@@ -57,12 +80,12 @@ final class StringBuilderTests: IsolatedTestCase {
         XCTAssertEqual(result, "simpleFn")
     }
 
-    /// test_12: formatFunctionName with complex nested parameters handles based on current implementation
+    /// test_12: formatFunctionName with complex nested parameters collapses all params to "()"
     func test_12_formatFunctionName_handlesComplexPatterns() {
         let input = "func(a: (Int, String), b: [String: Any])"
         let result = formatFunctionName(input)
     
-        XCTAssertEqual(result, "func(), b: [String: Any])")
+        XCTAssertEqual(result, "func()")
     }
 
     /// test_13: formatFunctionName with empty parentheses keeps empty parentheses unchanged
@@ -70,50 +93,6 @@ final class StringBuilderTests: IsolatedTestCase {
         let input = "function()"
         let result = formatFunctionName(input)
         XCTAssertEqual(result, "function()")
-    }
-
-    /// test_4: subscribeURL with base URL builds correct subscription endpoint
-    func test_4_subscribeURL_buildsExpectedEndpoint() {
-        let result = subscribeURL(baseURL)
-        XCTAssertEqual(result, "\(baseURL)/subscription/push/subscribe/")
-    }
-
-    /// test_5: updateUrl with base URL builds correct update endpoint
-    func test_5_updateUrl_buildsExpectedEndpoint() {
-        let result = tokenUpdateUrl(baseURL)
-        XCTAssertEqual(result, "\(baseURL)/subscription/push/update/")
-    }
-
-    /// test_6: unSuspendUrl with base URL builds correct unsuspend endpoint
-    func test_6_unSuspendUrl_buildsExpectedEndpoint() {
-        let result = unSuspendUrl(baseURL)
-        XCTAssertEqual(result, "\(baseURL)/subscription/push/unsuspend/")
-    }
-
-    /// test_7: profileUrl with base URL builds correct status endpoint
-    func test_7_profileUrl_buildsExpectedEndpoint() {
-        let result = profileStatusUrl(baseURL)
-        XCTAssertEqual(result, "\(baseURL)/subscription/push/status/")
-    }
-
-    /// test_8: eventMobileURL with base URL builds correct mobile event endpoint
-    func test_8_eventMobileURL_buildsExpectedEndpoint() {
-        let result = eventMobileURL(baseURL)
-        XCTAssertEqual(result, "\(baseURL)/event/post")
-    }
-    
-    /// test_9: pushEventURL with event type appends event type to push event endpoint
-    func test_9_pushEventURL_appendsEventType() {
-        let event = createPushEventEntity(type: "delivery")
-        let result = eventPushURL(baseURL, event: event)
-        XCTAssertEqual(result, "\(baseURL)/event/push/delivery")
-    }
-
-    /// test_11: pushEventURL with empty event type handles gracefully and builds endpoint without type
-    func test_11_pushEventURL_handlesEmptyEventType() {
-        let event = createPushEventEntity(type: "")
-        let result = eventPushURL(baseURL, event: event)
-        XCTAssertEqual(result, "\(baseURL)/event/push/")
     }
 
     /// test_10: matchingAsString with valid parameters returns properly formatted JSON with all key-value pairs
@@ -131,9 +110,14 @@ final class StringBuilderTests: IsolatedTestCase {
         XCTAssertEqual(jsonObject?[Constants.AuthKeys.matchingID] as? String, "user@example.com")
     }
 
-    private func createPushEventEntity(type: String) -> PushEventEntity {
-        let entity = PushEventEntity(context: viewContext)
-        entity.type = type
-        return entity
+    /// test_14: matchingAsString escapes special characters in value without corrupting JSON
+    func test_14_matchingAsString_escapesSpecialCharacters() throws {
+        let value = "a\"b\\c\nd\te"
+
+        let jsonString = matchingAsString(dbId: 1, matching: "email", value: value)
+        let data = try XCTUnwrap(jsonString.data(using: .utf8))
+        let jsonObject = try JSONSerialization.jsonObject(with: data) as? [String: Any]
+
+        XCTAssertEqual(jsonObject?[Constants.AuthKeys.matchingID] as? String, value)
     }
 }

@@ -1,14 +1,18 @@
 //
 //  SubscriptionSettingComponents.swift
-//  Example
+//  Altcraft
 //
 //  Created by Andrey Pogodin.
 //
-//  Copyright © 2025 Altcraft. All rights reserved.
+//  Copyright © 2026 Altcraft. All rights reserved.
 
 import Foundation
+import AltcraftCore
+import AltcraftProfile
+import AltcraftTarget
 import SwiftUI
 
+/// Subscription settings editing screen.
 struct SubscribeSettingView: View {
     @ObservedObject var manager = SubscribeSettingManager()
     @State private var showCustomFieldsAddBox = false
@@ -262,6 +266,7 @@ struct Switch: View {
     }
 }
 
+/// Removable key-value field box.
 struct RemoveFieldsBox: View {
     let fields: [String: String]
     let onFieldRemoved: (String) -> Void
@@ -299,6 +304,7 @@ struct RemoveFieldsBox: View {
     }
 }
 
+/// Key-value field chip.
 struct FieldChip: View {
     let key: String
     let onRemove: () -> Void
@@ -324,7 +330,7 @@ struct FieldChip: View {
     }
 }
 
-
+/// Add key-value field box.
 struct AddKeyValueBox: View {
     @ObservedObject var manager: SubscribeSettingManager
     let onAdd: (String, String) -> Void

@@ -1,16 +1,46 @@
 //
 //  BackgroundTaskTests.swift
-//  AltcraftTests
+//  Altcraft
 //
 //  Created by Andrey Pogodin.
 //
-//  © 2026 Altcraft. All rights reserved.
-//
+//  Copyright © 2026 Altcraft. All rights reserved.
 
 import XCTest
 import BackgroundTasks
 import ObjectiveC.runtime
-@testable import Altcraft
+@testable import AltcraftCore
+@_spi(_Altcraft) import AltcraftCore
+#if canImport(AltcraftCore)
+@_spi(_Altcraft) import AltcraftCore
+#endif
+#if canImport(AltcraftPush)
+@_spi(_Altcraft) import AltcraftPush
+#endif
+#if canImport(AltcraftProfile)
+@_spi(_Altcraft) import AltcraftProfile
+#endif
+#if canImport(AltcraftInApp)
+@_spi(_Altcraft) import AltcraftInApp
+#endif
+#if canImport(AltcraftTarget)
+@_spi(_Altcraft) import AltcraftTarget
+#endif
+#if canImport(AltcraftCore)
+@testable import AltcraftCore
+#endif
+#if canImport(AltcraftPush)
+@testable import AltcraftPush
+#endif
+#if canImport(AltcraftProfile)
+@testable import AltcraftProfile
+#endif
+#if canImport(AltcraftInApp)
+@testable import AltcraftInApp
+#endif
+#if canImport(AltcraftTarget)
+@testable import AltcraftTarget
+#endif
 
 /**
  * BackgroundTaskTests
@@ -83,6 +113,7 @@ private extension BackgroundTaskTests {
     }
 }
 
+/// Shared constants for background task tests.
 private enum TestConstants {
     static let bgTaskID = Constants.BGTaskID
     static let errorDomain = "tests.bg.submit"
@@ -91,6 +122,7 @@ private enum TestConstants {
     static let threeHoursInSeconds: TimeInterval = 180 * 60
     static let toleranceInSeconds: TimeInterval = 120
 
+    /// Selector names used for swizzling.
     enum Selectors {
         static let submitTaskRequest = NSSelectorFromString(
             "submitTaskRequest:error:"
@@ -101,11 +133,13 @@ private enum TestConstants {
         )
     }
 
+    /// Class names used for swizzling.
     enum ClassNames {
         static let bgTaskScheduler = "BGTaskScheduler"
     }
 }
 
+/// Swizzling hooks for `BGTaskScheduler`.
 private enum BGHooks {
     static var registerCallCount = 0
     static var lastRegisteredIdentifier: String?

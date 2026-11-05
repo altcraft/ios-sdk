@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<model type="com.apple.IDECoreDataModeler.DataModel" documentVersion="1.0" lastSavedToolsVersion="24512" systemVersion="25C56" minimumToolsVersion="Automatic" sourceLanguage="Swift" usedWithSwiftData="YES" userDefinedModelVersionIdentifier="">
+    <entity name="TargetEntity" representedClassName="TargetEntity" syncable="YES">
+        <attribute name="altcraftClientID" optional="YES" attributeType="String"/>
+        <attribute name="eventName" optional="YES" attributeType="String"/>
+        <attribute name="matching" optional="YES" attributeType="Binary"/>
+        <attribute name="matchingType" optional="YES" attributeType="String"/>
+        <attribute name="maxRetryCount" optional="YES" attributeType="Integer 16" defaultValueString="0" usesScalarValueType="YES"/>
+        <attribute name="payload" optional="YES" attributeType="Binary"/>
+        <attribute name="profileFields" optional="YES" attributeType="Binary"/>
+        <attribute name="requestId" optional="YES" attributeType="String"/>
+        <attribute name="retryCount" optional="YES" attributeType="Integer 16" defaultValueString="0" usesScalarValueType="YES"/>
+        <attribute name="sendMessageId" optional="YES" attributeType="String"/>
+        <attribute name="sid" optional="YES" attributeType="String"/>
+        <attribute name="subscription" optional="YES" attributeType="Binary"/>
+        <attribute name="time" optional="YES" attributeType="Integer 64" defaultValueString="0" usesScalarValueType="YES"/>
+        <attribute name="timeZone" optional="YES" attributeType="Integer 16" defaultValueString="0" usesScalarValueType="YES"/>
+        <attribute name="userTag" optional="YES" attributeType="String"/>
+        <attribute name="utmTags" optional="YES" attributeType="Binary"/>
+    </entity>
+</model>

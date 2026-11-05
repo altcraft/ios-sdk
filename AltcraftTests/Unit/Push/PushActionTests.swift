@@ -1,14 +1,44 @@
 //
 //  PushActionTests.swift
-//  AltcraftTests
+//  Altcraft
 //
 //  Created by Andrey Pogodin.
 //
-//  Copyright © 2025 Altcraft. All rights reserved.
-//
+//  Copyright © 2026 Altcraft. All rights reserved.
 
 import XCTest
-@testable import Altcraft
+@testable import AltcraftCore
+@_spi(_Altcraft) import AltcraftCore
+#if canImport(AltcraftCore)
+@_spi(_Altcraft) import AltcraftCore
+#endif
+#if canImport(AltcraftPush)
+@_spi(_Altcraft) import AltcraftPush
+#endif
+#if canImport(AltcraftProfile)
+@_spi(_Altcraft) import AltcraftProfile
+#endif
+#if canImport(AltcraftInApp)
+@_spi(_Altcraft) import AltcraftInApp
+#endif
+#if canImport(AltcraftTarget)
+@_spi(_Altcraft) import AltcraftTarget
+#endif
+#if canImport(AltcraftCore)
+@testable import AltcraftCore
+#endif
+#if canImport(AltcraftPush)
+@testable import AltcraftPush
+#endif
+#if canImport(AltcraftProfile)
+@testable import AltcraftProfile
+#endif
+#if canImport(AltcraftInApp)
+@testable import AltcraftInApp
+#endif
+#if canImport(AltcraftTarget)
+@testable import AltcraftTarget
+#endif
 
 /**
 * PushActionTests
@@ -23,21 +53,41 @@ import XCTest
 */
 final class PushActionTests: XCTestCase {
 
+    /// Captures emitted SDK events.
     private final class EventSpy {
         private(set) var events: [Event] = []
         private var expectation: XCTestExpectation?
+        private var fulfilled = false
 
         func start(expectation: XCTestExpectation? = nil) {
             self.expectation = expectation
+            self.fulfilled = false
             SDKEvents.shared.subscribe { [weak self] event in
-                self?.events.append(event)
-                self?.expectation?.fulfill()
+                guard let self else { return }
+                self.events.append(event)
+                if !self.fulfilled, let exp = self.expectation, event is ErrorEvent {
+                    self.fulfilled = true
+                    exp.fulfill()
+                }
             }
         }
 
         func stop() {
             SDKEvents.shared.unsubscribe()
             expectation = nil
+            fulfilled = false
+        }
+
+        /// Removes the `[altcraft-<module>] ` prefix from the function name.
+        func functionName(_ event: Event) -> String {
+            let fn = event.function
+            if let range = fn.range(of: " ") {
+                let prefix = fn[..<range.lowerBound]
+                if prefix.first == "[" && prefix.last == "]" {
+                    return String(fn[range.upperBound...])
+                }
+            }
+            return fn
         }
     }
 
@@ -52,7 +102,7 @@ final class PushActionTests: XCTestCase {
         await PushAction.shared.pushClickAction(
             buttonsJSON: nil,
             clickURL: nil,
-            identifier: Constants.ButtonIdentifier.defaultNotificationAction
+            identifier: PushConstants.ButtonIdentifier.defaultNotificationAction
         )
 
         await fulfillment(of: [emittedError], timeout: 1.0)
@@ -61,7 +111,7 @@ final class PushActionTests: XCTestCase {
 
         let lastEvent = spy.events.last
         XCTAssertTrue(lastEvent is ErrorEvent)
-        XCTAssertEqual(lastEvent?.function, "pushClickAction()")
+        XCTAssertEqual(spy.functionName(lastEvent ?? Event(function: "")), "pushClickAction()")
     }
 
     /// test_2: Invalid buttons JSON emits error from pushClickAction
@@ -75,7 +125,7 @@ final class PushActionTests: XCTestCase {
         await PushAction.shared.pushClickAction(
             buttonsJSON: "{ not-json }",
             clickURL: nil,
-            identifier: Constants.ButtonIdentifier.defaultNotificationAction
+            identifier: PushConstants.ButtonIdentifier.defaultNotificationAction
         )
 
         await fulfillment(of: [emittedError], timeout: 1.0)
@@ -84,7 +134,7 @@ final class PushActionTests: XCTestCase {
 
         let lastEvent = spy.events.last
         XCTAssertTrue(lastEvent is ErrorEvent)
-        XCTAssertEqual(lastEvent?.function, "pushClickAction()")
+        XCTAssertEqual(spy.functionName(lastEvent ?? Event(function: "")), "pushClickAction()")
     }
 
     /// test_3: Default action uses click URL with no error if URL cannot be opened
@@ -96,11 +146,11 @@ final class PushActionTests: XCTestCase {
         await PushAction.shared.pushClickAction(
             buttonsJSON: "[]",
             clickURL: "myapp://deeplink/path",
-            identifier: Constants.ButtonIdentifier.defaultNotificationAction
+            identifier: PushConstants.ButtonIdentifier.defaultNotificationAction
         )
 
         let hasPushActionErrors = spy.events.contains {
-            $0.function == "pushClickAction()" && ($0 is ErrorEvent)
+            spy.functionName($0) == "pushClickAction()" && ($0 is ErrorEvent)
         }
 
         XCTAssertFalse(hasPushActionErrors)
@@ -123,7 +173,7 @@ final class PushActionTests: XCTestCase {
         await PushAction.shared.pushClickAction(
             buttonsJSON: buttonsString,
             clickURL: nil,
-            identifier: Constants.ButtonIdentifier.buttonThree
+            identifier: PushConstants.ButtonIdentifier.buttonThree
         )
 
         await fulfillment(of: [emittedError], timeout: 1.0)
@@ -132,7 +182,7 @@ final class PushActionTests: XCTestCase {
 
         let lastEvent = spy.events.last
         XCTAssertTrue(lastEvent is ErrorEvent)
-        XCTAssertEqual(lastEvent?.function, "handleButtonAction()")
+        XCTAssertEqual(spy.functionName(lastEvent ?? Event(function: "")), "handleButtonAction()")
     }
 
     /// test_5: Button two uses second button link with no error path
@@ -151,11 +201,11 @@ final class PushActionTests: XCTestCase {
         await PushAction.shared.pushClickAction(
             buttonsJSON: buttonsString,
             clickURL: nil,
-            identifier: Constants.ButtonIdentifier.buttonTwo
+            identifier: PushConstants.ButtonIdentifier.buttonTwo
         )
 
         let hasErrors = spy.events.contains {
-            ($0.function == "pushClickAction()" || $0.function == "handleButtonAction()")
+            (spy.functionName($0) == "pushClickAction()" || spy.functionName($0) == "handleButtonAction()")
             && ($0 is ErrorEvent)
         }
 

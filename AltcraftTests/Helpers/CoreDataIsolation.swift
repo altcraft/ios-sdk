@@ -1,28 +1,63 @@
 //
 //  CoreDataIsolation.swift
-//  AltcraftTests
+//  Altcraft
 //
 //  Created by Andrey Pogodin.
 //
-//  © 2025 Altcraft. All rights reserved.
+//  Copyright © 2026 Altcraft. All rights reserved.
 
 import CoreData
 import ObjectiveC.runtime
+#if canImport(AltcraftCore)
+@_spi(_Altcraft) import AltcraftCore
+#endif
+#if canImport(AltcraftPush)
+@_spi(_Altcraft) import AltcraftPush
+#endif
+#if canImport(AltcraftProfile)
+@_spi(_Altcraft) import AltcraftProfile
+#endif
+#if canImport(AltcraftInApp)
+@_spi(_Altcraft) import AltcraftInApp
+#endif
+#if canImport(AltcraftTarget)
+@_spi(_Altcraft) import AltcraftTarget
+#endif
+#if canImport(AltcraftCore)
+@testable import AltcraftCore
+#endif
+#if canImport(AltcraftPush)
+@testable import AltcraftPush
+#endif
+#if canImport(AltcraftProfile)
+@testable import AltcraftProfile
+#endif
+#if canImport(AltcraftInApp)
+@testable import AltcraftInApp
+#endif
+#if canImport(AltcraftTarget)
+@testable import AltcraftTarget
+#endif
 
-private var _cdIsolationEnabled: Bool = false
-
-/// Redirects Core Data stores to in-memory during tests.
+/// Redirects every Core Data store in the test bundle to an in-memory store.
+///
+/// The SDK's `CoreDataManager.shared` is a process-wide singleton that would
+/// otherwise open the real `Altcraft.sqlite` from disk. Under Xcode's parallel
+/// test clones every worker process opens that same file, so asynchronous Core
+/// Data activity (WAL checkpoints, persistent history, deferred saves) can
+/// collide across processes and raise uncatchable Objective-C exceptions
+/// (e.g. ClearCacheTests) or produce phantom "0.000 seconds" failures
+/// (e.g. TargetEventTests). Using an in-memory store makes each process fully
+/// independent and keeps every `useSDKCoreData` suite deterministic.
 enum CoreDataIsolation {
-    /// Enable in-memory store swizzling.
+    /// Installs (once) the in-memory redirect. Call it before the SDK Core
+    /// Data stack is first touched.
     static func enable() {
-        _cdIsolationEnabled = true
         _ = NSPersistentStoreCoordinator_Swizzle.shared
     }
 
-    /// Disable swizzling and restore default behavior.
-    static func disable() {
-        _cdIsolationEnabled = false
-    }
+    /// No-op: the redirect is permanent for this test bundle.
+    static func disable() {}
 }
 
 /// One-time swizzle for `addPersistentStore(...)`.
@@ -51,29 +86,19 @@ private final class NSPersistentStoreCoordinator_Swizzle {
 }
 
 extension NSPersistentStoreCoordinator {
-    /// Force `NSInMemoryStoreType` when isolation is enabled; otherwise call the original method.
+    /// Force `NSInMemoryStoreType` for every store loaded in the test bundle.
     @objc func alt_addPersistentStore(
         ofType storeType: String,
         configurationName: String?,
         at url: URL?,
-        options: [AnyHashable : Any]?
+        options: [AnyHashable: Any]?
     ) throws -> NSPersistentStore {
 
-        if _cdIsolationEnabled {
-            return try self.alt_addPersistentStore(
-                ofType: NSInMemoryStoreType,
-                configurationName: configurationName,
-                at: nil,
-                options: nil
-            )
-        }
-
         return try self.alt_addPersistentStore(
-            ofType: storeType,
+            ofType: NSInMemoryStoreType,
             configurationName: configurationName,
-            at: url,
-            options: options
+            at: nil,
+            options: nil
         )
     }
 }
-

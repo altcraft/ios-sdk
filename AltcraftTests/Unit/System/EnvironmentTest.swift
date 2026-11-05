@@ -1,15 +1,45 @@
 //
-//  EnvironmentTests.swift
-//  AltcraftTests
+//  EnvironmentTest.swift
+//  Altcraft
 //
 //  Created by Andrey Pogodin.
 //
 //  Copyright © 2026 Altcraft. All rights reserved.
-//
 
 import XCTest
 import CoreData
-@testable import Altcraft
+@testable import AltcraftCore
+@_spi(_Altcraft) import AltcraftCore
+#if canImport(AltcraftCore)
+@_spi(_Altcraft) import AltcraftCore
+#endif
+#if canImport(AltcraftPush)
+@_spi(_Altcraft) import AltcraftPush
+#endif
+#if canImport(AltcraftProfile)
+@_spi(_Altcraft) import AltcraftProfile
+#endif
+#if canImport(AltcraftInApp)
+@_spi(_Altcraft) import AltcraftInApp
+#endif
+#if canImport(AltcraftTarget)
+@_spi(_Altcraft) import AltcraftTarget
+#endif
+#if canImport(AltcraftCore)
+@testable import AltcraftCore
+#endif
+#if canImport(AltcraftPush)
+@testable import AltcraftPush
+#endif
+#if canImport(AltcraftProfile)
+@testable import AltcraftProfile
+#endif
+#if canImport(AltcraftInApp)
+@testable import AltcraftInApp
+#endif
+#if canImport(AltcraftTarget)
+@testable import AltcraftTarget
+#endif
 
 /**
  * EnvironmentTests
@@ -117,10 +147,10 @@ final class EnvironmentTests: IsolatedTestCase {
 
     private func resetGlobalState() {
         StoredVariablesManager.shared.setCritDB(value: false)
-        StoredVariablesManager.shared.clearSavedToken()
+        PushStoredVariables.shared.clearSavedToken()
 
         waitAsync(description: "reset manual token") {
-            await StoredVariablesManager.shared.clearManualToken()
+            await PushStoredVariables.shared.clearManualToken()
         }
 
         waitAsync(description: "reset token manager providers") {
@@ -142,8 +172,7 @@ final class EnvironmentTests: IsolatedTestCase {
     @discardableResult
     private func storeConfig(
         url: String = "https://api.altcraft.test",
-        rToken: String? = "test-rtoken",
-        providerPriorityList: [String]? = nil
+        rToken: String? = "test-rtoken"
     ) throws -> Bool {
         let ctx = CoreDataManager.shared.persistentContainer.newBackgroundContext()
         let sema = DispatchSemaphore(value: 0)
@@ -167,10 +196,6 @@ final class EnvironmentTests: IsolatedTestCase {
                 object.setValue(url, forKey: "url")
                 object.setValue(rToken, forKey: "rToken")
 
-                if let providerPriorityList {
-                    object.setValue(providerPriorityList, forKey: "providerPriorityList")
-                }
-
                 if ctx.hasChanges {
                     try ctx.save()
                 }
@@ -190,11 +215,11 @@ final class EnvironmentTests: IsolatedTestCase {
     }
 
     private func storeManualToken(
-        provider: String = Constants.ProviderName.apns,
+        provider: String = PushConstants.ProviderName.apns,
         token: String = "MANUAL-TOKEN-1"
     ) {
         waitAsync(description: "store manual token") {
-            await StoredVariablesManager.shared.setPushToken(
+            await PushStoredVariables.shared.setPushToken(
                 provider: provider,
                 token: token
             )
@@ -230,21 +255,20 @@ final class EnvironmentTests: IsolatedTestCase {
         let environment = Environment.create()
         let config = try await environment.config()
 
-        XCTAssertEqual(config.url, "https://env-config.altcraft.test")
+        XCTAssertEqual(config.apiUrl, "https://env-config.altcraft.test")
         XCTAssertEqual(config.rToken, "env-config-token")
     }
 
     /// test_3: token returns manual token when no push providers are installed
     func test_3_token_returns_manual_token_when_no_push_providers_are_installed() async throws {
         storeManualToken(
-            provider: Constants.ProviderName.apns,
+            provider: PushConstants.ProviderName.apns,
             token: "MANUAL-TOKEN-ENV"
         )
 
-        let environment = Environment.create()
-        let token = try await environment.token()
+        let token = try await PushEnvironment.fresh().currentToken()
 
-        XCTAssertEqual(token.provider, Constants.ProviderName.apns)
+        XCTAssertEqual(token.provider, PushConstants.ProviderName.apns)
         XCTAssertEqual(token.token, "MANUAL-TOKEN-ENV")
     }
 
@@ -269,23 +293,23 @@ final class EnvironmentTests: IsolatedTestCase {
         ))
 
         let environment = Environment.create()
-        let auth = try await environment.auth()
+        let auth = try await environment.externalAuth()
 
         XCTAssertEqual(auth.header, "Bearer rtoken@auth-rtoken")
-        XCTAssertEqual(auth.matching, "auth-rtoken")
+        XCTAssertEqual(auth.matching, Constants.AuthKeys.rTokenMatching)
     }
 
     /// test_6: savedToken returns token stored in UserDefaults
     func test_6_savedToken_returns_token_stored_in_user_defaults() {
-        StoredVariablesManager.shared.setCurrentToken(
-            provider: Constants.ProviderName.firebase,
+        PushStoredVariables.shared.setCurrentToken(
+            provider: PushConstants.ProviderName.firebase,
             token: "SAVED-TOKEN-1"
         )
 
         let environment = Environment.create()
-        let token = environment.savedToken()
+        let token = PushStoredVariables.shared.getSavedToken()
 
-        XCTAssertEqual(token?.provider, Constants.ProviderName.firebase)
+        XCTAssertEqual(token?.provider, PushConstants.ProviderName.firebase)
         XCTAssertEqual(token?.token, "SAVED-TOKEN-1")
     }
 
@@ -299,21 +323,20 @@ final class EnvironmentTests: IsolatedTestCase {
         let environment = Environment.create()
         let config = try await environment.loadConfig()
 
-        XCTAssertEqual(config?.url, "https://load-config.altcraft.test")
+        XCTAssertEqual(config?.apiUrl, "https://load-config.altcraft.test")
         XCTAssertEqual(config?.rToken, "load-config-token")
     }
 
     /// test_8: loadToken returns manual token without validation
     func test_8_loadToken_returns_manual_token_without_validation() async throws {
         storeManualToken(
-            provider: Constants.ProviderName.huawei,
+            provider: PushConstants.ProviderName.huawei,
             token: "LOAD-TOKEN-1"
         )
 
-        let environment = Environment.create()
-        let token = try await environment.loadToken()
+        let token = await PushEnvironment.fresh().manualToken()
 
-        XCTAssertEqual(token?.provider, Constants.ProviderName.huawei)
+        XCTAssertEqual(token?.provider, PushConstants.ProviderName.huawei)
         XCTAssertEqual(token?.token, "LOAD-TOKEN-1")
     }
 
@@ -338,10 +361,10 @@ final class EnvironmentTests: IsolatedTestCase {
         ))
 
         let environment = Environment.create()
-        let auth = try await environment.loadAuth()
+        let auth = try await environment.loadExternalAuth()
 
         XCTAssertEqual(auth?.header, "Bearer rtoken@load-auth-token")
-        XCTAssertEqual(auth?.matching, "load-auth-token")
+        XCTAssertEqual(auth?.matching, Constants.AuthKeys.rTokenMatching)
     }
 
     /// test_11: resetCache clears cached configuration and forces reload
@@ -354,7 +377,7 @@ final class EnvironmentTests: IsolatedTestCase {
         let environment = Environment.create()
         let firstConfig = try await environment.config()
 
-        XCTAssertEqual(firstConfig.url, "https://before-reset.altcraft.test")
+        XCTAssertEqual(firstConfig.apiUrl, "https://before-reset.altcraft.test")
         XCTAssertEqual(firstConfig.rToken, "before-reset-token")
 
         XCTAssertTrue(try storeConfig(
@@ -363,14 +386,13 @@ final class EnvironmentTests: IsolatedTestCase {
         ))
 
         let cachedConfig = try await environment.config()
-        XCTAssertEqual(cachedConfig.url, "https://before-reset.altcraft.test")
+        XCTAssertEqual(cachedConfig.apiUrl, "https://before-reset.altcraft.test")
         XCTAssertEqual(cachedConfig.rToken, "before-reset-token")
 
-        environment.resetCache()
-        try? await Task.sleep(nanoseconds: 200_000_000)
+        await environment.resetCache()
 
         let reloadedConfig = try await environment.config()
-        XCTAssertEqual(reloadedConfig.url, "https://after-reset.altcraft.test")
+        XCTAssertEqual(reloadedConfig.apiUrl, "https://after-reset.altcraft.test")
         XCTAssertEqual(reloadedConfig.rToken, "after-reset-token")
     }
 
@@ -397,11 +419,9 @@ final class EnvironmentTests: IsolatedTestCase {
 
     /// test_14: token throws when token is missing
     func test_14_token_throws_when_token_is_missing() async {
-        let environment = Environment.create()
-
         do {
-            _ = try await environment.token()
-            XCTFail("Expected token() to throw when token is missing")
+            _ = try await PushEnvironment.fresh().currentToken()
+            XCTFail("Expected currentToken() to throw when token is missing")
         } catch {
             XCTAssertTrue(true)
         }
@@ -429,7 +449,7 @@ final class EnvironmentTests: IsolatedTestCase {
         let environment = Environment.create()
 
         do {
-            _ = try await environment.auth()
+            _ = try await environment.externalAuth()
             XCTFail("Expected auth() to throw when auth data is missing")
         } catch {
             XCTAssertTrue(true)
@@ -446,8 +466,7 @@ final class EnvironmentTests: IsolatedTestCase {
 
     /// test_18: loadToken returns nil when token is missing
     func test_18_loadToken_returns_nil_when_token_is_missing() async throws {
-        let environment = Environment.create()
-        let token = try await environment.loadToken()
+        let token = await PushEnvironment.fresh().manualToken()
 
         XCTAssertNil(token)
     }
@@ -468,7 +487,7 @@ final class EnvironmentTests: IsolatedTestCase {
         ))
 
         let environment = Environment.create()
-        let auth = try await environment.loadAuth()
+        let auth = try await environment.loadExternalAuth()
 
         XCTAssertNil(auth)
     }

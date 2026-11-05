@@ -1,11 +1,42 @@
 //
-//  UserDefaultsIsolation.swift
-//  AltcraftTests
+//  TestMutex.swift
+//  Altcraft
 //
 //  Created by Andrey Pogodin.
-//  © 2025 Altcraft. All rights reserved.
+//
+//  Copyright © 2026 Altcraft. All rights reserved.
 
 import Foundation
+#if canImport(AltcraftCore)
+@_spi(_Altcraft) import AltcraftCore
+#endif
+#if canImport(AltcraftPush)
+@_spi(_Altcraft) import AltcraftPush
+#endif
+#if canImport(AltcraftProfile)
+@_spi(_Altcraft) import AltcraftProfile
+#endif
+#if canImport(AltcraftInApp)
+@_spi(_Altcraft) import AltcraftInApp
+#endif
+#if canImport(AltcraftTarget)
+@_spi(_Altcraft) import AltcraftTarget
+#endif
+#if canImport(AltcraftCore)
+@testable import AltcraftCore
+#endif
+#if canImport(AltcraftPush)
+@testable import AltcraftPush
+#endif
+#if canImport(AltcraftProfile)
+@testable import AltcraftProfile
+#endif
+#if canImport(AltcraftInApp)
+@testable import AltcraftInApp
+#endif
+#if canImport(AltcraftTarget)
+@testable import AltcraftTarget
+#endif
 
 /// Inter-process mutex via `flock`.
 /// Guarantees that only one test (or test suite) runs inside the critical section.

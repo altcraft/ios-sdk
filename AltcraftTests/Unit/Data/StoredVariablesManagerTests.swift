@@ -1,14 +1,44 @@
 //
 //  StoredVariablesManagerTests.swift
-//  AltcraftTests
+//  Altcraft
 //
 //  Created by Andrey Pogodin.
 //
-//  Copyright © 2025 Altcraft. All rights reserved.
-//
+//  Copyright © 2026 Altcraft. All rights reserved.
 
 import XCTest
-@testable import Altcraft
+@testable import AltcraftCore
+@_spi(_Altcraft) import AltcraftCore
+#if canImport(AltcraftCore)
+@_spi(_Altcraft) import AltcraftCore
+#endif
+#if canImport(AltcraftPush)
+@_spi(_Altcraft) import AltcraftPush
+#endif
+#if canImport(AltcraftProfile)
+@_spi(_Altcraft) import AltcraftProfile
+#endif
+#if canImport(AltcraftInApp)
+@_spi(_Altcraft) import AltcraftInApp
+#endif
+#if canImport(AltcraftTarget)
+@_spi(_Altcraft) import AltcraftTarget
+#endif
+#if canImport(AltcraftCore)
+@testable import AltcraftCore
+#endif
+#if canImport(AltcraftPush)
+@testable import AltcraftPush
+#endif
+#if canImport(AltcraftProfile)
+@testable import AltcraftProfile
+#endif
+#if canImport(AltcraftInApp)
+@testable import AltcraftInApp
+#endif
+#if canImport(AltcraftTarget)
+@testable import AltcraftTarget
+#endif
 
 /**
  * StoredVariablesManagerTests
@@ -26,6 +56,9 @@ import XCTest
  * - test_10: setCurrentToken with nil provider does nothing.
  * - test_11: setCurrentToken with empty provider does nothing.
  * - test_12: getGroupName handles nil case appropriately.
+ * - test_13: per-module CRIT_DB flags are stored and isolated between modules.
+ * - test_14: legacy Core-scoped setCritDB/getDbErrorStatus map to the Core module flag.
+ * - test_15: clearAllSDKUserDefaults removes Core keys from standard and App Group defaults.
  *
  */
 final class StoredVariablesManagerTests: IsolatedTestCase {
@@ -48,10 +81,13 @@ final class StoredVariablesManagerTests: IsolatedTestCase {
         let prefix = Constants.UDPrefix
         return [
             "\(prefix)_CRIT_DB",
+            "\(prefix)_CRIT_DB_Push",
+            "\(prefix)_CRIT_DB_Profile",
+            "\(prefix)_CRIT_DB_InApp",
+            "\(prefix)_CRIT_DB_Target",
             "\(prefix)_GROUP_NAME",
             "\(prefix)_MANUAL_TOKEN",
             "\(prefix)_CURRENT_TOKEN",
-            "\(prefix)_SAVED_TOKEN",
             "\(prefix)_LOGGING_STATUS"
         ]
     }
@@ -95,12 +131,12 @@ final class StoredVariablesManagerTests: IsolatedTestCase {
 
     /// test_3: setPushToken and getManualToken return expected token data
     func test_3_set_push_token_and_get_manual_token_return_expected_token_data() async {
-        await StoredVariablesManager.shared.setPushToken(
+        await PushStoredVariables.shared.setPushToken(
             provider: providerFCM,
             token: token123
         )
 
-        let tokenData = await StoredVariablesManager.shared.getManualToken()
+        let tokenData = await PushStoredVariables.shared.getManualToken()
 
         XCTAssertNotNil(tokenData, msgNonNil)
         XCTAssertEqual(tokenData?.provider, providerFCM, msgEqual)
@@ -109,12 +145,12 @@ final class StoredVariablesManagerTests: IsolatedTestCase {
 
     /// test_4: clearManualToken removes previously stored manual token
     func test_4_clear_manual_token_removes_previously_stored_manual_token() async {
-        await StoredVariablesManager.shared.setPushToken(
+        await PushStoredVariables.shared.setPushToken(
             provider: providerFCM,
             token: token123
         )
 
-        await StoredVariablesManager.shared.clearManualToken()
+        await PushStoredVariables.shared.clearManualToken()
 
         let data = UserDefaults.standard.data(forKey: "\(Constants.UDPrefix)_MANUAL_TOKEN")
         XCTAssertNil(data, msgNil)
@@ -122,12 +158,12 @@ final class StoredVariablesManagerTests: IsolatedTestCase {
 
     /// test_5: setCurrentToken and getSavedToken return expected token data
     func test_5_set_current_token_and_get_saved_token_return_expected_token_data() {
-        StoredVariablesManager.shared.setCurrentToken(
+        PushStoredVariables.shared.setCurrentToken(
             provider: providerAPNs,
             token: tokenABC
         )
 
-        let result = StoredVariablesManager.shared.getSavedToken()
+        let result = PushStoredVariables.shared.getSavedToken()
         XCTAssertNotNil(result, msgNonNil)
         XCTAssertEqual(result?.provider, providerAPNs, msgEqual)
         XCTAssertEqual(result?.token, tokenABC, msgEqual)
@@ -135,14 +171,14 @@ final class StoredVariablesManagerTests: IsolatedTestCase {
 
     /// test_6: clearSavedToken removes previously stored saved token
     func test_6_clear_saved_token_removes_previously_stored_saved_token() {
-        StoredVariablesManager.shared.setCurrentToken(
+        PushStoredVariables.shared.setCurrentToken(
             provider: providerAPNs,
             token: tokenXYZ
         )
 
-        StoredVariablesManager.shared.clearSavedToken()
+        PushStoredVariables.shared.clearSavedToken()
 
-        let result = StoredVariablesManager.shared.getSavedToken()
+        let result = PushStoredVariables.shared.getSavedToken()
         XCTAssertNil(result, msgNil)
     }
 
@@ -158,12 +194,12 @@ final class StoredVariablesManagerTests: IsolatedTestCase {
 
     /// test_8: setPushToken with nil token clears manual token
     func test_8_set_push_token_with_nil_token_clears_manual_token() async {
-        await StoredVariablesManager.shared.setPushToken(
+        await PushStoredVariables.shared.setPushToken(
             provider: providerFCM,
             token: token123
         )
 
-        await StoredVariablesManager.shared.setPushToken(
+        await PushStoredVariables.shared.setPushToken(
             provider: providerFCM,
             token: nil
         )
@@ -174,12 +210,12 @@ final class StoredVariablesManagerTests: IsolatedTestCase {
 
     /// test_9: setPushToken with empty token clears manual token
     func test_9_set_push_token_with_empty_token_clears_manual_token() async {
-        await StoredVariablesManager.shared.setPushToken(
+        await PushStoredVariables.shared.setPushToken(
             provider: providerFCM,
             token: token123
         )
 
-        await StoredVariablesManager.shared.setPushToken(
+        await PushStoredVariables.shared.setPushToken(
             provider: providerFCM,
             token: ""
         )
@@ -190,23 +226,23 @@ final class StoredVariablesManagerTests: IsolatedTestCase {
 
     /// test_10: setCurrentToken with nil provider does nothing
     func test_10_set_current_token_with_nil_provider_does_nothing() {
-        StoredVariablesManager.shared.setCurrentToken(
+        PushStoredVariables.shared.setCurrentToken(
             provider: nil,
             token: tokenABC
         )
 
-        let result = StoredVariablesManager.shared.getSavedToken()
+        let result = PushStoredVariables.shared.getSavedToken()
         XCTAssertNil(result, msgNil)
     }
 
     /// test_11: setCurrentToken with empty provider does nothing
     func test_11_set_current_token_with_empty_provider_does_nothing() {
-        StoredVariablesManager.shared.setCurrentToken(
+        PushStoredVariables.shared.setCurrentToken(
             provider: "",
             token: tokenABC
         )
 
-        let result = StoredVariablesManager.shared.getSavedToken()
+        let result = PushStoredVariables.shared.getSavedToken()
         XCTAssertNil(result, msgNil)
     }
 
@@ -216,5 +252,87 @@ final class StoredVariablesManagerTests: IsolatedTestCase {
 
         let result = StoredVariablesManager.shared.getGroupName()
         XCTAssertNil(result, msgNil)
+    }
+
+    /// test_13: per-module CRIT_DB flags are stored and isolated between modules
+    func test_13_per_module_crit_db_flags_are_stored_and_isolated_between_modules() {
+        let storage = StoredVariablesManager.shared
+
+        storage.setCritDB(value: true, module: "Push")
+        XCTAssertTrue(storage.getDbErrorStatus(module: "Push"), msgEqual)
+
+        // Other modules and Core stay unaffected by the Push flag.
+        XCTAssertFalse(storage.getDbErrorStatus(module: "Profile"), msgEqual)
+        XCTAssertFalse(storage.getDbErrorStatus(module: "InApp"), msgEqual)
+        XCTAssertFalse(storage.getDbErrorStatus(module: "Target"), msgEqual)
+        XCTAssertFalse(storage.getDbErrorStatus(), msgEqual)
+
+        storage.setCritDB(value: true, module: "Profile")
+        XCTAssertTrue(storage.getDbErrorStatus(module: "Profile"), msgEqual)
+        XCTAssertTrue(storage.getDbErrorStatus(module: "Push"), msgEqual)
+
+        // Resetting one module's flag does not touch the others.
+        storage.setCritDB(value: false, module: "Push")
+        XCTAssertFalse(storage.getDbErrorStatus(module: "Push"), msgEqual)
+        XCTAssertTrue(storage.getDbErrorStatus(module: "Profile"), msgEqual)
+
+        storage.setCritDB(value: false, module: "Profile")
+        XCTAssertFalse(storage.getDbErrorStatus(module: "Profile"), msgEqual)
+    }
+
+    /// test_14: legacy Core-scoped setCritDB/getDbErrorStatus map to the Core module flag
+    func test_14_legacy_core_scoped_crit_db_methods_map_to_the_core_module_flag() {
+        let storage = StoredVariablesManager.shared
+
+        storage.setCritDB(value: true)
+        XCTAssertTrue(storage.getDbErrorStatus(), msgEqual)
+        XCTAssertTrue(
+            storage.getDbErrorStatus(module: Constants.CoreData.coreModelName),
+            msgEqual
+        )
+
+        storage.setCritDB(value: false, module: Constants.CoreData.coreModelName)
+        XCTAssertFalse(storage.getDbErrorStatus(), msgEqual)
+
+        storage.setCritDB(value: true, module: Constants.CoreData.coreModelName)
+        XCTAssertTrue(storage.getDbErrorStatus(), msgEqual)
+        storage.setCritDB(value: false)
+        XCTAssertFalse(
+            storage.getDbErrorStatus(module: Constants.CoreData.coreModelName),
+            msgEqual
+        )
+    }
+
+    /// test_15: clearAllSDKUserDefaults removes Core keys from standard and
+    /// App Group defaults while the group name is still available
+    func test_15_clearAllSDKUserDefaults_clearsStandardAndSharedKeys() async throws {
+        let groupName = "AltcraftTests.clearAll.\(UUID().uuidString)"
+        let groupNameKey = "\(Constants.UDPrefix)_GROUP_NAME"
+        let keys = [
+            "\(Constants.UDPrefix)_INIT_STATUS",
+            "\(Constants.UDPrefix)_CRIT_DB",
+            "\(Constants.UDPrefix)_LOGGING_STATUS"
+        ]
+
+        // The group name key must hold the real suite name so the shared
+        // cleanup can find the App Group defaults.
+        UserDefaults.standard.set(groupName, forKey: groupNameKey)
+        for key in keys {
+            UserDefaults.standard.set("value", forKey: key)
+        }
+
+        let groupDefaults = try XCTUnwrap(UserDefaults(suiteName: groupName))
+        for key in keys + [groupNameKey] {
+            groupDefaults.set("value", forKey: key)
+        }
+
+        await StoredVariablesManager.shared.clearAllSDKUserDefaults()
+
+        for key in keys + [groupNameKey] {
+            XCTAssertNil(UserDefaults.standard.object(forKey: key), msgEqual)
+            XCTAssertNil(groupDefaults.object(forKey: key), msgEqual)
+        }
+
+        UserDefaults().removePersistentDomain(forName: groupName)
     }
 }

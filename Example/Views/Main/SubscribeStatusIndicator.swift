@@ -1,14 +1,19 @@
 //
-//  StatusIndicator.swift
-//  Example
+//  SubscribeStatusIndicator.swift
+//  Altcraft
 //
 //  Created by Andrey Pogodin.
 //
-//  Copyright © 2025 Altcraft. All rights reserved.
+//  Copyright © 2026 Altcraft. All rights reserved.
 
 import Foundation
+import AltcraftCore
+import AltcraftPush
+import AltcraftInApp
+import AltcraftTarget
 import SwiftUI
 
+/// Module status indicator.
 struct ModuleStatusIndicator: View {
     let status: Bool
     var size: CGFloat? = 15
@@ -28,6 +33,7 @@ struct ModuleStatusIndicator: View {
     }
 }
 
+/// Subscription status indicator.
 struct SubscribeStatusIndicator: View {
     var status: String = AppConstants.SubscriptionStatus.unsubscribed
     var size: CGFloat = 15
@@ -48,6 +54,10 @@ struct SubscribeStatusIndicator: View {
             .padding(.top, topPadding)
     }
 
+    /// Returns the gradient colors for the subscription status.
+    ///
+    /// - Parameter status: Subscription status.
+    /// - Returns: Start and end gradient colors.
     private func gradientColors(for status: String) -> (Color, Color) {
         switch status {
         case AppConstants.SubscriptionStatus.subscribed:

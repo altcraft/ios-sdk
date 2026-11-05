@@ -1,14 +1,45 @@
 //
-//  JsonFactoryAndRequestFactoryTests.swift
-//  AltcraftTests
+//  JsonFactoryTests.swift
+//  Altcraft
 //
-//  Created by Andrey Pogodin
+//  Created by Andrey Pogodin.
 //
-//  © 2025 Altcraft. All rights reserved.
-//
+//  Copyright © 2026 Altcraft. All rights reserved.
 
 import XCTest
-@testable import Altcraft
+import CoreData
+@testable import AltcraftCore
+@_spi(_Altcraft) import AltcraftCore
+#if canImport(AltcraftCore)
+@_spi(_Altcraft) import AltcraftCore
+#endif
+#if canImport(AltcraftPush)
+@_spi(_Altcraft) import AltcraftPush
+#endif
+#if canImport(AltcraftProfile)
+@_spi(_Altcraft) import AltcraftProfile
+#endif
+#if canImport(AltcraftInApp)
+@_spi(_Altcraft) import AltcraftInApp
+#endif
+#if canImport(AltcraftTarget)
+@_spi(_Altcraft) import AltcraftTarget
+#endif
+#if canImport(AltcraftCore)
+@testable import AltcraftCore
+#endif
+#if canImport(AltcraftPush)
+@testable import AltcraftPush
+#endif
+#if canImport(AltcraftProfile)
+@testable import AltcraftProfile
+#endif
+#if canImport(AltcraftInApp)
+@testable import AltcraftInApp
+#endif
+#if canImport(AltcraftTarget)
+@testable import AltcraftTarget
+#endif
 
 /**
  * JsonFactoryAndRequestFactoryTests
@@ -22,16 +53,18 @@ import XCTest
  *  - test_6: profile → GET request.
  *  - test_7: profileUpdate → JSON null/defaults.
  */
-final class JsonFactoryTests: XCTestCase {
+final class JsonFactoryTests: IsolatedTestCase {
 
-    private let keys = Constants.JSONKeys.self
+    private let keys = PushConstants.JSONKeys.self
     private let httpH = Constants.HTTPHeader.self
     private let httpM = Constants.HTTPMethod.self
     private let q = Constants.QueryItem.self
 
-    private let baseURL = "https://example.com/api"
-    private let auth = "Bearer abc"
     private let reqId = "req-123"
+
+    /// Authorization header derived from the Core environment for the test rToken.
+    private let expectedAuthHeader = "Bearer rtoken@rt"
+    private let expectedMatching = Constants.AuthKeys.rTokenMatching
 
     private func decode(_ data: Data?,
                         file: StaticString = #file, line: UInt = #line) throws -> Any {
@@ -64,8 +97,42 @@ final class JsonFactoryTests: XCTestCase {
         return out
     }
 
+    /// Seeds the SDK CoreData configuration used by `CoreRequestBuilder`.
+    @discardableResult
+    private func storeConfig(
+        apiUrl: String = "https://example.com",
+        rToken: String? = "rt"
+    ) async -> Bool {
+        let ctx = CoreDataManager.shared.persistentContainer.newBackgroundContext()
+
+        return await withCheckedContinuation { continuation in
+            ctx.perform {
+                let req = NSFetchRequest<NSFetchRequestResult>(
+                    entityName: Constants.EntityNames.configurationEntity
+                )
+                req.includesPropertyValues = false
+
+                if let objects = try? ctx.fetch(req) as? [NSManagedObject] {
+                    objects.forEach { ctx.delete($0) }
+                }
+
+                let object = NSEntityDescription.insertNewObject(
+                    forEntityName: Constants.EntityNames.configurationEntity,
+                    into: ctx
+                )
+                object.setValue(apiUrl, forKey: "url")
+                object.setValue(rToken, forKey: "rToken")
+
+                try? ctx.save()
+                continuation.resume(returning: true)
+            }
+        }
+    }
+
     /// test_1: subscribe → full JSON and request.
-    func test_1_subscribe_full_json_and_request() throws {
+    func test_1_subscribe_full_json_and_request() async throws {
+        await storeConfig()
+
         let cats: [CategoryData] = [
             CategoryData(name: "news",  title: "News",  steady: true,  active: true),
             CategoryData(name: "promo", title: "Promo", steady: false, active: false)
@@ -73,25 +140,22 @@ final class JsonFactoryTests: XCTestCase {
         let profile: [String: Any] = ["age": 30, "city": "AMS"]
         let custom:  [String: Any] = ["utm": "spring-2025"]
 
-        let data = PushSubscribeRequestData(
-            url: baseURL,
+        let data = RequestModel.PushSubscribeRequestData(
+            path: PushConstants.UrlPath.subscribe,
             requestId: reqId,
             time: 1_727_000_000,
-            rToken: nil,
-            authHeader: auth,
-            matchingMode: "latest_subscription",
             provider: "ios-apns",
             deviceToken: "devtok-123",
             status: "active",
             sync: true,
             profileFields: profile,
-            customFields: custom,
+            fields: custom,
             cats: cats,
             replace: true,
             skipTriggers: false
         )
 
-        let body = createSubscribeJSONBody(data: data)
+        let body = createPushSubscribeJSONBody(data: data)
         let root = asDict(try decode(body))
         XCTAssertEqual(root[keys.time] as? Int, 1_727_000_000)
         XCTAssertEqual(root[keys.subscriptionId] as? String, "devtok-123")
@@ -121,47 +185,46 @@ final class JsonFactoryTests: XCTestCase {
         XCTAssertEqual(arr[1][keys.catsSteady] as? Bool, false)
         XCTAssertEqual(arr[1][keys.catsActive] as? Bool, false)
 
-        let req = createSubscribeRequest(data: data, requestBody: body!)
+        let req = await pushSubscribeRequest(data: data)
         XCTAssertNotNil(req)
         XCTAssertEqual(req?.httpMethod, httpM.post)
         XCTAssertEqual(req?.value(forHTTPHeaderField: httpH.contentType), "application/json")
-        XCTAssertEqual(req?.value(forHTTPHeaderField: httpH.authorization), auth)
+        XCTAssertEqual(req?.value(forHTTPHeaderField: httpH.authorization), expectedAuthHeader)
         XCTAssertEqual(req?.value(forHTTPHeaderField: httpH.requestId), reqId)
 
         let qm = queryMap(from: req?.url)
         XCTAssertEqual(qm[q.provider], "ios-apns")
-        XCTAssertEqual(qm[q.matchingMode], "latest_subscription")
-        XCTAssertEqual(qm[q.sync], "true")
+        XCTAssertEqual(qm[q.matchingMode], expectedMatching)
+        XCTAssertEqual(qm[q.sync], "1")
         XCTAssertNil(qm[q.subscriptionId])
     }
 
     /// test_2: subscribe → minimal JSON defaults and request.
-    func test_2_subscribe_minimal_json_defaults_and_request() throws {
-        let data = PushSubscribeRequestData(
-            url: baseURL,
+    func test_2_subscribe_minimal_json_defaults_and_request() async throws {
+        await storeConfig()
+
+        let data = RequestModel.PushSubscribeRequestData(
+            path: PushConstants.UrlPath.subscribe,
             requestId: reqId,
             time: 123,
-            rToken: nil,
-            authHeader: auth,
-            matchingMode: "match_current_context",
             provider: "ios-firebase",
             deviceToken: "tok",
             status: "active",
             sync: false,
             profileFields: nil,
-            customFields: [:],
+            fields: [:],
             cats: nil,
             replace: nil,
             skipTriggers: nil
         )
 
-        let body = createSubscribeJSONBody(data: data)
+        let body = createPushSubscribeJSONBody(data: data)
         let root = asDict(try decode(body))
         XCTAssertEqual(root[keys.time] as? Int, 123)
         XCTAssertEqual(root[keys.subscriptionId] as? String, "tok")
         XCTAssertEqual(root[keys.replace] as? Bool, false)
         XCTAssertEqual(root[keys.skipTriggers] as? Bool, false)
-        XCTAssertNil(root[keys.profileFields])
+        XCTAssertTrue(root[keys.profileFields] is NSNull)
 
         let sub = root[keys.subscription] as? [String: Any]
         XCTAssertEqual(sub?[keys.subscriptionId] as? String, "tok")
@@ -181,30 +244,30 @@ final class JsonFactoryTests: XCTestCase {
             XCTFail("Expected cats array to exist")
         }
 
-        let req = createSubscribeRequest(data: data, requestBody: body!)
+        let req = await pushSubscribeRequest(data: data)
         XCTAssertNotNil(req)
         let qm = queryMap(from: req?.url)
         XCTAssertEqual(qm[q.provider], "ios-firebase")
-        XCTAssertEqual(qm[q.matchingMode], "match_current_context")
-        XCTAssertEqual(qm[q.sync], "false")
+        XCTAssertEqual(qm[q.matchingMode], expectedMatching)
+        XCTAssertEqual(qm[q.sync], "0")
     }
 
     /// test_3: update → JSON nulls and request.
-    func test_3_update_json_nulls_and_request() throws {
-        let full = TokenUpdateRequestData(
-            url: baseURL,
+    func test_3_update_json_nulls_and_request() async throws {
+        await storeConfig()
+
+        let full = RequestModel.TokenUpdateRequestData(
+            path: PushConstants.UrlPath.update,
             requestId: reqId,
-            authHeader: auth,
             oldToken: "oldT",
             newToken: "newT",
             oldProvider: "ios-apns",
             newProvider: "ios-firebase",
             sync: true
         )
-        let partial = TokenUpdateRequestData(
-            url: baseURL,
+        let partial = RequestModel.TokenUpdateRequestData(
+            path: PushConstants.UrlPath.update,
             requestId: reqId,
-            authHeader: auth,
             oldToken: nil,
             newToken: "T",
             oldProvider: nil,
@@ -226,35 +289,37 @@ final class JsonFactoryTests: XCTestCase {
 
         let body1 = createUpdateJSONBody(data: full)
         XCTAssertNotNil(body1)
-        let r1 = createTokenUpdateRequest(data: full, requestBody: body1!)
+        let r1 = await tokenUpdateRequest(data: full)
         XCTAssertNotNil(r1)
         XCTAssertEqual(r1?.httpMethod, httpM.post)
-        XCTAssertEqual(r1?.value(forHTTPHeaderField: httpH.authorization), auth)
+        XCTAssertEqual(r1?.value(forHTTPHeaderField: httpH.authorization), expectedAuthHeader)
         XCTAssertEqual(r1?.value(forHTTPHeaderField: httpH.requestId), reqId)
         let m1 = queryMap(from: r1?.url)
         XCTAssertEqual(m1[q.provider], "ios-firebase")
         XCTAssertEqual(m1[q.subscriptionId], "oldT")
-        XCTAssertEqual(m1[q.sync], "true")
+        XCTAssertEqual(m1[q.sync], "1")
+        XCTAssertEqual(m1[q.matchingMode], expectedMatching)
 
         let body2 = createUpdateJSONBody(data: partial)
         XCTAssertNotNil(body2)
-        let r2 = createTokenUpdateRequest(data: partial, requestBody: body2!)
+        let r2 = await tokenUpdateRequest(data: partial)
         XCTAssertNotNil(r2)
         let m2 = queryMap(from: r2?.url)
         XCTAssertEqual(m2[q.provider], "ios-firebase")
         XCTAssertNil(m2[q.subscriptionId])
-        XCTAssertEqual(m2[q.sync], "false")
+        XCTAssertEqual(m2[q.sync], "0")
+        XCTAssertEqual(m2[q.matchingMode], expectedMatching)
     }
 
     /// test_4: unSuspend → JSON and request.
-    func test_4_unSuspend_json_and_request() throws {
-        let u = UnSuspendRequestData(
-            url: baseURL,
+    func test_4_unSuspend_json_and_request() async throws {
+        await storeConfig()
+
+        let u = RequestModel.UnSuspendRequestData(
+            path: PushConstants.UrlPath.unsuspend,
             requestId: "req-un-1",
             provider: "ios-apns",
-            token: "tok-1",
-            authHeader: auth,
-            matchingMode: "latest_for_provider"
+            token: "tok-1"
         )
 
         let body = createUnSuspendJSONBody(data: u)
@@ -265,28 +330,28 @@ final class JsonFactoryTests: XCTestCase {
         XCTAssertEqual(sub?[keys.subscriptionId] as? String, "tok-1")
         XCTAssertEqual(sub?[keys.provider] as? String, "ios-apns")
 
-        let req = createUnSuspendRequest(data: u, requestBody: body!)
+        let req = await unSuspendRequest(data: u)
         XCTAssertNotNil(req)
         XCTAssertEqual(req?.httpMethod, httpM.post)
-        XCTAssertEqual(req?.value(forHTTPHeaderField: httpH.authorization), auth)
+        XCTAssertEqual(req?.value(forHTTPHeaderField: httpH.authorization), expectedAuthHeader)
         XCTAssertEqual(req?.value(forHTTPHeaderField: httpH.requestId), "req-un-1")
 
         let qm = queryMap(from: req?.url)
         XCTAssertEqual(qm[q.provider], "ios-apns")
-        XCTAssertEqual(qm[q.matchingMode], "latest_for_provider")
+        XCTAssertEqual(qm[q.matchingMode], expectedMatching)
         XCTAssertEqual(qm[q.subscriptionId], "tok-1")
     }
 
     /// test_5: pushEvent → JSON and request.
-    func test_5_pushEvent_json_and_request() throws {
-        let p = PushEventRequestData(
-            url: baseURL,
+    func test_5_pushEvent_json_and_request() async throws {
+        await storeConfig()
+
+        let p = RequestModel.PushEventRequestData(
+            path: PushConstants.UrlPath.event,
             requestId: "req-pe-1",
             time: 111,
-            type: Constants.PushEvents.delivery,
-            uid: "smid-42",
-            authHeader: auth,
-            matchingMode: "match_current_context"
+            type: PushConstants.PushEvents.delivery,
+            uid: "smid-42"
         )
 
         let body = createPushEventJSONBody(data: p)
@@ -294,70 +359,70 @@ final class JsonFactoryTests: XCTestCase {
         XCTAssertEqual(root[keys.time] as? Int, 111)
         XCTAssertEqual(root[keys.smid] as? String, "smid-42")
 
-        let req = createPushEventRequest(data: p, requestBody: body!)
+        let req = await pushEventRequest(data: p)
         XCTAssertNotNil(req)
         XCTAssertEqual(req?.httpMethod, httpM.post)
-        XCTAssertEqual(req?.value(forHTTPHeaderField: httpH.authorization), auth)
+        XCTAssertEqual(req?.value(forHTTPHeaderField: httpH.authorization), expectedAuthHeader)
         XCTAssertEqual(req?.value(forHTTPHeaderField: httpH.requestId), "req-pe-1")
 
         let qm = queryMap(from: req?.url)
-        XCTAssertEqual(qm[q.matchingMode], "match_current_context")
+        XCTAssertEqual(qm[q.matchingMode], expectedMatching)
         XCTAssertNil(qm[q.provider])
         XCTAssertNil(qm[q.subscriptionId])
     }
 
     /// test_6: profile → GET request.
-    func test_6_profile_get_request() {
-        let pr = ProfileStatusRequestData(
-            url: baseURL,
+    func test_6_profile_get_request() async {
+        await storeConfig()
+
+        let pr = RequestModel.PushStatusRequestData(
+            path: PushConstants.UrlPath.status,
             requestId: "req-pr-9",
-            authHeader: auth,
-            matchingMode: "latest_for_provider",
             provider: "ios-apns",
             token: "tok-xyz"
         )
-        let req = createProfileStatusRequest(data: pr)
+        let req = await pushStatusRequest(data: pr)
         XCTAssertNotNil(req)
         XCTAssertEqual(req?.httpMethod, httpM.get)
-        XCTAssertEqual(req?.value(forHTTPHeaderField: httpH.authorization), auth)
+        XCTAssertEqual(req?.value(forHTTPHeaderField: httpH.authorization), expectedAuthHeader)
         XCTAssertEqual(req?.value(forHTTPHeaderField: httpH.requestId), "req-pr-9")
         XCTAssertEqual(req?.value(forHTTPHeaderField: httpH.contentType), "application/json")
 
         let qm = queryMap(from: req?.url)
         XCTAssertEqual(qm[q.provider], "ios-apns")
-        XCTAssertEqual(qm[q.matchingMode], "latest_for_provider")
+        XCTAssertEqual(qm[q.matchingMode], expectedMatching)
         XCTAssertEqual(qm[q.subscriptionId], "tok-xyz")
     }
 
     /// test_7: profileUpdate → JSON null/defaults.
-    func test_7_profileUpdate_json_null_defaults() throws {
-        let d1 = ProfileUpdateRequestData(
-            url: baseURL,
+    func test_7_profileUpdate_json_null_defaults() async throws {
+        await storeConfig()
+        let pk = ProfileConstants.JSONKeys.self
+
+        let d1 = RequestModel.ProfileUpdateRequestData(
+            path: ProfileConstants.UrlPath.update,
             requestId: "req-pu-1",
-            authHeader: auth,
             profileFields: ["age": 31, "city": "AMS"],
             skipTriggers: true
         )
 
         let body1 = createProfileUpdateJSONBody(data: d1)
         let root1 = asDict(try decode(body1))
-        let pf1 = root1[keys.profileFields] as? [String: Any]
+        let pf1 = root1[pk.profileFields] as? [String: Any]
         XCTAssertEqual(pf1?["age"] as? Int, 31)
         XCTAssertEqual(pf1?["city"] as? String, "AMS")
-        XCTAssertEqual(root1[keys.skipTriggers] as? Bool, true)
+        XCTAssertEqual(root1[pk.skipTriggers] as? Bool, true)
 
-        let d2 = ProfileUpdateRequestData(
-            url: baseURL,
+        let d2 = RequestModel.ProfileUpdateRequestData(
+            path: ProfileConstants.UrlPath.update,
             requestId: "req-pu-2",
-            authHeader: auth,
             profileFields: nil,
             skipTriggers: nil
         )
 
         let body2 = createProfileUpdateJSONBody(data: d2)
         let root2 = asDict(try decode(body2))
-        XCTAssertTrue(root2[keys.profileFields] is NSNull)
-        XCTAssertEqual(root2[keys.skipTriggers] as? Bool, false)
+        XCTAssertTrue(root2[pk.profileFields] is NSNull)
+        XCTAssertTrue(root2[pk.skipTriggers] is NSNull)
     }
 }
-

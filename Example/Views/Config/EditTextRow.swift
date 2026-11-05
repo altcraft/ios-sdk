@@ -1,59 +1,105 @@
 //
 //  EditTextRow.swift
-//  Example
+//  Altcraft
 //
 //  Created by Andrey Pogodin.
 //
-//  Copyright © 2025 Altcraft. All rights reserved.
+//  Copyright © 2026 Altcraft. All rights reserved.
 
 import Foundation
+import AltcraftCore
 import SwiftUI
 
+/// Labeled text input row.
 struct EditTextRow: View {
     let name: String
     @Binding var text: String
-    let hint: String?
+    var hint: String?
     var startPadding: CGFloat = 15
     var endPadding: CGFloat = 15
-    var font: Font = .system(size: 12)
-    var textColor: Color = .black
-    @FocusState private var isFocused: Bool
+    var ovalBoxHeight: CGFloat = 25
+    var boxRadius: CGFloat = 30
+    var whiteBoxSize: CGFloat = 20
+    var whiteBoxPadding: CGFloat = 5
+    var accessibilityIdentifier: String? = nil
 
     var body: some View {
-        VStack(alignment: .leading, spacing: 0) {
-            HStack(spacing: 10) {
-                HStack(spacing: 5) {
-                    Circle()
-                        .stroke(Color.gray, lineWidth: 1.5)
-                        .background(
-                            Circle()
-                                .fill(Color.black)
-                                .shadow(color: .gray.opacity(0.4), radius: 5)
-                        )
-                        .frame(width: 10, height: 10)
+        VStack(spacing: 0) {
+            HStack(alignment: .bottom, spacing: 5) {
+                HStack(spacing: 3) {
+                    ZStack {
+                        Circle()
+                            .stroke(Color.gray, lineWidth: 1.5)
+                            .frame(
+                                width: whiteBoxSize - whiteBoxPadding * 2,
+                                height: whiteBoxSize - whiteBoxPadding * 2
+                            )
+
+                        Circle()
+                            .fill(Color.black)
+                            .frame(
+                                width: whiteBoxSize - whiteBoxPadding * 2,
+                                height: whiteBoxSize - whiteBoxPadding * 2
+                            )
+                            .shadow(radius: 5)
+                    }
+                    .frame(
+                        width: whiteBoxSize,
+                        height: whiteBoxSize
+                    )
 
                     Text(name)
+                        .foregroundColor(.black)
                         .font(.system(size: 8))
+                        .fontWeight(.regular)
+                        .fixedSize()
                 }
-                .padding(.leading, startPadding)
+                .padding(.leading, 5)
+                .frame(
+                    height: ovalBoxHeight,
+                    alignment: .center
+                )
 
-                TextField("", text: $text, prompt: Text(hint ?? "").foregroundColor(.gray))
-                    .font(font)
-                    .foregroundColor(textColor)
-                    .padding(.horizontal, 12)
-                    .padding(.vertical, 4)
-                    .background(Color.white)
-                    .cornerRadius(6)
-                    .focused($isFocused)
+                ZStack(alignment: .leading) {
+                    if text.isEmpty, let hint, !hint.isEmpty {
+                        Text(hint)
+                            .foregroundColor(.gray)
+                            .font(.system(size: 12))
+                            .lineLimit(1)
+                            .truncationMode(.tail)
+                            .padding(.horizontal, 12)
+                            .padding(.vertical, 4)
+                    }
+
+                    TextField("", text: $text)
+                        .font(.system(size: 12))
+                        .foregroundColor(.black)
+                        .padding(.horizontal, 12)
+                        .padding(.vertical, 4)
+                        .accessibilityIdentifierIfPresent(
+                            accessibilityIdentifier
+                        )
+                }
+                .frame(maxWidth: .infinity)
+                .offset(y: 3)
             }
-            .padding(.trailing, endPadding)
 
-            Spacer().frame(height: 4)
+            Spacer()
+                .frame(height: 4)
 
             Divider()
-                .background(Color.gray.opacity(0.5))
+                .background(
+                    Color.gray.opacity(0.5)
+                )
                 .padding(.vertical, 4)
-                .padding(.horizontal, 15)
         }
+        .padding(
+            .leading,
+            startPadding
+        )
+        .padding(
+            .trailing,
+            endPadding
+        )
     }
 }

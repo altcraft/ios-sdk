@@ -1,14 +1,44 @@
 //
-//  DeviceInfoNoSeamsTests.swift
-//  AltcraftTests
+//  DeviceInfoTests.swift
+//  Altcraft
 //
 //  Created by Andrey Pogodin.
 //
-//  Copyright © 2025 Altcraft. All rights reserved.
-//
+//  Copyright © 2026 Altcraft. All rights reserved.
 
 import XCTest
-@testable import Altcraft
+@testable import AltcraftCore
+@_spi(_Altcraft) import AltcraftCore
+#if canImport(AltcraftCore)
+@_spi(_Altcraft) import AltcraftCore
+#endif
+#if canImport(AltcraftPush)
+@_spi(_Altcraft) import AltcraftPush
+#endif
+#if canImport(AltcraftProfile)
+@_spi(_Altcraft) import AltcraftProfile
+#endif
+#if canImport(AltcraftInApp)
+@_spi(_Altcraft) import AltcraftInApp
+#endif
+#if canImport(AltcraftTarget)
+@_spi(_Altcraft) import AltcraftTarget
+#endif
+#if canImport(AltcraftCore)
+@testable import AltcraftCore
+#endif
+#if canImport(AltcraftPush)
+@testable import AltcraftPush
+#endif
+#if canImport(AltcraftProfile)
+@testable import AltcraftProfile
+#endif
+#if canImport(AltcraftInApp)
+@testable import AltcraftInApp
+#endif
+#if canImport(AltcraftTarget)
+@testable import AltcraftTarget
+#endif
 
 /**
 * DeviceInfoNoSeamsTests
@@ -16,7 +46,7 @@ import XCTest
 * Positive scenarios:
 * - test_1: deviceIdentifier returns sane non-empty token.
 * - test_2: getDeviceFields contains required keys and types.
-* - test_3: getDeviceFields ad tracking consistency.
+* - test_3: getDeviceFields contains no advertising keys.
 *
 */
 final class DeviceInfoNoSeamsTests: XCTestCase {
@@ -24,15 +54,13 @@ final class DeviceInfoNoSeamsTests: XCTestCase {
     private static let expectedOS = "IOS"
     private static let expectedDeviceType = "mob"
 
-    private static let msgAdIdAbsent = "_ad_id must be absent when _ad_track == false"
-    private static let msgAdIdPresent = "_ad_id must be present when _ad_track == true"
-    private static let msgUUIDExpected = "Expected UUID-like string for _ad_id"
-
     private static let tzPattern = #"^[\+\-][0-9]{4}$"#
-    private static let uuidPattern = #"^[0-9a-fA-F]{8}\-[0-9a-fA-F]{4}\-[0-9a-fA-F]{4}\-[0-9a-fA-F]{4}\-[0-9a-fA-F]{12}$"#
-
-    private static let tzRegex = try! NSRegularExpression(pattern: tzPattern)
-    private static let uuidRegex = try! NSRegularExpression(pattern: uuidPattern)
+    private static let tzRegex: NSRegularExpression = {
+        guard let regex = try? NSRegularExpression(pattern: tzPattern) else {
+            fatalError("Invalid timezone pattern")
+        }
+        return regex
+    }()
 
     /// test_1: deviceIdentifier returns sane non-empty token
     func test_1_device_identifier_returns_sane_non_empty_token() {
@@ -62,7 +90,6 @@ final class DeviceInfoNoSeamsTests: XCTestCase {
         let requiredKeys: [String] = [
             "_os",
             "_os_tz",
-            "_ad_track",
             "_os_language",
             "_device_type",
             "_device_model",
@@ -76,7 +103,6 @@ final class DeviceInfoNoSeamsTests: XCTestCase {
 
         XCTAssertTrue(fields["_os"] is String)
         XCTAssertTrue(fields["_os_tz"] is String)
-        XCTAssertTrue(fields["_ad_track"] is Bool)
         XCTAssertTrue(fields["_os_language"] is String)
         XCTAssertTrue(fields["_device_type"] is String)
         XCTAssertTrue(fields["_device_model"] is String)
@@ -95,30 +121,13 @@ final class DeviceInfoNoSeamsTests: XCTestCase {
         }
     }
 
-    /// test_3: getDeviceFields ad tracking consistency
-    func test_3_get_device_fields_ad_tracking_consistency() async {
+    /// test_3: getDeviceFields contains no advertising tracking keys
+    func test_3_get_device_fields_has_no_advertising_keys() async {
         let fields = await MainActor.run {
             DeviceInfo.getDeviceFields().asDictionary()
         }
 
-        guard let adTrack = fields["_ad_track"] as? Bool else {
-            return XCTFail("_ad_track must be Bool")
-        }
-
-        let adId = fields["_ad_id"] as? String
-
-        if adTrack == false {
-            XCTAssertNil(adId, Self.msgAdIdAbsent)
-        } else {
-            XCTAssertNotNil(adId, Self.msgAdIdPresent)
-
-            if let adId {
-                let range = NSRange(location: 0, length: (adId as NSString).length)
-                XCTAssertNotNil(
-                    Self.uuidRegex.firstMatch(in: adId, range: range),
-                    "\(Self.msgUUIDExpected), got: \(adId)"
-                )
-            }
-        }
+        XCTAssertNil(fields["_ad_track"], "_ad_track must be absent")
+        XCTAssertNil(fields["_ad_id"], "_ad_id must be absent")
     }
 }

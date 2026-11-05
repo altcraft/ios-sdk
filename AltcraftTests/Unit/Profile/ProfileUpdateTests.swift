@@ -1,15 +1,45 @@
 //
 //  ProfileUpdateTests.swift
-//  AltcraftTests
+//  Altcraft
 //
 //  Created by Andrey Pogodin.
 //
 //  Copyright © 2026 Altcraft. All rights reserved.
-//
 
 import XCTest
 import CoreData
-@testable import Altcraft
+@testable import AltcraftCore
+@_spi(_Altcraft) import AltcraftCore
+#if canImport(AltcraftCore)
+@_spi(_Altcraft) import AltcraftCore
+#endif
+#if canImport(AltcraftPush)
+@_spi(_Altcraft) import AltcraftPush
+#endif
+#if canImport(AltcraftProfile)
+@_spi(_Altcraft) import AltcraftProfile
+#endif
+#if canImport(AltcraftInApp)
+@_spi(_Altcraft) import AltcraftInApp
+#endif
+#if canImport(AltcraftTarget)
+@_spi(_Altcraft) import AltcraftTarget
+#endif
+#if canImport(AltcraftCore)
+@testable import AltcraftCore
+#endif
+#if canImport(AltcraftPush)
+@testable import AltcraftPush
+#endif
+#if canImport(AltcraftProfile)
+@testable import AltcraftProfile
+#endif
+#if canImport(AltcraftInApp)
+@testable import AltcraftInApp
+#endif
+#if canImport(AltcraftTarget)
+@testable import AltcraftTarget
+#endif
 
 /**
  * ProfileUpdateTests
@@ -32,7 +62,7 @@ final class ProfileUpdateTests: IsolatedTestCase {
 
     override func setUpWithError() throws {
         try super.setUpWithError()
-        context = CoreDataManager.shared.getContext()
+        context = profileDatabase.getContext()
         try wipeUpdates()
     }
 
@@ -55,7 +85,7 @@ final class ProfileUpdateTests: IsolatedTestCase {
 
         context.performAndWait {
             let entity = NSEntityDescription.insertNewObject(
-                forEntityName: Constants.EntityNames.profileUpdateEntity,
+                forEntityName: ProfileConstants.EntityNames.profileUpdateEntity,
                 into: context
             )
 
@@ -113,7 +143,7 @@ final class ProfileUpdateTests: IsolatedTestCase {
         var objects: [ProfileUpdateEntity] = []
 
         context.performAndWait {
-            let req = NSFetchRequest<ProfileUpdateEntity>(entityName: Constants.EntityNames.profileUpdateEntity)
+            let req = NSFetchRequest<ProfileUpdateEntity>(entityName: ProfileConstants.EntityNames.profileUpdateEntity)
             objects = (try? context.fetch(req)) ?? []
         }
 
@@ -122,7 +152,7 @@ final class ProfileUpdateTests: IsolatedTestCase {
 
     private func wipeUpdates() throws {
         context.performAndWait {
-            let req = NSFetchRequest<NSFetchRequestResult>(entityName: Constants.EntityNames.profileUpdateEntity)
+            let req = NSFetchRequest<NSFetchRequestResult>(entityName: ProfileConstants.EntityNames.profileUpdateEntity)
 
             if let objects = try? context.fetch(req) as? [NSManagedObject] {
                 objects.forEach { context.delete($0) }
@@ -134,78 +164,17 @@ final class ProfileUpdateTests: IsolatedTestCase {
         }
     }
 
-    /// test_1: profileUpdateRequest builds valid POST JSON request with Authorization header
-    func test_1_profileUpdateRequest_builds_valid_post_json_request_with_auth() throws {
-        let data = ProfileUpdateRequestData(
-            url: "https://api.altcraft.test/profile",
-            requestId: "RID-\(UUID().uuidString)",
-            authHeader: "Bearer token",
-            profileFields: ["age": 30, "name": "Ann"],
-            skipTriggers: true
-        )
-
-        let request = profileUpdateRequest(data: data)
-
-        XCTAssertNotNil(request)
-        XCTAssertEqual(request?.httpMethod, "POST")
-        XCTAssertEqual(
-            request?.value(forHTTPHeaderField: Constants.HTTPHeader.authorization),
-            "Bearer token"
-        )
-
-        let contentType = request?.value(forHTTPHeaderField: Constants.HTTPHeader.contentType) ?? ""
-        XCTAssertTrue(contentType.contains("application/json"))
-
-        XCTAssertNotNil(request?.httpBody)
-
-        if let body = request?.httpBody {
-            XCTAssertNoThrow(try JSONSerialization.jsonObject(with: body, options: []))
-        }
-    }
-
     /// test_2: request with invalid objectID returns RetryEvent when request data cannot be built
     func test_2_request_with_invalid_objectID_returns_retry_event_when_request_data_cannot_be_built() async throws {
         let id = try makeUpdate()
         try deleteUpdate(by: id)
 
-        let event = await ProfileUpdate.shared.test_profile_update_request(
+        let event = await ProfileUpdateProcess.shared.test_profile_update_request(
             context: context,
             update: id
         )
 
         XCTAssertTrue(event is RetryEvent)
-    }
-
-    /// test_3: request with non-buildable payload returns RetryEvent when request cannot be created
-    func test_3_request_with_non_buildable_payload_returns_retry_event_when_request_cannot_be_created() async throws {
-        let id = try makeUpdate(profileFields: ["bad": Date()])
-
-        let event = await ProfileUpdate.shared.test_profile_update_request(
-            context: context,
-            update: id
-        )
-
-        XCTAssertTrue(event is RetryEvent)
-    }
-
-    /// test_4: processUpdate on RetryEvent path increments retryCount and returns true
-    func test_4_processUpdate_on_retry_event_path_increments_retryCount_and_returns_true() async throws {
-        let id = try makeUpdate(
-            profileFields: ["bad": Date()],
-            retryCount: 0,
-            maxRetryCount: 2
-        )
-
-        let shouldStopAndRetryLater = await ProfileUpdate.shared.test_profile_update_processUpdate(
-            context: context,
-            update: id
-        )
-
-        XCTAssertTrue(shouldStopAndRetryLater)
-
-        let updated = try XCTUnwrap(fetchUpdate(by: id))
-        XCTAssertEqual(updated.retryCount, 1)
-        XCTAssertEqual(updated.maxRetryCount, 2)
     }
 
     /// test_5: processUpdate on max retry deletes entity and returns false
@@ -216,7 +185,7 @@ final class ProfileUpdateTests: IsolatedTestCase {
             maxRetryCount: 0
         )
 
-        let shouldStopAndRetryLater = await ProfileUpdate.shared.test_profile_update_processUpdate(
+        let shouldStopAndRetryLater = await ProfileUpdateProcess.shared.test_profile_update_processUpdate(
             context: context,
             update: id
         )
@@ -225,42 +194,9 @@ final class ProfileUpdateTests: IsolatedTestCase {
         XCTAssertNil(try fetchUpdate(by: id))
     }
 
-    /// test_6: processUpdates stops on the first retrying entity and leaves the next one untouched
-    func test_6_processUpdates_stops_on_the_first_retrying_entity_and_leaves_the_next_one_untouched() async throws {
-        let tag = "user-stop-chain-\(UUID().uuidString)"
-
-        let firstID = try makeUpdate(
-            userTag: tag,
-            time: 1,
-            profileFields: ["bad": Date()],
-            retryCount: 0,
-            maxRetryCount: 2
-        )
-
-        let secondID = try makeUpdate(
-            userTag: tag,
-            time: 2,
-            profileFields: ["age": 30, "name": "Ann"],
-            retryCount: 0,
-            maxRetryCount: 2
-        )
-
-        let result = await ProfileUpdate.shared.test_profile_update_processUpdates(
-            userTag: tag
-        )
-
-        XCTAssertFalse(result)
-
-        let firstUpdated = try XCTUnwrap(fetchUpdate(by: firstID))
-        XCTAssertEqual(firstUpdated.retryCount, 1)
-
-        let secondUpdated = try XCTUnwrap(fetchUpdate(by: secondID))
-        XCTAssertEqual(secondUpdated.retryCount, 0)
-    }
-
     /// test_7: processUpdates with empty queue returns true
-    func test_7_processUpdates_with_empty_queue_returns_true() async {
-        let result = await ProfileUpdate.shared.test_profile_update_processUpdates(
+    func test_7_processUpdates_with_empty_queue_returns_true() async throws {
+        let result = try await ProfileUpdateProcess.shared.test_profile_update_processUpdates(
             userTag: "missing-\(UUID().uuidString)"
         )
 
@@ -310,5 +246,228 @@ final class ProfileUpdateTests: IsolatedTestCase {
 
         let all = try fetchAllUpdates()
         XCTAssertTrue(all.isEmpty)
+    }
+}
+
+// Lifecycle regression coverage uses the real runtime registration path.
+extension ProfileUpdateTests {
+    func test_linked_modules_register_without_facade_access() async {
+        await ModuleRegistry.shared.unregister(ProfileConstants.Module.id)
+        await ModuleRegistry.shared.unregister(TargetConstants.Module.id)
+        await ModuleRegistry.shared.registerLinkedModules()
+        let ids = await ModuleRegistry.shared.allModules().map(\.moduleId)
+        XCTAssertTrue(ids.contains(ProfileConstants.Module.id))
+        XCTAssertTrue(ids.contains(TargetConstants.Module.id))
+    }
+
+    func test_clear_removes_profile_and_target_pending_data() async throws {
+        _ = try makeUpdate()
+        let targetContext = targetDatabase.getContext()
+        try await targetContext.performAsync {
+            let entity = TargetEntity(context: targetContext)
+            entity.userTag = "old-user"
+            entity.requestId = UUID().uuidString
+            try targetContext.save()
+        }
+        await ModuleRegistry.shared.unregister(ProfileConstants.Module.id)
+        await ModuleRegistry.shared.unregister(TargetConstants.Module.id)
+        await withCheckedContinuation { continuation in
+            AltcraftSDK.clear { continuation.resume() }
+        }
+        let profiles = try await profileDatabase.performBackgroundTask { context in
+            try context.count(for: ProfileUpdateEntity.fetchRequest())
+        }
+        let targets = try await targetDatabase.performBackgroundTask { context in
+            try context.count(for: TargetEntity.fetchRequest())
+        }
+        XCTAssertEqual(profiles, 0)
+        XCTAssertEqual(targets, 0)
+    }
+
+    func test_rtoken_change_clears_pending_profile_data() async throws {
+        // Start from a clean persisted token so the first save is the
+        // "first saved token" case (no notification).
+        StoredVariablesManager.shared.setCurrentRToken(value: nil)
+
+        let initialSaved = await ConfigManager.shared.setConfig(
+            AltcraftConfiguration.Builder(
+                apiUrl: "https://example.invalid",
+                rToken: "old"
+            )
+            .build()
+        )
+        XCTAssertTrue(initialSaved)
+
+        // Persist the first token (Android parity: the comparison runs
+        // after the configuration is installed).
+        await RTokenChange.shared.checkFromConfig()
+
+        _ = try makeUpdate()
+        let targetContext = targetDatabase.getContext()
+        try await targetContext.performAsync {
+            let entity = TargetEntity(context: targetContext)
+            entity.userTag = "old-user"
+            entity.requestId = UUID().uuidString
+            try targetContext.save()
+        }
+        await ModuleRegistry.shared.unregister(ProfileConstants.Module.id)
+        await ModuleRegistry.shared.unregister(TargetConstants.Module.id)
+        let saved = await ConfigManager.shared.setConfig(
+            AltcraftConfiguration.Builder(
+                apiUrl: "https://example.invalid",
+                rToken: "new"
+            )
+            .build()
+        )
+        XCTAssertTrue(saved)
+
+        // A previously saved token that differs from the new one notifies
+        // the modules (Android parity, `RTokenChange`).
+        await RTokenChange.shared.checkFromConfig()
+
+        let targets = try await targetDatabase.performBackgroundTask { context in
+            try context.count(for: TargetEntity.fetchRequest())
+        }
+        XCTAssertEqual(targets, 0)
+        let count = try await profileDatabase.performBackgroundTask { context in
+            try context.count(for: ProfileUpdateEntity.fetchRequest())
+        }
+        XCTAssertEqual(count, 0)
+
+        StoredVariablesManager.shared.setCurrentRToken(value: nil)
+    }
+
+    func test_queue_reset_invalidates_running_request_context() async {
+        let queue = SerialCommandQueue(label: "test.lifecycle.epoch", usesEpoch: true)
+        let entered = expectation(description: "entered")
+        let finished = expectation(description: "finished")
+        let gate = LifecycleTestGate()
+        queue.submit {
+            entered.fulfill()
+            await gate.wait()
+            XCTAssertFalse(SerialCommandQueue.isCurrent())
+            XCTAssertFalse(SerialCommandQueue.performIfCurrent {
+                XCTFail("An invalidated queue must not start a request")
+            })
+            finished.fulfill()
+        }
+        await fulfillment(of: [entered], timeout: 2)
+        queue.reset()
+        await gate.open()
+        await fulfillment(of: [finished], timeout: 2)
+    }
+
+    // MARK: - Init waiting
+
+    /// Stores the SDK configuration directly (bypasses `CoreConfigDao.save`
+    /// so no rToken-change notifications reach registered modules).
+    private func storeConfig(apiUrl: String, rToken: String) {
+        let sdkContext = CoreDataManager.shared.getContext()
+
+        sdkContext.performAndWait {
+            let request = NSFetchRequest<NSFetchRequestResult>(
+                entityName: Constants.EntityNames.configurationEntity
+            )
+            request.includesPropertyValues = false
+
+            if let stale = try? sdkContext.fetch(request) as? [NSManagedObject] {
+                stale.forEach { sdkContext.delete($0) }
+            }
+
+            let entity = NSEntityDescription.insertNewObject(
+                forEntityName: Constants.EntityNames.configurationEntity,
+                into: sdkContext
+            )
+            entity.setValue(apiUrl, forKey: "url")
+            entity.setValue(rToken, forKey: "rToken")
+
+            try? sdkContext.save()
+        }
+    }
+
+    /// Resets the shared init barrier to a fresh (incomplete) gate.
+    private func resetBarrierToFreshGate() async -> InitGate {
+        let current = await InitBarrier.shared.current()
+        await InitBarrier.shared.complete(current)
+        try? await Task.sleep(nanoseconds: 10_000_000)
+
+        var gate = await InitBarrier.shared.reserve()
+        var attempts = 0
+
+        while await gate.completed(), attempts < 5 {
+            await InitBarrier.shared.complete(gate)
+            try? await Task.sleep(nanoseconds: 10_000_000)
+            gate = await InitBarrier.shared.reserve()
+            attempts += 1
+        }
+
+        return gate
+    }
+
+    /// test_10: updateProfileFields waits for SDK initialization before processing
+    ///
+    /// An update submitted before `initialization` completes must not be
+    /// dropped: the process waits on the init barrier and stores the update
+    /// once the configuration is installed (Android parity,
+    /// `submitSdkCommand` with `initAwait = true`).
+    func test_10_updateProfileFields_waitsForInit_thenProcesses() async throws {
+        // Configuration is present, but initialization has not completed.
+        storeConfig(apiUrl: "://invalid", rToken: "rt-init-test")
+        await ConfigManager.shared.clearCache()
+
+        let gate = await resetBarrierToFreshGate()
+
+        let baseline = try await profileDatabase.performBackgroundTask { context in
+            try context.count(for: ProfileUpdateEntity.fetchRequest())
+        }
+        XCTAssertEqual(baseline, 0)
+
+        async let run: Void = ProfileUpdateProcess.shared.updateProfileFields(
+            profileFields: encodeAnyMap(["age": 30])
+        )
+
+        // While initialization is incomplete the update must not be processed.
+        try? await Task.sleep(nanoseconds: 200_000_000)
+        let during = try await profileDatabase.performBackgroundTask { context in
+            try context.count(for: ProfileUpdateEntity.fetchRequest())
+        }
+        XCTAssertEqual(during, baseline)
+
+        // Completing initialization releases the waiting update.
+        await InitBarrier.shared.complete(gate)
+        _ = await run
+
+        // The submitted job returns as soon as it is enqueued, so poll for
+        // the stored update instead of asserting immediately.
+        var processed = baseline
+        for _ in 0..<60 {
+            processed = try await profileDatabase.performBackgroundTask { context in
+                try context.count(for: ProfileUpdateEntity.fetchRequest())
+            }
+            if processed == baseline + 1 {
+                break
+            }
+            try? await Task.sleep(nanoseconds: 50_000_000)
+        }
+
+        XCTAssertEqual(
+            processed,
+            baseline + 1,
+            "update must be stored after initialization completes"
+        )
+    }
+}
+
+private actor LifecycleTestGate {
+    private var opened = false
+    private var continuation: CheckedContinuation<Void, Never>?
+    func wait() async {
+        if opened { return }
+        await withCheckedContinuation { continuation = $0 }
+    }
+    func open() {
+        opened = true
+        continuation?.resume()
+        continuation = nil
     }
 }

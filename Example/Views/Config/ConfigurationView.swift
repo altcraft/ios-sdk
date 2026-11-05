@@ -1,15 +1,14 @@
 //
 //  ConfigurationView.swift
-//  Example
+//  Altcraft
 //
 //  Created by Andrey Pogodin.
 //
-//  Copyright © 2025 Altcraft. All rights reserved.
+//  Copyright © 2026 Altcraft. All rights reserved.
 
 import SwiftUI
-import Altcraft
 
-
+/// SDK configuration screen entry.
 struct ConfigurationView: View {
     
     var body: some View {
@@ -40,7 +39,4 @@ struct ConfigurationView: View {
         .ignoresSafeArea(.container, edges: .top)
     }
 }
-
-
-
 

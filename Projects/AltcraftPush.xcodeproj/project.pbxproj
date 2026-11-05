@@ -1,0 +1,921 @@
+// !$*UTF8*$!
+{
+	archiveVersion = 1;
+	classes = {
+	};
+	objectVersion = 77;
+	objects = {
+
+/* Begin PBXBuildFile section */
+		013169873F467C5A8BA5F358 /* EventRequest.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5E50B5F8D9CA1CE500FB6869 /* EventRequest.swift */; };
+		01A13E3362CBF3BE25E68379 /* UnSuspendRequest.swift in Sources */ = {isa = PBXBuildFile; fileRef = 797F00B10CF7B54C13ADD21E /* UnSuspendRequest.swift */; };
+		0B604428453AD3108930556E /* PushStatusWorker.swift in Sources */ = {isa = PBXBuildFile; fileRef = BC46D33DBE911B750538D64C /* PushStatusWorker.swift */; };
+		0EC9DE62091ED4DAC4076C4D /* PushModuleEvents.swift in Sources */ = {isa = PBXBuildFile; fileRef = C6E9B16E92B55EC2DDB1984B /* PushModuleEvents.swift */; };
+		0F48E33857AF2D7C4F78C1F7 /* AltcraftNSE+Push.swift in Sources */ = {isa = PBXBuildFile; fileRef = 41BB82159B28DA0A56D70318 /* AltcraftNSE+Push.swift */; };
+		2266CAD1C030480816BE34D2 /* ConfigExtension.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4A545ED0EEC4E59547728112 /* ConfigExtension.swift */; };
+		340F67EDD5B8D8A769073284 /* PushEventWorker.swift in Sources */ = {isa = PBXBuildFile; fileRef = 19607E25DE55E585EBA3CAA8 /* PushEventWorker.swift */; };
+		34DF2540F7A66BB30B8F998D /* PushEnvironment.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7CB443B7F7DE1EF38099DD3C /* PushEnvironment.swift */; };
+		3651E2DA08FC260AF0112EAE /* TokenManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8855E6D8DABC2F8F2201EC40 /* TokenManager.swift */; };
+		3D5DD2A5F9A646F1BC4D4A82 /* Push.swift in Sources */ = {isa = PBXBuildFile; fileRef = 314DB63CB2F4F4CC3BEAAE43 /* Push.swift */; };
+		41988D3599E2925F89346617 /* SubscriptionAPI.swift in Sources */ = {isa = PBXBuildFile; fileRef = F72D68AEB114C7370FE62125 /* SubscriptionAPI.swift */; };
+		53BA4970C4AF7647A30CF45C /* PushSubscribe.swift in Sources */ = {isa = PBXBuildFile; fileRef = 708B00427FB9EAF6C7C49F9E /* PushSubscribe.swift */; };
+		5CC73CDCAC7B693601244DF1 /* FCMInterface.swift in Sources */ = {isa = PBXBuildFile; fileRef = 41067BFA9A7FB61153C6FF78 /* FCMInterface.swift */; };
+		5D08A5D7174A6C65244A1B4F /* StatusRequest.swift in Sources */ = {isa = PBXBuildFile; fileRef = 37E6414775BF3FA6E3CDC8D8 /* StatusRequest.swift */; };
+		62F1573FFA27FD4D9D5876B2 /* SubscriptionRequest.swift in Sources */ = {isa = PBXBuildFile; fileRef = 36CACEAE3A36AB361EE75212 /* SubscriptionRequest.swift */; };
+		6A23D3E8E11BEFA8E7AD7104 /* PushConfiguration.swift in Sources */ = {isa = PBXBuildFile; fileRef = C96F53CFDF133DA4E54C9ABC /* PushConfiguration.swift */; };
+		6F25D86584AAB7CFE4C97E26 /* Push.xcdatamodeld in Resources */ = {isa = PBXBuildFile; fileRef = AE7BB15FC4C80C30C7CD8690 /* Push.xcdatamodeld */; };
+		7373EEA399DF50CE9FC5A247 /* PushRetry.swift in Sources */ = {isa = PBXBuildFile; fileRef = 845470594054921D3CC30729 /* PushRetry.swift */; };
+		7CB324E4838896B6CA8C0DD2 /* HMSInterface.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4215F4C9873B4A45A6A9E83F /* HMSInterface.swift */; };
+		85EB0A909B1EB48FFCBEB5FC /* PushLog.swift in Sources */ = {isa = PBXBuildFile; fileRef = ACEF8FEBD76D0F9262BA6A99 /* PushLog.swift */; };
+		8A4428B4BB699F67F44C1BE7 /* PushSubscribeEntity+CoreDataProperties.swift in Sources */ = {isa = PBXBuildFile; fileRef = C4D894A504B07C436EAB94D0 /* PushSubscribeEntity+CoreDataProperties.swift */; };
+		8DBE846C2126000B679477C0 /* PushSubscribeEntity+CoreDataClass.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1274A6CEDC57B9A2AE22B9E0 /* PushSubscribeEntity+CoreDataClass.swift */; };
+		AA10B0000000000000000001 /* PushDatabase.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA10F0000000000000000001 /* PushDatabase.swift */; };
+		AA10B0000000000000000002 /* PushConfigDao.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA10F0000000000000000002 /* PushConfigDao.swift */; };
+		AA10B0000000000000000003 /* PushEventDao.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA10F0000000000000000003 /* PushEventDao.swift */; };
+		AA10B0000000000000000004 /* PushSubscribeDao.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA10F0000000000000000004 /* PushSubscribeDao.swift */; };
+		AA10B0000000000000000005 /* PushConfigEntity+CoreDataClass.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA10F0000000000000000005 /* PushConfigEntity+CoreDataClass.swift */; };
+		AA10B0000000000000000006 /* PushConfigEntity+CoreDataProperties.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA10F0000000000000000006 /* PushConfigEntity+CoreDataProperties.swift */; };
+		AA10B0000000000000000007 /* TokenDataObjC.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA10F0000000000000000007 /* TokenDataObjC.swift */; };
+		AA10B0000000000000000008 /* ImageFormat.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA10F0000000000000000008 /* ImageFormat.swift */; };
+		AA10B0000000000000000009 /* AltcraftCore.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = AA10R0000000000000000001 /* AltcraftCore.framework */; };
+		927CB86B2DCB88ECC33BDA72 /* AltcraftPush.podspec in Resources */ = {isa = PBXBuildFile; fileRef = E83493C63B7DF917B780DBFB /* AltcraftPush.podspec */; };
+		94409DE141CAC255F057FA57 /* RetryTrackable+Push.swift in Sources */ = {isa = PBXBuildFile; fileRef = ED133C1E7EDBCE517FBDBEFC /* RetryTrackable+Push.swift */; };
+		9514F0D0CAF61188B5AA0F75 /* NotificationManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = BF2198695FC3A0648558DDF5 /* NotificationManager.swift */; };
+		9652D2B704F97C9640F41A0F /* AltcraftPushReceiver.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6AE74A32522C7F84E2BFE3EE /* AltcraftPushReceiver.swift */; };
+		99B897686FF025EAE4BF2747 /* PushConfigManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 92583E23D5F614B425F1924D /* PushConfigManager.swift */; };
+		9F2FF4667607B8A5551C44E3 /* PushAction.swift in Sources */ = {isa = PBXBuildFile; fileRef = F726100759B8C92EF35206A9 /* PushAction.swift */; };
+		AA23BDD5692C76C24594787F /* PushTokenWorker.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1B480C96D3D361492A66E8A2 /* PushTokenWorker.swift */; };
+		AD778D7949E2B69AEC33B79D /* EventAPI.swift in Sources */ = {isa = PBXBuildFile; fileRef = FD8B000369479DFF79914AAA /* EventAPI.swift */; };
+		AD86D84A408B543F1EF76295 /* PushEventEntity+CoreDataProperties.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6F96A492C766376081E645C5 /* PushEventEntity+CoreDataProperties.swift */; };
+		B2F8006697464A2FDF4244B4 /* PushSubscriptionWorker.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0A01FD2D51B3FEFB773C7A97 /* PushSubscriptionWorker.swift */; };
+		B4C1D904EA2D0A071A49E927 /* PushEvent.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2365439DEDA21EA2CD6FCF5C /* PushEvent.swift */; };
+		B6555103E12378EB613112B8 /* APNSInterface.swift in Sources */ = {isa = PBXBuildFile; fileRef = 65D36EBB38A37DEF84546AEE /* APNSInterface.swift */; };
+		B79DCC82B5352B92A193D3D4 /* PushConstants.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5FC68F3CF1DEBCB6CBAAB8ED /* PushConstants.swift */; };
+		BE6EB959A1A826EDEB0E8DB8 /* UpdateRequest.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9703650CA9EB621F8F1F3240 /* UpdateRequest.swift */; };
+		C20874668D3A0A68D5F933C2 /* PushRequestDataFactory.swift in Sources */ = {isa = PBXBuildFile; fileRef = D5F78465FC847EE89D339512 /* PushRequestDataFactory.swift */; };
+		D01C96EF5611CC7AAB57ED05 /* PushStatus.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8C1180D0568588BF506B70B8 /* PushStatus.swift */; };
+		D3690C936A4BC0A26EAD8BCA /* TokenAPI.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9E7BD3AC146A0C25B1FBC4C6 /* TokenAPI.swift */; };
+		DB532C3DC93CAB3A57A5A7D0 /* TokenData.swift in Sources */ = {isa = PBXBuildFile; fileRef = E9BCAA94AE733576B653A5C4 /* TokenData.swift */; };
+		E50885B4B1F8AD8876D9C82C /* PushModuleLifecycle.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0CE6DC74268F956E70A7756B /* PushModuleLifecycle.swift */; };
+		E999DA76FA562ED3975D92DF /* PushEventEntity+CoreDataClass.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4ECFA71F7F1A4682B87E4BC7 /* PushEventEntity+CoreDataClass.swift */; };
+		F6A0C7BC16FBCF943A6C0388 /* TokenUpdate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7602A3EEA48E8278A6D08E0E /* TokenUpdate.swift */; };
+		FF676D54CD521C3CDDAE03A8 /* PushSubscribeQueues.swift in Sources */ = {isa = PBXBuildFile; fileRef = B9DDF33690DB518A3DA633D3 /* PushSubscribeQueues.swift */; };
+		FFC65022896FFA6ED065735D /* PushStoredVariables.swift in Sources */ = {isa = PBXBuildFile; fileRef = B623418052A62952BCEAADD3 /* PushStoredVariables.swift */; };
+		AA10B000000000000000000A /* PushMessageDao.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA10F0000000000000000009 /* PushMessageDao.swift */; };
+		AA10B000000000000000000B /* PushMessageEntity+CoreDataClass.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA10F000000000000000000A /* PushMessageEntity+CoreDataClass.swift */; };
+		AA10B000000000000000000C /* PushMessageEntity+CoreDataProperties.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA10F000000000000000000B /* PushMessageEntity+CoreDataProperties.swift */; };
+/* End PBXBuildFile section */
+
+/* Begin PBXContainerItemProxy section */
+		AA10P0000000000000000001 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = FBC3AD543F1AF24EC62472E9 /* AltcraftCore.xcodeproj */;
+			proxyType = 1;
+			remoteGlobalIDString = 9592C894CF92FAD2E3147581;
+			remoteInfo = AltcraftCore;
+		};
+		AA10P0000000000000000002 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = FBC3AD543F1AF24EC62472E9 /* AltcraftCore.xcodeproj */;
+			proxyType = 2;
+			remoteGlobalIDString = 7880C4A7CFE12EB1073DF7C2;
+			remoteInfo = AltcraftCore;
+		};
+/* End PBXContainerItemProxy section */
+
+/* Begin PBXFileReference section */
+		0A01FD2D51B3FEFB773C7A97 /* PushSubscriptionWorker.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PushSubscriptionWorker.swift; sourceTree = "<group>"; };
+		0CE6DC74268F956E70A7756B /* PushModuleLifecycle.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ../Altcraft/Push/infra/PushModuleLifecycle.swift; sourceTree = SOURCE_ROOT; };
+		1274A6CEDC57B9A2AE22B9E0 /* PushSubscribeEntity+CoreDataClass.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "PushSubscribeEntity+CoreDataClass.swift"; sourceTree = "<group>"; };
+		19607E25DE55E585EBA3CAA8 /* PushEventWorker.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PushEventWorker.swift; sourceTree = "<group>"; };
+		1B480C96D3D361492A66E8A2 /* PushTokenWorker.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PushTokenWorker.swift; sourceTree = "<group>"; };
+		2365439DEDA21EA2CD6FCF5C /* PushEvent.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PushEvent.swift; sourceTree = "<group>"; };
+		314DB63CB2F4F4CC3BEAAE43 /* Push.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Push.swift; sourceTree = "<group>"; };
+		36CACEAE3A36AB361EE75212 /* SubscriptionRequest.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SubscriptionRequest.swift; sourceTree = "<group>"; };
+		37E6414775BF3FA6E3CDC8D8 /* StatusRequest.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StatusRequest.swift; sourceTree = "<group>"; };
+		AA10F0000000000000000001 /* PushDatabase.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PushDatabase.swift; sourceTree = "<group>"; };
+		AA10F0000000000000000002 /* PushConfigDao.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PushConfigDao.swift; sourceTree = "<group>"; };
+		AA10F0000000000000000003 /* PushEventDao.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PushEventDao.swift; sourceTree = "<group>"; };
+		AA10F0000000000000000004 /* PushSubscribeDao.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PushSubscribeDao.swift; sourceTree = "<group>"; };
+		AA10F0000000000000000005 /* PushConfigEntity+CoreDataClass.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "PushConfigEntity+CoreDataClass.swift"; sourceTree = "<group>"; };
+		AA10F0000000000000000006 /* PushConfigEntity+CoreDataProperties.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "PushConfigEntity+CoreDataProperties.swift"; sourceTree = "<group>"; };
+		AA10F0000000000000000007 /* TokenDataObjC.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TokenDataObjC.swift; sourceTree = "<group>"; };
+		AA10F0000000000000000008 /* ImageFormat.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ImageFormat.swift; sourceTree = "<group>"; };
+		41067BFA9A7FB61153C6FF78 /* FCMInterface.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FCMInterface.swift; sourceTree = "<group>"; };
+		41BB82159B28DA0A56D70318 /* AltcraftNSE+Push.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "AltcraftNSE+Push.swift"; sourceTree = "<group>"; };
+		4215F4C9873B4A45A6A9E83F /* HMSInterface.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HMSInterface.swift; sourceTree = "<group>"; };
+		4A545ED0EEC4E59547728112 /* ConfigExtension.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ConfigExtension.swift; sourceTree = "<group>"; };
+		4ECFA71F7F1A4682B87E4BC7 /* PushEventEntity+CoreDataClass.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "PushEventEntity+CoreDataClass.swift"; sourceTree = "<group>"; };
+		5E50B5F8D9CA1CE500FB6869 /* EventRequest.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = EventRequest.swift; sourceTree = "<group>"; };
+		5FC68F3CF1DEBCB6CBAAB8ED /* PushConstants.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PushConstants.swift; sourceTree = "<group>"; };
+		65D36EBB38A37DEF84546AEE /* APNSInterface.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = APNSInterface.swift; sourceTree = "<group>"; };
+		6AE74A32522C7F84E2BFE3EE /* AltcraftPushReceiver.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AltcraftPushReceiver.swift; sourceTree = "<group>"; };
+		6F96A492C766376081E645C5 /* PushEventEntity+CoreDataProperties.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "PushEventEntity+CoreDataProperties.swift"; sourceTree = "<group>"; };
+		708B00427FB9EAF6C7C49F9E /* PushSubscribe.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PushSubscribe.swift; sourceTree = "<group>"; };
+		7602A3EEA48E8278A6D08E0E /* TokenUpdate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TokenUpdate.swift; sourceTree = "<group>"; };
+		797F00B10CF7B54C13ADD21E /* UnSuspendRequest.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = UnSuspendRequest.swift; sourceTree = "<group>"; };
+		7CB443B7F7DE1EF38099DD3C /* PushEnvironment.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PushEnvironment.swift; sourceTree = "<group>"; };
+		845470594054921D3CC30729 /* PushRetry.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PushRetry.swift; sourceTree = "<group>"; };
+		8855E6D8DABC2F8F2201EC40 /* TokenManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TokenManager.swift; sourceTree = "<group>"; };
+		8C1180D0568588BF506B70B8 /* PushStatus.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PushStatus.swift; sourceTree = "<group>"; };
+		92583E23D5F614B425F1924D /* PushConfigManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PushConfigManager.swift; sourceTree = "<group>"; };
+		9703650CA9EB621F8F1F3240 /* UpdateRequest.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = UpdateRequest.swift; sourceTree = "<group>"; };
+		98BDE201250CEF49DECD77C0 /* Push.xcdatamodel */ = {isa = PBXFileReference; lastKnownFileType = wrapper.xcdatamodel; path = Push.xcdatamodel; sourceTree = "<group>"; };
+		9E7BD3AC146A0C25B1FBC4C6 /* TokenAPI.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TokenAPI.swift; sourceTree = "<group>"; };
+		ACEF8FEBD76D0F9262BA6A99 /* PushLog.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PushLog.swift; sourceTree = "<group>"; };
+		AE8FF99EC1C7455A2A1192CF /* AltcraftPush.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; includeInIndex = 0; path = AltcraftPush.framework; sourceTree = BUILT_PRODUCTS_DIR; };
+		B623418052A62952BCEAADD3 /* PushStoredVariables.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PushStoredVariables.swift; sourceTree = "<group>"; };
+		B9DDF33690DB518A3DA633D3 /* PushSubscribeQueues.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PushSubscribeQueues.swift; sourceTree = "<group>"; };
+		BC46D33DBE911B750538D64C /* PushStatusWorker.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PushStatusWorker.swift; sourceTree = "<group>"; };
+		BF2198695FC3A0648558DDF5 /* NotificationManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NotificationManager.swift; sourceTree = "<group>"; };
+		C4D894A504B07C436EAB94D0 /* PushSubscribeEntity+CoreDataProperties.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "PushSubscribeEntity+CoreDataProperties.swift"; sourceTree = "<group>"; };
+		C6E9B16E92B55EC2DDB1984B /* PushModuleEvents.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PushModuleEvents.swift; sourceTree = "<group>"; };
+		C96F53CFDF133DA4E54C9ABC /* PushConfiguration.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PushConfiguration.swift; sourceTree = "<group>"; };
+		D5F78465FC847EE89D339512 /* PushRequestDataFactory.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PushRequestDataFactory.swift; sourceTree = "<group>"; };
+		E83493C63B7DF917B780DBFB /* AltcraftPush.podspec */ = {isa = PBXFileReference; path = ../AltcraftPush.podspec; sourceTree = SOURCE_ROOT; };
+		E9BCAA94AE733576B653A5C4 /* TokenData.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TokenData.swift; sourceTree = "<group>"; };
+		ED133C1E7EDBCE517FBDBEFC /* RetryTrackable+Push.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "RetryTrackable+Push.swift"; sourceTree = "<group>"; };
+		F726100759B8C92EF35206A9 /* PushAction.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PushAction.swift; sourceTree = "<group>"; };
+		F72D68AEB114C7370FE62125 /* SubscriptionAPI.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SubscriptionAPI.swift; sourceTree = "<group>"; };
+		FBC3AD543F1AF24EC62472E9 /* AltcraftCore.xcodeproj */ = {isa = PBXFileReference; lastKnownFileType = "wrapper.pb-project"; path = AltcraftCore.xcodeproj; sourceTree = "<group>"; };
+		FD8B000369479DFF79914AAA /* EventAPI.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = EventAPI.swift; sourceTree = "<group>"; };
+		AA10F0000000000000000009 /* PushMessageDao.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "PushMessageDao.swift"; sourceTree = "<group>"; };
+		AA10F000000000000000000A /* PushMessageEntity+CoreDataClass.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "PushMessageEntity+CoreDataClass.swift"; sourceTree = "<group>"; };
+		AA10F000000000000000000B /* PushMessageEntity+CoreDataProperties.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "PushMessageEntity+CoreDataProperties.swift"; sourceTree = "<group>"; };
+/* End PBXFileReference section */
+
+/* Begin PBXFrameworksBuildPhase section */
+		B4B614CB9CD331DD07C32A39 /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				AA10B0000000000000000009 /* AltcraftCore.framework in Frameworks */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXFrameworksBuildPhase section */
+
+/* Begin PBXGroup section */
+		00BB291F206FCB72BED36399 /* .swiftpm */ = {
+			isa = PBXGroup;
+			children = (
+				F2775EBF9F93E4485D7862B6 /* xcode */,
+			);
+			path = .swiftpm;
+			sourceTree = "<group>";
+		};
+		0AC6805E629C3754BAB15C0E /* util */ = {
+			isa = PBXGroup;
+			children = (
+				AA10F0000000000000000008 /* ImageFormat.swift */,
+				ACEF8FEBD76D0F9262BA6A99 /* PushLog.swift */,
+			);
+			path = util;
+			sourceTree = "<group>";
+		};
+		153456438CEB04778A8C3599 /* entity */ = {
+			isa = PBXGroup;
+			children = (
+				AA10F0000000000000000005 /* PushConfigEntity+CoreDataClass.swift */,
+				AA10F0000000000000000006 /* PushConfigEntity+CoreDataProperties.swift */,
+				AA10F000000000000000000A /* PushMessageEntity+CoreDataClass.swift */,
+				AA10F000000000000000000B /* PushMessageEntity+CoreDataProperties.swift */,
+				4ECFA71F7F1A4682B87E4BC7 /* PushEventEntity+CoreDataClass.swift */,
+				6F96A492C766376081E645C5 /* PushEventEntity+CoreDataProperties.swift */,
+				1274A6CEDC57B9A2AE22B9E0 /* PushSubscribeEntity+CoreDataClass.swift */,
+				C4D894A504B07C436EAB94D0 /* PushSubscribeEntity+CoreDataProperties.swift */,
+			);
+			path = entity;
+			sourceTree = "<group>";
+		};
+		1EF81FC441509807379052B7 /* Products */ = {
+			isa = PBXGroup;
+			children = (
+				AE8FF99EC1C7455A2A1192CF /* AltcraftPush.framework */,
+			);
+			name = Products;
+			sourceTree = "<group>";
+		};
+		24F8884DC7A1D3EF95FDC45E /* action */ = {
+			isa = PBXGroup;
+			children = (
+				F726100759B8C92EF35206A9 /* PushAction.swift */,
+			);
+			path = action;
+			sourceTree = "<group>";
+		};
+		2681758A15952DD49010F221 /* worker */ = {
+			isa = PBXGroup;
+			children = (
+				19607E25DE55E585EBA3CAA8 /* PushEventWorker.swift */,
+			);
+			path = worker;
+			sourceTree = "<group>";
+		};
+		2FFB741A5907E5DF794A90B4 /* unsuspend */ = {
+			isa = PBXGroup;
+			children = (
+				DA844598120290012A250F9B /* request */,
+			);
+			path = unsuspend;
+			sourceTree = "<group>";
+		};
+		300285238C03E3102F6BCE98 /* notification */ = {
+			isa = PBXGroup;
+			children = (
+				BF2198695FC3A0648558DDF5 /* NotificationManager.swift */,
+			);
+			path = notification;
+			sourceTree = "<group>";
+		};
+		31FD9CCCBBC0E7BEAD9EC5EE /* provider */ = {
+			isa = PBXGroup;
+			children = (
+				65D36EBB38A37DEF84546AEE /* APNSInterface.swift */,
+				41067BFA9A7FB61153C6FF78 /* FCMInterface.swift */,
+				4215F4C9873B4A45A6A9E83F /* HMSInterface.swift */,
+			);
+			path = provider;
+			sourceTree = "<group>";
+		};
+		3824DA522785601E31C6D093 /* request */ = {
+			isa = PBXGroup;
+			children = (
+				36CACEAE3A36AB361EE75212 /* SubscriptionRequest.swift */,
+			);
+			path = request;
+			sourceTree = "<group>";
+		};
+		3AB60625024AF889161816AE /* Frameworks */ = {
+			isa = PBXGroup;
+			children = (
+				FBC3AD543F1AF24EC62472E9 /* AltcraftCore.xcodeproj */,
+			);
+			name = Frameworks;
+			sourceTree = "<group>";
+		};
+		3B5C0F9DF88F49C0AAD773B3 /* worker */ = {
+			isa = PBXGroup;
+			children = (
+				0A01FD2D51B3FEFB773C7A97 /* PushSubscriptionWorker.swift */,
+			);
+			path = worker;
+			sourceTree = "<group>";
+		};
+		47E6E9C1D79D882D8E92B51F /* repositories */ = {
+			isa = PBXGroup;
+			children = (
+				ED133C1E7EDBCE517FBDBEFC /* RetryTrackable+Push.swift */,
+			);
+			path = repositories;
+			sourceTree = "<group>";
+		};
+		48080216AEFD1AE64281C1A5 /* platform */ = {
+			isa = PBXGroup;
+			children = (
+				A2418A2526F8AD41BFE17D1A /* event */,
+				C2B06DDAEB055601E1E3337A /* subscription */,
+				CC5D20C689758F9CE3127695 /* token */,
+			);
+			path = platform;
+			sourceTree = "<group>";
+		};
+		543BBA8FCEF80E6D7250E980 /* config */ = {
+			isa = PBXGroup;
+			children = (
+				4A545ED0EEC4E59547728112 /* ConfigExtension.swift */,
+				92583E23D5F614B425F1924D /* PushConfigManager.swift */,
+				C96F53CFDF133DA4E54C9ABC /* PushConfiguration.swift */,
+			);
+			path = config;
+			sourceTree = "<group>";
+		};
+		622FE68BBD6B67C4C15B346E /* infra */ = {
+			isa = PBXGroup;
+			children = (
+				0CE6DC74268F956E70A7756B /* PushModuleLifecycle.swift */,
+			);
+			path = infra;
+			sourceTree = "<group>";
+		};
+		62360A13DF16E59E2C8B4825 /* request */ = {
+			isa = PBXGroup;
+			children = (
+				5E50B5F8D9CA1CE500FB6869 /* EventRequest.swift */,
+			);
+			path = request;
+			sourceTree = "<group>";
+		};
+		738DD0FE76D0378738036D5A /* infra */ = {
+			isa = PBXGroup;
+			children = (
+				7CB443B7F7DE1EF38099DD3C /* PushEnvironment.swift */,
+				622FE68BBD6B67C4C15B346E /* infra */,
+			);
+			path = infra;
+			sourceTree = "<group>";
+		};
+		7A6F05D4B26C1ACF9F515FD0 /* request */ = {
+			isa = PBXGroup;
+			children = (
+				37E6414775BF3FA6E3CDC8D8 /* StatusRequest.swift */,
+			);
+			path = request;
+			sourceTree = "<group>";
+		};
+		80449C980C1D9282F144582F /* subscribe */ = {
+			isa = PBXGroup;
+			children = (
+				708B00427FB9EAF6C7C49F9E /* PushSubscribe.swift */,
+				3824DA522785601E31C6D093 /* request */,
+				3B5C0F9DF88F49C0AAD773B3 /* worker */,
+			);
+			path = subscribe;
+			sourceTree = "<group>";
+		};
+		8914D23C3EBF317D72473964 /* data */ = {
+			isa = PBXGroup;
+			children = (
+				5FC68F3CF1DEBCB6CBAAB8ED /* PushConstants.swift */,
+				B623418052A62952BCEAADD3 /* PushStoredVariables.swift */,
+				AA10A0000000000000000001 /* db */,
+				A3DC812F7FF87B515B1BDCE1 /* serializer */,
+			);
+			path = data;
+			sourceTree = "<group>";
+		};
+		AA10A0000000000000000001 /* db */ = {
+			isa = PBXGroup;
+			children = (
+				AA10F0000000000000000001 /* PushDatabase.swift */,
+				AE7BB15FC4C80C30C7CD8690 /* Push.xcdatamodeld */,
+				AA10A0000000000000000002 /* dao */,
+				153456438CEB04778A8C3599 /* entity */,
+				47E6E9C1D79D882D8E92B51F /* repositories */,
+			);
+			path = db;
+			sourceTree = "<group>";
+		};
+		AA10A0000000000000000002 /* dao */ = {
+			isa = PBXGroup;
+			children = (
+				AA10F0000000000000000002 /* PushConfigDao.swift */,
+				AA10F0000000000000000003 /* PushEventDao.swift */,
+				AA10F0000000000000000004 /* PushSubscribeDao.swift */,
+				AA10F0000000000000000009 /* PushMessageDao.swift */,
+			);
+			path = dao;
+			sourceTree = "<group>";
+		};
+		9F2C11EF5E6C2506D25B4DF6 = {
+			isa = PBXGroup;
+			children = (
+				AA0A674E6190E6E8F1874773 /* Altcraft */,
+				3AB60625024AF889161816AE /* Frameworks */,
+				1EF81FC441509807379052B7 /* Products */,
+			);
+			sourceTree = "<group>";
+		};
+		A2418A2526F8AD41BFE17D1A /* event */ = {
+			isa = PBXGroup;
+			children = (
+				FD8B000369479DFF79914AAA /* EventAPI.swift */,
+				2365439DEDA21EA2CD6FCF5C /* PushEvent.swift */,
+				62360A13DF16E59E2C8B4825 /* request */,
+				2681758A15952DD49010F221 /* worker */,
+			);
+			path = event;
+			sourceTree = "<group>";
+		};
+		A3DC812F7FF87B515B1BDCE1 /* serializer */ = {
+			isa = PBXGroup;
+			children = (
+				D5F78465FC847EE89D339512 /* PushRequestDataFactory.swift */,
+			);
+			path = serializer;
+			sourceTree = "<group>";
+		};
+		AA0A674E6190E6E8F1874773 /* Altcraft */ = {
+			isa = PBXGroup;
+			children = (
+				D8B16EB8891921DA4BCA0C42 /* Push */,
+			);
+			path = ../Altcraft;
+			sourceTree = "<group>";
+		};
+		C1C5885A07B2004CF6583CF8 /* worker */ = {
+			isa = PBXGroup;
+			children = (
+				BC46D33DBE911B750538D64C /* PushStatusWorker.swift */,
+			);
+			path = worker;
+			sourceTree = "<group>";
+		};
+		C2B06DDAEB055601E1E3337A /* subscription */ = {
+			isa = PBXGroup;
+			children = (
+				B9DDF33690DB518A3DA633D3 /* PushSubscribeQueues.swift */,
+				F72D68AEB114C7370FE62125 /* SubscriptionAPI.swift */,
+				CAC5B7FBE73962FC0865F851 /* status */,
+				80449C980C1D9282F144582F /* subscribe */,
+				2FFB741A5907E5DF794A90B4 /* unsuspend */,
+			);
+			path = subscription;
+			sourceTree = "<group>";
+		};
+		C9484CB334AC6F63AD197DFE /* events */ = {
+			isa = PBXGroup;
+			children = (
+				C6E9B16E92B55EC2DDB1984B /* PushModuleEvents.swift */,
+			);
+			path = events;
+			sourceTree = "<group>";
+		};
+		CAC5B7FBE73962FC0865F851 /* status */ = {
+			isa = PBXGroup;
+			children = (
+				8C1180D0568588BF506B70B8 /* PushStatus.swift */,
+				7A6F05D4B26C1ACF9F515FD0 /* request */,
+				C1C5885A07B2004CF6583CF8 /* worker */,
+			);
+			path = status;
+			sourceTree = "<group>";
+		};
+		CC5D20C689758F9CE3127695 /* token */ = {
+			isa = PBXGroup;
+			children = (
+				9E7BD3AC146A0C25B1FBC4C6 /* TokenAPI.swift */,
+				E9BCAA94AE733576B653A5C4 /* TokenData.swift */,
+				AA10F0000000000000000007 /* TokenDataObjC.swift */,
+				8855E6D8DABC2F8F2201EC40 /* TokenManager.swift */,
+				7602A3EEA48E8278A6D08E0E /* TokenUpdate.swift */,
+				31FD9CCCBBC0E7BEAD9EC5EE /* provider */,
+				D900F386B78FEEB13734260B /* request */,
+				EFC1F586359375FBF1CD533A /* worker */,
+			);
+			path = token;
+			sourceTree = "<group>";
+		};
+		CD5CB2FC691BEE07DF928365 /* nse */ = {
+			isa = PBXGroup;
+			children = (
+				41BB82159B28DA0A56D70318 /* AltcraftNSE+Push.swift */,
+			);
+			path = nse;
+			sourceTree = "<group>";
+		};
+		D8B16EB8891921DA4BCA0C42 /* Push */ = {
+			isa = PBXGroup;
+			children = (
+				E83493C63B7DF917B780DBFB /* AltcraftPush.podspec */,
+				314DB63CB2F4F4CC3BEAAE43 /* Push.swift */,
+				00BB291F206FCB72BED36399 /* .swiftpm */,
+				543BBA8FCEF80E6D7250E980 /* config */,
+				8914D23C3EBF317D72473964 /* data */,
+				C9484CB334AC6F63AD197DFE /* events */,
+				738DD0FE76D0378738036D5A /* infra */,
+				CD5CB2FC691BEE07DF928365 /* NSE */,
+				48080216AEFD1AE64281C1A5 /* platform */,
+				F7DAACD7C420C1FCED7F0C0D /* retry */,
+				DA8886027B51778654665011 /* system */,
+				0AC6805E629C3754BAB15C0E /* util */,
+			);
+			path = Push;
+			sourceTree = "<group>";
+		};
+		D900F386B78FEEB13734260B /* request */ = {
+			isa = PBXGroup;
+			children = (
+				9703650CA9EB621F8F1F3240 /* UpdateRequest.swift */,
+			);
+			path = request;
+			sourceTree = "<group>";
+		};
+		DA844598120290012A250F9B /* request */ = {
+			isa = PBXGroup;
+			children = (
+				797F00B10CF7B54C13ADD21E /* UnSuspendRequest.swift */,
+			);
+			path = request;
+			sourceTree = "<group>";
+		};
+		DA8886027B51778654665011 /* system */ = {
+			isa = PBXGroup;
+			children = (
+				24F8884DC7A1D3EF95FDC45E /* action */,
+				300285238C03E3102F6BCE98 /* notification */,
+				E4D9C34E3395CD3464CF53A5 /* receiver */,
+			);
+			path = system;
+			sourceTree = "<group>";
+		};
+		E4D9C34E3395CD3464CF53A5 /* receiver */ = {
+			isa = PBXGroup;
+			children = (
+				6AE74A32522C7F84E2BFE3EE /* AltcraftPushReceiver.swift */,
+			);
+			path = receiver;
+			sourceTree = "<group>";
+		};
+		EFC1F586359375FBF1CD533A /* worker */ = {
+			isa = PBXGroup;
+			children = (
+				1B480C96D3D361492A66E8A2 /* PushTokenWorker.swift */,
+			);
+			path = worker;
+			sourceTree = "<group>";
+		};
+		F2775EBF9F93E4485D7862B6 /* xcode */ = {
+			isa = PBXGroup;
+			children = (
+			);
+			path = xcode;
+			sourceTree = "<group>";
+		};
+		F7DAACD7C420C1FCED7F0C0D /* retry */ = {
+			isa = PBXGroup;
+			children = (
+				845470594054921D3CC30729 /* PushRetry.swift */,
+			);
+			path = retry;
+			sourceTree = "<group>";
+		};
+/* End PBXGroup section */
+
+/* Begin PBXNativeTarget section */
+		58B1C4C71C8FEB9DBF63BE18 /* AltcraftPush */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = 2A352F7F13DFE86A5BF3C440 /* Build configuration list for PBXNativeTarget "AltcraftPush" */;
+			buildPhases = (
+				2043359B74BF97C78A222B05 /* Sources */,
+				2CFCBE6F4CE9B2CB37AFB0F2 /* Resources */,
+				B4B614CB9CD331DD07C32A39 /* Frameworks */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+				AA10T0000000000000000001 /* PBXTargetDependency */,
+			);
+			name = AltcraftPush;
+			packageProductDependencies = (
+			);
+			productName = AltcraftPush;
+			productReference = AE8FF99EC1C7455A2A1192CF /* AltcraftPush.framework */;
+			productType = "com.apple.product-type.framework";
+		};
+/* End PBXNativeTarget section */
+
+/* Begin PBXProject section */
+		57A8C034C99D9391E1367625 /* Project object */ = {
+			isa = PBXProject;
+			attributes = {
+				BuildIndependentTargetsInParallel = YES;
+				LastUpgradeCheck = 1430;
+				TargetAttributes = {
+					58B1C4C71C8FEB9DBF63BE18 = {
+						DevelopmentTeam = 6G7526ELLP;
+						ProvisioningStyle = Automatic;
+					};
+				};
+			};
+			buildConfigurationList = 4E8597518D6377019D222690 /* Build configuration list for PBXProject "AltcraftPush" */;
+			developmentRegion = en;
+			hasScannedForEncodings = 0;
+			knownRegions = (
+				Base,
+				en,
+			);
+			mainGroup = 9F2C11EF5E6C2506D25B4DF6;
+			minimizedProjectReferenceProxies = 1;
+			preferredProjectObjectVersion = 77;
+			productRefGroup = 1EF81FC441509807379052B7 /* Products */;
+			projectDirPath = "";
+			projectRoot = "";
+			targets = (
+				58B1C4C71C8FEB9DBF63BE18 /* AltcraftPush */,
+			);
+		};
+/* End PBXProject section */
+
+/* Begin PBXResourcesBuildPhase section */
+		2CFCBE6F4CE9B2CB37AFB0F2 /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				6F25D86584AAB7CFE4C97E26 /* Push.xcdatamodeld in Resources */,
+				927CB86B2DCB88ECC33BDA72 /* AltcraftPush.podspec in Resources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXResourcesBuildPhase section */
+
+/* Begin PBXReferenceProxy section */
+		AA10R0000000000000000001 /* AltcraftCore.framework */ = {
+			isa = PBXReferenceProxy;
+			fileType = wrapper.framework;
+			path = AltcraftCore.framework;
+			remoteRef = AA10P0000000000000000002 /* PBXContainerItemProxy */;
+			sourceTree = BUILT_PRODUCTS_DIR;
+		};
+/* End PBXReferenceProxy section */
+
+/* Begin PBXSourcesBuildPhase section */
+		2043359B74BF97C78A222B05 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				B6555103E12378EB613112B8 /* APNSInterface.swift in Sources */,
+				0F48E33857AF2D7C4F78C1F7 /* AltcraftNSE+Push.swift in Sources */,
+				9652D2B704F97C9640F41A0F /* AltcraftPushReceiver.swift in Sources */,
+				2266CAD1C030480816BE34D2 /* ConfigExtension.swift in Sources */,
+				AD778D7949E2B69AEC33B79D /* EventAPI.swift in Sources */,
+				013169873F467C5A8BA5F358 /* EventRequest.swift in Sources */,
+				5CC73CDCAC7B693601244DF1 /* FCMInterface.swift in Sources */,
+				7CB324E4838896B6CA8C0DD2 /* HMSInterface.swift in Sources */,
+				9514F0D0CAF61188B5AA0F75 /* NotificationManager.swift in Sources */,
+				3D5DD2A5F9A646F1BC4D4A82 /* Push.swift in Sources */,
+				9F2FF4667607B8A5551C44E3 /* PushAction.swift in Sources */,
+				99B897686FF025EAE4BF2747 /* PushConfigManager.swift in Sources */,
+				6A23D3E8E11BEFA8E7AD7104 /* PushConfiguration.swift in Sources */,
+				B79DCC82B5352B92A193D3D4 /* PushConstants.swift in Sources */,
+				AA10B0000000000000000001 /* PushDatabase.swift in Sources */,
+				AA10B0000000000000000002 /* PushConfigDao.swift in Sources */,
+				AA10B0000000000000000003 /* PushEventDao.swift in Sources */,
+				AA10B0000000000000000004 /* PushSubscribeDao.swift in Sources */,
+				AA10B000000000000000000A /* PushMessageDao.swift in Sources */,
+				AA10B000000000000000000B /* PushMessageEntity+CoreDataClass.swift in Sources */,
+				AA10B000000000000000000C /* PushMessageEntity+CoreDataProperties.swift in Sources */,
+				AA10B0000000000000000005 /* PushConfigEntity+CoreDataClass.swift in Sources */,
+				AA10B0000000000000000006 /* PushConfigEntity+CoreDataProperties.swift in Sources */,
+				34DF2540F7A66BB30B8F998D /* PushEnvironment.swift in Sources */,
+				B4C1D904EA2D0A071A49E927 /* PushEvent.swift in Sources */,
+				E999DA76FA562ED3975D92DF /* PushEventEntity+CoreDataClass.swift in Sources */,
+				AD86D84A408B543F1EF76295 /* PushEventEntity+CoreDataProperties.swift in Sources */,
+				340F67EDD5B8D8A769073284 /* PushEventWorker.swift in Sources */,
+				85EB0A909B1EB48FFCBEB5FC /* PushLog.swift in Sources */,
+				AA10B0000000000000000008 /* ImageFormat.swift in Sources */,
+				0EC9DE62091ED4DAC4076C4D /* PushModuleEvents.swift in Sources */,
+				C20874668D3A0A68D5F933C2 /* PushRequestDataFactory.swift in Sources */,
+				7373EEA399DF50CE9FC5A247 /* PushRetry.swift in Sources */,
+				D01C96EF5611CC7AAB57ED05 /* PushStatus.swift in Sources */,
+				0B604428453AD3108930556E /* PushStatusWorker.swift in Sources */,
+				FFC65022896FFA6ED065735D /* PushStoredVariables.swift in Sources */,
+				53BA4970C4AF7647A30CF45C /* PushSubscribe.swift in Sources */,
+				8DBE846C2126000B679477C0 /* PushSubscribeEntity+CoreDataClass.swift in Sources */,
+				8A4428B4BB699F67F44C1BE7 /* PushSubscribeEntity+CoreDataProperties.swift in Sources */,
+				FF676D54CD521C3CDDAE03A8 /* PushSubscribeQueues.swift in Sources */,
+				B2F8006697464A2FDF4244B4 /* PushSubscriptionWorker.swift in Sources */,
+				AA23BDD5692C76C24594787F /* PushTokenWorker.swift in Sources */,
+				E50885B4B1F8AD8876D9C82C /* PushModuleLifecycle.swift in Sources */,
+				94409DE141CAC255F057FA57 /* RetryTrackable+Push.swift in Sources */,
+				5D08A5D7174A6C65244A1B4F /* StatusRequest.swift in Sources */,
+				41988D3599E2925F89346617 /* SubscriptionAPI.swift in Sources */,
+				62F1573FFA27FD4D9D5876B2 /* SubscriptionRequest.swift in Sources */,
+				D3690C936A4BC0A26EAD8BCA /* TokenAPI.swift in Sources */,
+				DB532C3DC93CAB3A57A5A7D0 /* TokenData.swift in Sources */,
+				AA10B0000000000000000007 /* TokenDataObjC.swift in Sources */,
+				3651E2DA08FC260AF0112EAE /* TokenManager.swift in Sources */,
+				F6A0C7BC16FBCF943A6C0388 /* TokenUpdate.swift in Sources */,
+				01A13E3362CBF3BE25E68379 /* UnSuspendRequest.swift in Sources */,
+				BE6EB959A1A826EDEB0E8DB8 /* UpdateRequest.swift in Sources */,
+				9F2FF4667607B8A5551C44E3 /* PushAction.swift in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXSourcesBuildPhase section */
+
+/* Begin PBXTargetDependency section */
+		AA10T0000000000000000001 /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			targetProxy = AA10P0000000000000000001 /* PBXContainerItemProxy */;
+		};
+/* End PBXTargetDependency section */
+
+/* Begin XCBuildConfiguration section */
+		0AA41FB482BD5F51355CC16A /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				CLANG_ANALYZER_NONNULL = YES;
+				CLANG_ANALYZER_NUMBER_OBJECT_CONVERSION = YES_AGGRESSIVE;
+				CLANG_CXX_LANGUAGE_STANDARD = "gnu++14";
+				CLANG_CXX_LIBRARY = "libc++";
+				CLANG_ENABLE_MODULES = YES;
+				CLANG_ENABLE_OBJC_ARC = YES;
+				CLANG_ENABLE_OBJC_WEAK = YES;
+				CLANG_WARN_BLOCK_CAPTURE_AUTORELEASING = YES;
+				CLANG_WARN_BOOL_CONVERSION = YES;
+				CLANG_WARN_COMMA = YES;
+				CLANG_WARN_CONSTANT_CONVERSION = YES;
+				CLANG_WARN_DEPRECATED_OBJC_IMPLEMENTATIONS = YES;
+				CLANG_WARN_DIRECT_OBJC_ISA_USAGE = YES_ERROR;
+				CLANG_WARN_DOCUMENTATION_COMMENTS = YES;
+				CLANG_WARN_EMPTY_BODY = YES;
+				CLANG_WARN_ENUM_CONVERSION = YES;
+				CLANG_WARN_INFINITE_RECURSION = YES;
+				CLANG_WARN_INT_CONVERSION = YES;
+				CLANG_WARN_NON_LITERAL_NULL_CONVERSION = YES;
+				CLANG_WARN_OBJC_IMPLICIT_RETAIN_SELF = YES;
+				CLANG_WARN_OBJC_LITERAL_CONVERSION = YES;
+				CLANG_WARN_OBJC_ROOT_CLASS = YES_ERROR;
+				CLANG_WARN_QUOTED_INCLUDE_IN_FRAMEWORK_HEADER = YES;
+				CLANG_WARN_RANGE_LOOP_ANALYSIS = YES;
+				CLANG_WARN_STRICT_PROTOTYPES = YES;
+				CLANG_WARN_SUSPICIOUS_MOVE = YES;
+				CLANG_WARN_UNGUARDED_AVAILABILITY = YES_AGGRESSIVE;
+				CLANG_WARN_UNREACHABLE_CODE = YES;
+				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
+				COPY_PHASE_STRIP = NO;
+				DEBUG_INFORMATION_FORMAT = dwarf;
+				ENABLE_STRICT_OBJC_MSGSEND = YES;
+				ENABLE_TESTABILITY = YES;
+				GCC_C_LANGUAGE_STANDARD = gnu11;
+				GCC_DYNAMIC_NO_PIC = NO;
+				GCC_NO_COMMON_BLOCKS = YES;
+				GCC_OPTIMIZATION_LEVEL = 0;
+				GCC_PREPROCESSOR_DEFINITIONS = (
+					"$(inherited)",
+					"DEBUG=1",
+				);
+				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
+				GCC_WARN_ABOUT_RETURN_TYPE = YES_ERROR;
+				GCC_WARN_UNDECLARED_SELECTOR = YES;
+				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
+				GCC_WARN_UNUSED_FUNCTION = YES;
+				GCC_WARN_UNUSED_VARIABLE = YES;
+				IPHONEOS_DEPLOYMENT_TARGET = 13.0;
+				MTL_ENABLE_DEBUG_INFO = INCLUDE_SOURCE;
+				MTL_FAST_MATH = YES;
+				ONLY_ACTIVE_ARCH = YES;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SDKROOT = iphoneos;
+				SWIFT_ACTIVE_COMPILATION_CONDITIONS = DEBUG;
+				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
+				SWIFT_VERSION = 6.0;
+			};
+			name = Debug;
+		};
+		29108FABBCCAA406DDFD8D25 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				CLANG_ANALYZER_NONNULL = YES;
+				CLANG_ANALYZER_NUMBER_OBJECT_CONVERSION = YES_AGGRESSIVE;
+				CLANG_CXX_LANGUAGE_STANDARD = "gnu++14";
+				CLANG_CXX_LIBRARY = "libc++";
+				CLANG_ENABLE_MODULES = YES;
+				CLANG_ENABLE_OBJC_ARC = YES;
+				CLANG_ENABLE_OBJC_WEAK = YES;
+				CLANG_WARN_BLOCK_CAPTURE_AUTORELEASING = YES;
+				CLANG_WARN_BOOL_CONVERSION = YES;
+				CLANG_WARN_COMMA = YES;
+				CLANG_WARN_CONSTANT_CONVERSION = YES;
+				CLANG_WARN_DEPRECATED_OBJC_IMPLEMENTATIONS = YES;
+				CLANG_WARN_DIRECT_OBJC_ISA_USAGE = YES_ERROR;
+				CLANG_WARN_DOCUMENTATION_COMMENTS = YES;
+				CLANG_WARN_EMPTY_BODY = YES;
+				CLANG_WARN_ENUM_CONVERSION = YES;
+				CLANG_WARN_INFINITE_RECURSION = YES;
+				CLANG_WARN_INT_CONVERSION = YES;
+				CLANG_WARN_NON_LITERAL_NULL_CONVERSION = YES;
+				CLANG_WARN_OBJC_IMPLICIT_RETAIN_SELF = YES;
+				CLANG_WARN_OBJC_LITERAL_CONVERSION = YES;
+				CLANG_WARN_OBJC_ROOT_CLASS = YES_ERROR;
+				CLANG_WARN_QUOTED_INCLUDE_IN_FRAMEWORK_HEADER = YES;
+				CLANG_WARN_RANGE_LOOP_ANALYSIS = YES;
+				CLANG_WARN_STRICT_PROTOTYPES = YES;
+				CLANG_WARN_SUSPICIOUS_MOVE = YES;
+				CLANG_WARN_UNGUARDED_AVAILABILITY = YES_AGGRESSIVE;
+				CLANG_WARN_UNREACHABLE_CODE = YES;
+				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
+				COPY_PHASE_STRIP = NO;
+				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
+				ENABLE_NS_ASSERTIONS = NO;
+				ENABLE_STRICT_OBJC_MSGSEND = YES;
+				GCC_C_LANGUAGE_STANDARD = gnu11;
+				GCC_NO_COMMON_BLOCKS = YES;
+				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
+				GCC_WARN_ABOUT_RETURN_TYPE = YES_ERROR;
+				GCC_WARN_UNDECLARED_SELECTOR = YES;
+				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
+				GCC_WARN_UNUSED_FUNCTION = YES;
+				GCC_WARN_UNUSED_VARIABLE = YES;
+				IPHONEOS_DEPLOYMENT_TARGET = 13.0;
+				MTL_ENABLE_DEBUG_INFO = NO;
+				MTL_FAST_MATH = YES;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SDKROOT = iphoneos;
+				SWIFT_COMPILATION_MODE = wholemodule;
+				SWIFT_OPTIMIZATION_LEVEL = "-O";
+				SWIFT_VERSION = 6.0;
+			};
+			name = Release;
+		};
+		A7359658E50612DCFAC21E8D /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				CODE_SIGN_IDENTITY = "Apple Development";
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				DEFINES_MODULE = YES;
+				DYLIB_COMPATIBILITY_VERSION = 1;
+				DYLIB_CURRENT_VERSION = 1;
+				DYLIB_INSTALL_NAME_BASE = "@rpath";
+				ENABLE_STRICT_OBJC_MSGSEND = YES;
+				ENABLE_USER_SCRIPT_SANDBOXING = NO;
+				FRAMEWORK_SEARCH_PATHS = (
+					"$(inherited)",
+					"$(BUILT_PRODUCTS_DIR)",
+					"\".\"",
+				);
+				GENERATE_INFOPLIST_FILE = YES;
+				INSTALL_PATH = "$(LOCAL_LIBRARY_DIR)/Frameworks";
+				IPHONEOS_DEPLOYMENT_TARGET = 13.0;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+				);
+				MARKETING_VERSION = 0.0.1;
+				PRODUCT_BUNDLE_IDENTIFIER = com.altcraft.push;
+				PRODUCT_NAME = AltcraftPush;
+				SDKROOT = iphoneos;
+				SKIP_INSTALL = NO;
+				SWIFT_VERSION = 6.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+				VERSIONING_SYSTEM = "apple-generic";
+			};
+			name = Release;
+		};
+		D0FE6E07F610725686E4820D /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				CODE_SIGN_IDENTITY = "Apple Development";
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				DEFINES_MODULE = YES;
+				DYLIB_COMPATIBILITY_VERSION = 1;
+				DYLIB_CURRENT_VERSION = 1;
+				DYLIB_INSTALL_NAME_BASE = "@rpath";
+				ENABLE_STRICT_OBJC_MSGSEND = YES;
+				ENABLE_USER_SCRIPT_SANDBOXING = NO;
+				FRAMEWORK_SEARCH_PATHS = (
+					"$(inherited)",
+					"$(BUILT_PRODUCTS_DIR)",
+					"\".\"",
+				);
+				GENERATE_INFOPLIST_FILE = YES;
+				INSTALL_PATH = "$(LOCAL_LIBRARY_DIR)/Frameworks";
+				IPHONEOS_DEPLOYMENT_TARGET = 13.0;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+				);
+				MARKETING_VERSION = 0.0.1;
+				PRODUCT_BUNDLE_IDENTIFIER = com.altcraft.push;
+				PRODUCT_NAME = AltcraftPush;
+				SDKROOT = iphoneos;
+				SKIP_INSTALL = NO;
+				SWIFT_VERSION = 6.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+				VERSIONING_SYSTEM = "apple-generic";
+			};
+			name = Debug;
+		};
+/* End XCBuildConfiguration section */
+
+/* Begin XCConfigurationList section */
+		2A352F7F13DFE86A5BF3C440 /* Build configuration list for PBXNativeTarget "AltcraftPush" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				D0FE6E07F610725686E4820D /* Debug */,
+				A7359658E50612DCFAC21E8D /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Debug;
+		};
+		4E8597518D6377019D222690 /* Build configuration list for PBXProject "AltcraftPush" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				0AA41FB482BD5F51355CC16A /* Debug */,
+				29108FABBCCAA406DDFD8D25 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Debug;
+		};
+/* End XCConfigurationList section */
+
+/* Begin XCVersionGroup section */
+		AE7BB15FC4C80C30C7CD8690 /* Push.xcdatamodeld */ = {
+			isa = XCVersionGroup;
+			children = (
+				98BDE201250CEF49DECD77C0 /* Push.xcdatamodel */,
+			);
+			currentVersion = 98BDE201250CEF49DECD77C0 /* Push.xcdatamodel */;
+			path = Push.xcdatamodeld;
+			sourceTree = "<group>";
+			versionGroupType = wrapper.xcdatamodel;
+		};
+/* End XCVersionGroup section */
+	};
+	rootObject = 57A8C034C99D9391E1367625 /* Project object */;
+}

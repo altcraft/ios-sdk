@@ -9,3 +9,10 @@ Package.resolved
 xcuserdata/
 DerivedData/
 *.xcworkspace
+!Projects/Altcraft.xcworkspace
+
+# SwiftPM build artifacts
+.build/
+
+# CocoaPods (migrated to SwiftPM)
+Pods/

@@ -1,14 +1,44 @@
 //
 //  InitBarrierTests.swift
-//  AltcraftTests
+//  Altcraft
 //
 //  Created by Andrey Pogodin.
 //
 //  Copyright © 2026 Altcraft. All rights reserved.
-//
 
 import XCTest
-@testable import Altcraft
+@testable import AltcraftCore
+@_spi(_Altcraft) import AltcraftCore
+#if canImport(AltcraftCore)
+@_spi(_Altcraft) import AltcraftCore
+#endif
+#if canImport(AltcraftPush)
+@_spi(_Altcraft) import AltcraftPush
+#endif
+#if canImport(AltcraftProfile)
+@_spi(_Altcraft) import AltcraftProfile
+#endif
+#if canImport(AltcraftInApp)
+@_spi(_Altcraft) import AltcraftInApp
+#endif
+#if canImport(AltcraftTarget)
+@_spi(_Altcraft) import AltcraftTarget
+#endif
+#if canImport(AltcraftCore)
+@testable import AltcraftCore
+#endif
+#if canImport(AltcraftPush)
+@testable import AltcraftPush
+#endif
+#if canImport(AltcraftProfile)
+@testable import AltcraftProfile
+#endif
+#if canImport(AltcraftInApp)
+@testable import AltcraftInApp
+#endif
+#if canImport(AltcraftTarget)
+@testable import AltcraftTarget
+#endif
 
 /**
  * InitBarrierTests
@@ -22,6 +52,8 @@ import XCTest
  * - test_6: awaitInit returns after timeout when gate is not completed.
  * - test_7: withInitReady executes block after gate completion.
  * - test_8: withInitReady executes block immediately when gate is already completed.
+ * - test_9: InitGate.wait returns immediately when the task is cancelled before waiting.
+ * - test_10: InitBarrier.concurrent reserves never create orphaned gates.
  *
  */
 final class InitBarrierTests: IsolatedTestCase {
@@ -252,6 +284,82 @@ final class InitBarrierTests: IsolatedTestCase {
 
         let didRun = await ran.value()
         XCTAssertTrue(didRun)
+    }
+
+    /// test_9: InitGate.wait returns immediately when the task is cancelled before waiting.
+    ///
+    /// Guards the pre-cancellation race: `onCancel` fires before the continuation
+    /// is registered, so without an explicit `Task.isCancelled` check the
+    /// continuation would never resume and the caller would hang forever.
+    func test_9_InitGate_wait_returnsImmediately_whenTaskIsPreCancelled() async {
+        let gate = InitGate()
+        let done = Flag()
+
+        let task = Task {
+            await gate.wait()
+            await done.setTrue()
+        }
+
+        task.cancel()
+
+        var finished = false
+        for _ in 0..<40 {
+            if await done.value() {
+                finished = true
+                break
+            }
+            try? await Task.sleep(nanoseconds: 25_000_000)
+        }
+
+        XCTAssertTrue(
+            finished,
+            "wait() must return immediately for a pre-cancelled task"
+        )
+
+        task.cancel()
+    }
+
+    /// test_10: concurrent reserves after gate completion never create orphaned gates.
+    ///
+    /// Guards the reserve race: with a suspension point between the completed
+    /// check and the gate swap, interleaved reserves created multiple gates and
+    /// left waiters hanging on an orphaned one.
+    func test_10_InitBarrier_reserve_concurrentCalls_neverCreateOrphanedGates() async {
+        let base = await resetSharedBarrierToFreshGate()
+
+        await InitBarrier.shared.complete(base)
+        await waitShort(0.02)
+
+        let box = GateIDBox()
+
+        await withTaskGroup(of: Void.self) { group in
+            for _ in 0..<20 {
+                group.addTask {
+                    let gate = await InitBarrier.shared.reserve()
+                    await box.add(gate)
+                }
+            }
+        }
+
+        let ids = await box.ids()
+        XCTAssertEqual(ids.count, 20)
+        XCTAssertEqual(
+            Set(ids).count,
+            1,
+            "concurrent reserve() calls must all return the same new gate"
+        )
+    }
+}
+
+private actor GateIDBox {
+    private var storage: [ObjectIdentifier] = []
+
+    func add(_ gate: InitGate) {
+        storage.append(ObjectIdentifier(gate))
+    }
+
+    func ids() -> [ObjectIdentifier] {
+        storage
     }
 }
 

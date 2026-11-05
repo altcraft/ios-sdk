@@ -1,13 +1,44 @@
 //
-//  MultipartBodyTest.swift
-//  AltcraftTests
+//  MultipartBodyTests.swift
+//  Altcraft
 //
 //  Created by Andrey Pogodin.
 //
-//  © 2025 Altcraft. All rights reserved.
+//  Copyright © 2026 Altcraft. All rights reserved.
 
 import XCTest
-@testable import Altcraft
+@testable import AltcraftCore
+@_spi(_Altcraft) import AltcraftCore
+#if canImport(AltcraftCore)
+@_spi(_Altcraft) import AltcraftCore
+#endif
+#if canImport(AltcraftPush)
+@_spi(_Altcraft) import AltcraftPush
+#endif
+#if canImport(AltcraftProfile)
+@_spi(_Altcraft) import AltcraftProfile
+#endif
+#if canImport(AltcraftInApp)
+@_spi(_Altcraft) import AltcraftInApp
+#endif
+#if canImport(AltcraftTarget)
+@_spi(_Altcraft) import AltcraftTarget
+#endif
+#if canImport(AltcraftCore)
+@testable import AltcraftCore
+#endif
+#if canImport(AltcraftPush)
+@testable import AltcraftPush
+#endif
+#if canImport(AltcraftProfile)
+@testable import AltcraftProfile
+#endif
+#if canImport(AltcraftInApp)
+@testable import AltcraftInApp
+#endif
+#if canImport(AltcraftTarget)
+@testable import AltcraftTarget
+#endif
 
 /**
  * MultipartBodyTest
@@ -35,6 +66,7 @@ final class MultipartBodyTest: IsolatedTestCase {
         }
     }
     
+    /// Multipart part fixture.
     private struct TestPart {
         let name: String
         let filename: String?
@@ -51,9 +83,9 @@ final class MultipartBodyTest: IsolatedTestCase {
     
     /// test_1: makeBoundary generates unique values with "Boundary-" prefix
     func test_1_makeBoundary_generatesUniqueValues() {
-        let boundary1 = makeBoundary()
-        let boundary2 = makeBoundary()
-        let boundary3 = makeBoundary()
+        let boundary1 = AltcraftCore.makeBoundary()
+        let boundary2 = AltcraftCore.makeBoundary()
+        let boundary3 = AltcraftCore.makeBoundary()
         
         XCTAssertTrue(boundary1.hasPrefix("Boundary-"))
         XCTAssertTrue(boundary2.hasPrefix("Boundary-"))
@@ -89,14 +121,14 @@ final class MultipartBodyTest: IsolatedTestCase {
     }
     
     /// test_4: buildMultipartBody with single part creates correct structure with boundary and content
-    func test_4_buildMultipartBody_singlePart() {
+    func test_4_buildMultipartBody_singlePart() throws {
         let boundary = "test-boundary"
         let parts = [
             TestPart(name: "field1", filename: nil, mime: "text/plain", data: Data("test value".utf8))
         ]
         
-        let result = buildMultipartBody(parts: convertTestParts(parts), boundary: boundary)
-        let resultString = String(data: result, encoding: .utf8)!
+        let result = AltcraftCore.buildMultipartBody(parts: convertTestParts(parts), boundary: boundary)
+        let resultString = try XCTUnwrap(String(data: result, encoding: .utf8))
         
         XCTAssertTrue(resultString.contains("--test-boundary\r\n"))
         XCTAssertTrue(resultString.contains("Content-Disposition: form-data; name=\"field1\"\r\n"))
@@ -106,15 +138,15 @@ final class MultipartBodyTest: IsolatedTestCase {
     }
     
     /// test_5: buildMultipartBody with multiple parts correctly combines all parts with boundaries
-    func test_5_buildMultipartBody_multipleParts() {
+    func test_5_buildMultipartBody_multipleParts() throws {
         let boundary = "test-boundary"
         let parts = [
             TestPart(name: "text", filename: nil, mime: "text/plain", data: Data("hello".utf8)),
             TestPart(name: "number", filename: nil, mime: "text/plain", data: Data("42".utf8))
         ]
         
-        let result = buildMultipartBody(parts: convertTestParts(parts), boundary: boundary)
-        let resultString = String(data: result, encoding: .utf8)!
+        let result = AltcraftCore.buildMultipartBody(parts: convertTestParts(parts), boundary: boundary)
+        let resultString = try XCTUnwrap(String(data: result, encoding: .utf8))
         
         XCTAssertTrue(resultString.contains("name=\"text\""))
         XCTAssertTrue(resultString.contains("hello"))
@@ -128,22 +160,22 @@ final class MultipartBodyTest: IsolatedTestCase {
     /// test_6: buildMultipartBody with empty parts creates only closing boundary
     func test_6_buildMultipartBody_emptyParts() {
         let boundary = "test-boundary"
-        let result = buildMultipartBody(parts: [], boundary: boundary)
+        let result = AltcraftCore.buildMultipartBody(parts: [], boundary: boundary)
         let expected = Data("--test-boundary--\r\n".utf8)
         
         XCTAssertEqual(result, expected)
     }
     
     /// test_7: buildMultipartBody with file data correctly handles filename and mime-type
-    func test_7_buildMultipartBody_withFileData() {
+    func test_7_buildMultipartBody_withFileData() throws {
         let boundary = "test-boundary"
         let jsonData = Data("{\"key\": \"value\"}".utf8)
         let parts = [
             TestPart(name: "jsonFile", filename: "data.json", mime: "application/json", data: jsonData)
         ]
         
-        let result = buildMultipartBody(parts: convertTestParts(parts), boundary: boundary)
-        let resultString = String(data: result, encoding: .utf8)!
+        let result = AltcraftCore.buildMultipartBody(parts: convertTestParts(parts), boundary: boundary)
+        let resultString = try XCTUnwrap(String(data: result, encoding: .utf8))
         
         XCTAssertTrue(resultString.contains("name=\"jsonFile\"; filename=\"data.json\""))
         XCTAssertTrue(resultString.contains("Content-Type: application/json"))
@@ -151,16 +183,16 @@ final class MultipartBodyTest: IsolatedTestCase {
     }
     
     /// test_8: Complete multipart flow generates boundary and builds proper multipart structure
-    func test_8_integration_completeMultipartFlow() {
-        let boundary = makeBoundary()
+    func test_8_integration_completeMultipartFlow() throws {
+        let boundary = AltcraftCore.makeBoundary()
         
         let parts = [
             TestPart(name: "textField", filename: nil, mime: "text/plain", data: Data("sample text".utf8)),
             TestPart(name: "file", filename: "document.pdf", mime: "application/pdf", data: Data("pdf content".utf8))
         ]
         
-        let body = buildMultipartBody(parts: convertTestParts(parts), boundary: boundary)
-        let bodyString = String(data: body, encoding: .utf8)!
+        let body = AltcraftCore.buildMultipartBody(parts: convertTestParts(parts), boundary: boundary)
+        let bodyString = try XCTUnwrap(String(data: body, encoding: .utf8))
         
         XCTAssertTrue(bodyString.hasPrefix("--\(boundary)\r\n"))
         XCTAssertTrue(bodyString.hasSuffix("--\(boundary)--\r\n"))
@@ -175,9 +207,9 @@ final class MultipartBodyTest: IsolatedTestCase {
         XCTAssertEqual(parts[1].data, Data("pdf content".utf8))
     }
     
-    private func convertTestParts(_ testParts: [TestPart]) -> [Part] {
+    private func convertTestParts(_ testParts: [TestPart]) -> [AltcraftCore.Part] {
         return testParts.map { testPart in
-            Part(
+            AltcraftCore.Part(
                 name: testPart.name,
                 data: testPart.data,
                 mime: testPart.mime,

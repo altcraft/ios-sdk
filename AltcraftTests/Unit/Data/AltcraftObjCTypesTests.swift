@@ -1,13 +1,44 @@
 //
 //  AltcraftObjCTypesTests.swift
-//  AltcraftTests
+//  Altcraft
 //
 //  Created by Andrey Pogodin.
 //
-//  Copyright © 2025 Altcraft. All rights reserved.
+//  Copyright © 2026 Altcraft. All rights reserved.
 
 import XCTest
-@testable import Altcraft
+@testable import AltcraftCore
+@_spi(_Altcraft) import AltcraftCore
+#if canImport(AltcraftCore)
+@_spi(_Altcraft) import AltcraftCore
+#endif
+#if canImport(AltcraftPush)
+@_spi(_Altcraft) import AltcraftPush
+#endif
+#if canImport(AltcraftProfile)
+@_spi(_Altcraft) import AltcraftProfile
+#endif
+#if canImport(AltcraftInApp)
+@_spi(_Altcraft) import AltcraftInApp
+#endif
+#if canImport(AltcraftTarget)
+@_spi(_Altcraft) import AltcraftTarget
+#endif
+#if canImport(AltcraftCore)
+@testable import AltcraftCore
+#endif
+#if canImport(AltcraftPush)
+@testable import AltcraftPush
+#endif
+#if canImport(AltcraftProfile)
+@testable import AltcraftProfile
+#endif
+#if canImport(AltcraftInApp)
+@testable import AltcraftInApp
+#endif
+#if canImport(AltcraftTarget)
+@testable import AltcraftTarget
+#endif
 
 /**
  * AltcraftObjCTypesTests
@@ -17,8 +48,8 @@ import XCTest
  *  - test_2_CategoryDataObjC_fromSwift_withAllFields: CategoryDataObjC.fromSwift handles complete data.
  *  - test_3_CategoryDataObjC_fromSwift_withRequiredFieldsOnly: CategoryDataObjC.fromSwift handles minimal data.
  *  - test_4_CategoryDataObjC_toSwiftArray: Converts ObjC array to Swift array correctly.
- *  - test_5_ResponseWithHttpObjC_fromSwift_withCompleteData: ResponseWithHttpObjC handles complete response.
- *  - test_6_ResponseWithHttpObjC_fromSwift_withNilResponse: ResponseWithHttpObjC handles nil response gracefully.
+ *  - test_5_ResponseWithHttpObjC_fromSwift_withCompleteData: ResponseWithHttpCodeObjC handles complete response.
+ *  - test_6_ResponseWithHttpObjC_fromSwift_withNilResponse: ResponseWithHttpCodeObjC handles nil response gracefully.
  *  - test_7_TokenDataObjC_fromSwift_validToken: TokenDataObjC converts valid Swift token.
  *  - test_8_SubscriptionConversions_allTypes: All subscription types convert between ObjC/Swift correctly.
  *  - test_9_toJSONValue_allSupportedTypes: JSON conversion handles all supported types.
@@ -137,20 +168,24 @@ final class AltcraftObjCTypesTests: IsolatedTestCase {
         let profileData = ProfileData(
             id: "profile-123",
             status: "active",
+            acid: nil,
             isTest: false,
             subscription: subscriptionData
         )
         
-        let response = Response(
+        let profileResponse = ResponseModel.ResponseWithProfile(
             error: 0,
             errorText: "Success",
             profile: profileData
         )
         
-        let swiftResponse = ResponseWithHttp(httpCode: 200, response: response)
+        let swiftResponse = ResponseModel.ResponseWithHttpCode<ResponseModel.ResponseWithProfile>(
+            httpCode: 200,
+            response: profileResponse
+        )
 
-        guard let objcResponse = ResponseWithHttpObjC.from(swiftResponse) else {
-            XCTFail("ResponseWithHttpObjC.from should not return nil for valid response")
+        guard let objcResponse = ResponseWithHttpCodeObjC.from(swiftResponse) else {
+            XCTFail("ResponseWithHttpCodeObjC.from should not return nil for valid response")
             return
         }
 
@@ -166,10 +201,13 @@ final class AltcraftObjCTypesTests: IsolatedTestCase {
 
     /// test_6_ResponseWithHttpObjC_fromSwift_withNilResponse
     func test_6_ResponseWithHttpObjC_fromSwift_withNilResponse() {
-        let swiftResponse = ResponseWithHttp(httpCode: 404, response: nil)
+        let swiftResponse = ResponseModel.ResponseWithHttpCode<ResponseModel.ResponseWithProfile>(
+            httpCode: 404,
+            response: nil
+        )
 
-        guard let objcResponse = ResponseWithHttpObjC.from(swiftResponse) else {
-            XCTFail("ResponseWithHttpObjC.from should not return nil even with nil response")
+        guard let objcResponse = ResponseWithHttpCodeObjC.from(swiftResponse) else {
+            XCTFail("ResponseWithHttpCodeObjC.from should not return nil even with nil response")
             return
         }
 

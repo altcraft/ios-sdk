@@ -1,14 +1,44 @@
 //
 //  TokenManagerTests.swift
-//  AltcraftTests
+//  Altcraft
 //
 //  Created by Andrey Pogodin.
 //
-//  © 2026 Altcraft. All rights reserved.
-//
+//  Copyright © 2026 Altcraft. All rights reserved.
 
 import XCTest
-@testable import Altcraft
+@testable import AltcraftCore
+@_spi(_Altcraft) import AltcraftCore
+#if canImport(AltcraftCore)
+@_spi(_Altcraft) import AltcraftCore
+#endif
+#if canImport(AltcraftPush)
+@_spi(_Altcraft) import AltcraftPush
+#endif
+#if canImport(AltcraftProfile)
+@_spi(_Altcraft) import AltcraftProfile
+#endif
+#if canImport(AltcraftInApp)
+@_spi(_Altcraft) import AltcraftInApp
+#endif
+#if canImport(AltcraftTarget)
+@_spi(_Altcraft) import AltcraftTarget
+#endif
+#if canImport(AltcraftCore)
+@testable import AltcraftCore
+#endif
+#if canImport(AltcraftPush)
+@testable import AltcraftPush
+#endif
+#if canImport(AltcraftProfile)
+@testable import AltcraftProfile
+#endif
+#if canImport(AltcraftInApp)
+@testable import AltcraftInApp
+#endif
+#if canImport(AltcraftTarget)
+@testable import AltcraftTarget
+#endif
 
 /**
  * TokenManagerTests
@@ -21,10 +51,12 @@ import XCTest
  *  - test_5: getCurrentToken → respects fallback provider order.
  *  - test_6: delete token methods → call provider delegates.
  *  - test_7: pushModuleIsActive → detects inactive and active states.
+ *  - test_8: resolvedPriority → normalizes case, drops unknown and duplicates.
  *
  */
 final class TokenManagerTests: IsolatedTestCase {
 
+    /// Captures emitted SDK events.
     private final class EventSpy {
         private let lock = NSLock()
         private(set) var events: [Event] = []
@@ -54,6 +86,7 @@ final class TokenManagerTests: IsolatedTestCase {
         }
     }
 
+    /// FCM provider mock.
     private final class MockFCM: FCMInterface {
         var tokenToReturn: String?
         var deleted = false
@@ -68,6 +101,7 @@ final class TokenManagerTests: IsolatedTestCase {
         }
     }
 
+    /// HMS provider mock.
     private final class MockHMS: HMSInterface {
         var tokenToReturn: String?
         var deleted = false
@@ -82,6 +116,7 @@ final class TokenManagerTests: IsolatedTestCase {
         }
     }
 
+    /// APNs provider mock.
     private final class MockAPNS: APNSInterface {
         var tokenToReturn: String?
 
@@ -90,6 +125,7 @@ final class TokenManagerTests: IsolatedTestCase {
         }
     }
 
+    /// Composite provider mock for queue tests.
     private final class MockQueueProvider: APNSInterface, FCMInterface, HMSInterface {
         private var queue: [String?]
         var deleted = false
@@ -114,17 +150,21 @@ final class TokenManagerTests: IsolatedTestCase {
     }
 
     private func normalizeFunctionName(_ raw: String?) -> String {
-        guard let raw else { return "" }
-
-        if let index = raw.firstIndex(of: "(") {
-            return String(raw[..<index]).trimmingCharacters(in: .whitespacesAndNewlines)
+        guard let rawElse: String = raw else { return "" }
+        var s = rawElse
+        if let spaceIdx = s.firstIndex(of: " ") {
+            let candidate = s[..<spaceIdx]
+            if candidate.first == "[" && candidate.last == "]" {
+                s = String(s[s.index(after: spaceIdx)...])
+            }
         }
-
-        if raw.hasSuffix("()") {
-            return String(raw.dropLast(2))
+        if let index = s.firstIndex(of: "(") {
+            return String(s[..<index]).trimmingCharacters(in: .whitespacesAndNewlines)
         }
-
-        return raw
+        if s.hasSuffix("()") {
+            return String(s.dropLast(2))
+        }
+        return s
     }
 
     override func setUpWithError() throws {
@@ -135,8 +175,8 @@ final class TokenManagerTests: IsolatedTestCase {
     override func setUp() async throws {
         try await super.setUp()
 
-        await StoredVariablesManager.shared.setPushToken(
-            provider: Constants.ProviderName.firebase,
+        await PushStoredVariables.shared.setPushToken(
+            provider: PushConstants.ProviderName.firebase,
             token: nil
         )
 
@@ -147,8 +187,8 @@ final class TokenManagerTests: IsolatedTestCase {
     }
 
     override func tearDown() async throws {
-        await StoredVariablesManager.shared.setPushToken(
-            provider: Constants.ProviderName.firebase,
+        await PushStoredVariables.shared.setPushToken(
+            provider: PushConstants.ProviderName.firebase,
             token: nil
         )
 
@@ -165,9 +205,9 @@ final class TokenManagerTests: IsolatedTestCase {
         let manager = TokenManager.shared
 
         let validCanonical = manager.allProvidersValid([
-            Constants.ProviderName.apns,
-            Constants.ProviderName.firebase,
-            Constants.ProviderName.huawei
+            PushConstants.ProviderName.apns,
+            PushConstants.ProviderName.firebase,
+            PushConstants.ProviderName.huawei
         ])
 
         let validMixedCase = manager.allProvidersValid([
@@ -179,7 +219,7 @@ final class TokenManagerTests: IsolatedTestCase {
         let invalidNil = manager.allProvidersValid(nil)
         let invalidUnknown = manager.allProvidersValid([
             "unknown",
-            Constants.ProviderName.apns
+            PushConstants.ProviderName.apns
         ])
 
         XCTAssertTrue(validCanonical)
@@ -196,7 +236,7 @@ final class TokenManagerTests: IsolatedTestCase {
         let start = Date()
         let token = await TokenManager.shared.getAPNsTokenData()
 
-        XCTAssertEqual(token?.provider, Constants.ProviderName.apns)
+        XCTAssertEqual(token?.provider, PushConstants.ProviderName.apns)
         XCTAssertEqual(token?.token, "apns-token")
         XCTAssertGreaterThanOrEqual(Date().timeIntervalSince(start), 2.0 - 0.2)
     }
@@ -212,7 +252,7 @@ final class TokenManagerTests: IsolatedTestCase {
 
         let token = await TokenManager.shared.getCurrentToken()
 
-        XCTAssertEqual(token?.provider, Constants.ProviderName.huawei)
+        XCTAssertEqual(token?.provider, PushConstants.ProviderName.huawei)
         XCTAssertEqual(token?.token, "hms-token")
     }
 
@@ -222,8 +262,8 @@ final class TokenManagerTests: IsolatedTestCase {
         await TokenManager.shared.setHMSProvider(nil)
         await TokenManager.shared.setAPNSProvider(nil)
 
-        await StoredVariablesManager.shared.setPushToken(
-            provider: Constants.ProviderName.firebase,
+        await PushStoredVariables.shared.setPushToken(
+            provider: PushConstants.ProviderName.firebase,
             token: "manual-1"
         )
 
@@ -234,7 +274,7 @@ final class TokenManagerTests: IsolatedTestCase {
         let before = spy.count
 
         let token1 = await TokenManager.shared.getCurrentToken()
-        XCTAssertEqual(token1?.provider, Constants.ProviderName.firebase)
+        XCTAssertEqual(token1?.provider, PushConstants.ProviderName.firebase)
         XCTAssertEqual(token1?.token, "manual-1")
 
         var firstEventCount = 0
@@ -255,7 +295,7 @@ final class TokenManagerTests: IsolatedTestCase {
         XCTAssertEqual(firstEventCount, 1)
 
         let token2 = await TokenManager.shared.getCurrentToken()
-        XCTAssertEqual(token2?.provider, Constants.ProviderName.firebase)
+        XCTAssertEqual(token2?.provider, PushConstants.ProviderName.firebase)
         XCTAssertEqual(token2?.token, "manual-1")
 
         var secondEventCount = 0
@@ -288,7 +328,7 @@ final class TokenManagerTests: IsolatedTestCase {
 
         let token = await TokenManager.shared.getCurrentToken()
 
-        XCTAssertEqual(token?.provider, Constants.ProviderName.firebase)
+        XCTAssertEqual(token?.provider, PushConstants.ProviderName.firebase)
         XCTAssertEqual(token?.token, "fcm-token")
     }
 
@@ -323,20 +363,46 @@ final class TokenManagerTests: IsolatedTestCase {
         await TokenManager.shared.setHMSProvider(nil)
         await TokenManager.shared.setAPNSProvider(nil)
 
-        await StoredVariablesManager.shared.setPushToken(
-            provider: Constants.ProviderName.firebase,
+        await PushStoredVariables.shared.setPushToken(
+            provider: PushConstants.ProviderName.firebase,
             token: nil
         )
 
         let inactive = await TokenManager.shared.pushModuleIsActive()
         XCTAssertFalse(inactive)
 
-        await StoredVariablesManager.shared.setPushToken(
-            provider: Constants.ProviderName.apns,
+        await PushStoredVariables.shared.setPushToken(
+            provider: PushConstants.ProviderName.apns,
             token: "x"
         )
 
         let active = await TokenManager.shared.pushModuleIsActive()
         XCTAssertTrue(active)
+    }
+
+    /// test_8: resolvedPriority normalizes the configured priority list —
+    /// case-insensitive matching against known providers, order preserved,
+    /// unknown entries and duplicates dropped (mirrors the case-insensitive
+    /// semantics of allProvidersValid).
+    func test_8_resolvedPriority_normalizesCase_dropsUnknownAndDuplicates() {
+        let resolved = TokenManager.shared.resolvedPriority([
+            "IOS-APNS",
+            "ios-apns",
+            "bogus-provider",
+            "IOS-FIREBASE",
+            "ios-huawei"
+        ])
+
+        XCTAssertEqual(
+            resolved,
+            [
+                PushConstants.ProviderName.apns,
+                PushConstants.ProviderName.firebase,
+                PushConstants.ProviderName.huawei
+            ],
+            "Priority must be canonical, ordered, and free of unknown/duplicate entries"
+        )
+
+        XCTAssertTrue(TokenManager.shared.resolvedPriority([]).isEmpty)
     }
 }

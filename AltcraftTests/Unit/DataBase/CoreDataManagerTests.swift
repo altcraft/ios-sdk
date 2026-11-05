@@ -1,15 +1,45 @@
 //
 //  CoreDataManagerTests.swift
-//  AltcraftTests
+//  Altcraft
 //
 //  Created by Andrey Pogodin.
 //
-//  Copyright © 2025 Altcraft. All rights reserved.
-//
+//  Copyright © 2026 Altcraft. All rights reserved.
 
 import XCTest
 import CoreData
-@testable import Altcraft
+@testable import AltcraftCore
+@_spi(_Altcraft) import AltcraftCore
+#if canImport(AltcraftCore)
+@_spi(_Altcraft) import AltcraftCore
+#endif
+#if canImport(AltcraftPush)
+@_spi(_Altcraft) import AltcraftPush
+#endif
+#if canImport(AltcraftProfile)
+@_spi(_Altcraft) import AltcraftProfile
+#endif
+#if canImport(AltcraftInApp)
+@_spi(_Altcraft) import AltcraftInApp
+#endif
+#if canImport(AltcraftTarget)
+@_spi(_Altcraft) import AltcraftTarget
+#endif
+#if canImport(AltcraftCore)
+@testable import AltcraftCore
+#endif
+#if canImport(AltcraftPush)
+@testable import AltcraftPush
+#endif
+#if canImport(AltcraftProfile)
+@testable import AltcraftProfile
+#endif
+#if canImport(AltcraftInApp)
+@testable import AltcraftInApp
+#endif
+#if canImport(AltcraftTarget)
+@testable import AltcraftTarget
+#endif
 
 /**
 * CoreDataManagerTests
@@ -23,8 +53,9 @@ import CoreData
 * - test_6: Initializing CoreDataManager with custom appGroup does not crash and yields a container.
 * - test_7: After container load critical DB flag is false.
 * - test_8: Context configuration includes correct merge policy and settings.
-* - test_9: Multiple performBackgroundTask calls work correctly and produce distinct contexts.
-* - test_10: Isolated Core Data stack works correctly with view and background contexts.
+ * - test_9: Multiple performBackgroundTask calls work correctly and produce distinct contexts.
+ * - test_10: Isolated Core Data stack works correctly with view and background contexts.
+ * - test_11: A successful store load resets the module's critical DB flag.
 *
 */
 final class CoreDataManagerTests: IsolatedTestCase {
@@ -35,6 +66,8 @@ final class CoreDataManagerTests: IsolatedTestCase {
     private let msgPrivateQueue = "Context must use private queue concurrency type"
     private let msgDistinct = "Contexts must be distinct"
     private let msgNoCritFlag = "Critical DB flag must be false after normal load"
+    private let msgCritFlagSet = "Critical DB flag must be set before the load"
+    private let msgCritFlagReset = "Critical DB flag must be reset after successful load"
     private let msgCorrectMergePolicy = "Context must have correct merge policy"
     private let msgAutoMergeEnabled = "Context should automatically merge changes from parent"
     private let msgNoUndoManager = "Context should not have undo manager"
@@ -109,7 +142,11 @@ final class CoreDataManagerTests: IsolatedTestCase {
 
     /// test_6: Initializing CoreDataManager with custom appGroup does not crash and yields a container
     func test_6_initializing_with_custom_app_group_does_not_crash_and_yields_a_container() {
-        let manager = CoreDataManager(appGroup: bogusGroup)
+        let manager = CoreDataManager(
+            modelName: Constants.CoreData.coreModelName,
+            storeFileName: Constants.CoreData.coreStoreFileName,
+            appGroup: bogusGroup
+        )
         let container = manager.persistentContainer
         let context = container.viewContext
 
@@ -181,6 +218,26 @@ final class CoreDataManagerTests: IsolatedTestCase {
             backgroundContext.concurrencyType,
             .privateQueueConcurrencyType,
             "Background context should be private queue"
+        )
+    }
+
+    /// test_11: A successful store load resets the module's critical DB flag
+    func test_11_successful_store_load_resets_module_critical_db_flag() {
+        let userDefaults = StoredVariablesManager.shared
+        let module = Constants.CoreData.coreModelName
+
+        userDefaults.setCritDB(value: true, module: module)
+        XCTAssertTrue(userDefaults.getDbErrorStatus(module: module), msgCritFlagSet)
+
+        _ = CoreDataManager(
+            modelName: Constants.CoreData.coreModelName,
+            storeFileName: Constants.CoreData.coreStoreFileName,
+            appGroup: bogusGroup
+        )
+
+        XCTAssertFalse(
+            userDefaults.getDbErrorStatus(module: module),
+            msgCritFlagReset
         )
     }
 }

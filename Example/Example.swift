@@ -1,33 +1,46 @@
 //
 //  Example.swift
-//
-//  Example
+//  Altcraft
 //
 //  Created by Andrey Pogodin.
 //
-//  Copyright © 2025 Altcraft. All rights reserved.
-
+//  Copyright © 2026 Altcraft. All rights reserved.
 import SwiftUI
-import Altcraft
 import FirebaseCore
 import FirebaseMessaging
+import AppTrackingTransparency
 
-///set AppGroups identifier
-let appGroupID = "group.your.id"
+import AltcraftCore
+import AltcraftPush
+import AltcraftInApp
+import AltcraftProfile
+import AltcraftTarget
 
-///set the JWT value for the anonymous user as anonJWT or in the application IU interface (config)
+/// App Group identifier used by the main application and extensions.
+let appGroupID = "group.altcraft.example"
+
+/// JWT value for the anonymous user.
+///
+/// Can also be configured through the application UI.
 let anonJWT: String? = nil
- 
-///set the JWT value for the registered user as regJWT or in the application IU interface (config)
+
+/// JWT value for the registered user.
+///
+/// Can also be configured through the application UI.
 let regJWT: String? = nil
 
+/// Example application entry point.
 @main
 struct IOSAPNsExampleApp: App {
+
     @UIApplicationDelegateAdaptor(AppDelegate.self) var delegate
-    
+
+    @Environment(\.scenePhase) private var scenePhase
+
     @State private var mode: Int = 1
+
     private let deeplinkManager = DeeplinkManager()
-    
+
     var body: some Scene {
         WindowGroup {
             ContentView(mode: $mode)
@@ -37,114 +50,178 @@ struct IOSAPNsExampleApp: App {
                     if case let .mode(m)? = deeplinkManager.manage(url: url) {
                         mode = m
                     }
-                }.preferredColorScheme(.light)
+                }
+                .preferredColorScheme(.light)
+        }
+        .onChange(of: scenePhase) { newPhase in
+            guard newPhase == .active else {
+                return
+            }
         }
     }
 }
 
-class AppDelegate: UIResponder, UIApplicationDelegate, UNUserNotificationCenterDelegate {
+// MARK: - AppDelegate
+/// Application delegate performing the Altcraft SDK setup.
+class AppDelegate: UIResponder,
+                   UIApplicationDelegate,
+                   UNUserNotificationCenterDelegate {
     
+    /// Performs application startup configuration.
     func application(
         _ application: UIApplication,
         didFinishLaunchingWithOptions launchOptions: [UIApplication.LaunchOptionsKey: Any]?
     ) -> Bool {
+
+        // Skip the demo SDK setup when running unit tests in this host
+        // application: registering providers and initializing the SDK would
+        // persist configuration into the shared in-memory stores, hit the
+        // real network, and pollute the test process state.
+        if NSClassFromString("XCTestCase") != nil {
+            // Background task identifiers must still be registered with the
+            // system even under tests: otherwise BGTaskScheduler.submit
+            // raises an uncatchable exception when a test initializes
+            // the SDK and schedules a refresh.
+            AltcraftSDK.backgroundTasks.registerBackgroundTask()
+            return true
+        }
+
         registerAltcraftEventHandlers()
         
-        ///Firebase  functions — uncomment if GoogleService-Info.plist is added to the project.
+        /// Registers lifecycle tracking used by In-App campaigns.
+        AltcraftSDK.inApp.registerLifecycleTracking()
+        
+        /// Configures the App Group used by the SDK.
+        AltcraftSDK.setAppGroup(groupName: appGroupID)
+    
+        /// Registers SDK background tasks.
+        AltcraftSDK.backgroundTasks.registerBackgroundTask()
+
+        // MARK: Firebase
+        
+        /// Firebase functions.
+        ///
+        /// Requires GoogleService-Info.plist to be added
+        /// to the main application target.
         //FirebaseConfiguration.shared.setLoggerLevel(.min)
         //FirebaseApp.configure()
+
+        /// Sets the JWT provider used by the SDK.
+        AltcraftSDK.auth.setJWTProvider(
+            provider: JWTProvider()
+        )
+    
+        /// Registers Firebase Cloud Messaging token provider.
+        AltcraftSDK.push.token.setFCMTokenProvider(
+            FCMProvider()
+        )
         
-        //Altcraft
-        AltcraftSDK.shared.setAppGroup(groupName: appGroupID)
-        AltcraftSDK.shared.backgroundTasks.registerBackgroundTask()
-        AltcraftSDK.shared.setJWTProvider(provider: JWTProvider())
-        AltcraftSDK.shared.pushTokenFunctions.setFCMTokenProvider(FCMProvider())
-        AltcraftSDK.shared.pushTokenFunctions.setHMSTokenProvider(HMSProvider())
-        AltcraftSDK.shared.pushTokenFunctions.setAPNSTokenProvider(APNSProvider())
-        AltcraftSDK.shared.notificationManager.registerForPushNotifications(for: application)
-    
+        /// Registers Huawei Mobile Services token provider.
+        ///
+        /// Uncomment when HMS is configured.
+        // AltcraftSDK.push.token.setHMSTokenProvider(
+        //     HMSProvider()
+        // )
+        
+        /// Registers Apple Push Notification Service token provider.
+        AltcraftSDK.push.token.setAPNSTokenProvider(
+            APNSProvider()
+        )
+        
+        /// Requests push notification permissions and registers
+        /// the application for remote notifications.
+        AltcraftSDK.push.notificationManager.registerForPushNotifications(
+            for: application
+        )
+
+        // MARK: SDK initialization
         initSDK(config: getConfigFromUserDefault())
-
-    
-        /// Optional: enable app-level push callbacks.
-        /// The SDK already posts `.altcraftPushWillPresent` / `.altcraftPushDidReceive` notifications
-        /// and performs default presentation + open-event tracking.
-        /// Uncomment only if you want to take over foreground display or tap handling
-        /// via `customPushProcessing` / `customClickProcessing` and the closure hooks.
-        //setupAltcraftPushCallbacks()
-
+  
         return true
     }
+
+    // MARK: APNs
     
+    /// Called after successful registration with APNs.
+    //
+    /// The received APNs device token is stored and then passed
+    /// to the Altcraft push token subsystem.
     func application(
         _ application: UIApplication,
         didRegisterForRemoteNotificationsWithDeviceToken apnsToken: Data
     ) {
-        //APNS
+        
+        /// Store APNs token in UserDefaults.
         setAPNsTokenInUserDefault(apnsToken)
-        AltcraftSDK.shared.pushTokenFunctions.getPushToken()
+        
+        /// Ask Altcraft SDK to obtain and process the current push token.
+        AltcraftSDK.push.token.getToken()
     }
 }
 
 /**
  * Altcraft SDK setup on iOS
  *
- * You can configure Altcraft SDK via your app UI (Config screen) or initialize it programmatically.
+ * The SDK can also be configured through the application UI (Config).
  *
- * Example (programmatic init in AppDelegate):
+ * Usage:
+ * ```swift
+ * let config = AltcraftConfiguration.Builder(
+ *     apiUrl: "https://pxl-example.altcraft.com",
+ *     rToken: nil,
+ *     appInfo: AppInfo(
+ *         appID: "com.example.app",
+ *         appIID: "8b91f3a0-1111-2222-3333-c1a2c1a2c1a2",
+ *         appVer: "1.0.0"
+ *     )
+ * )
+ *     .pushConfig(
+ *         providerPriority: [
+ *             "ios-apns",
+ *             "ios-firebase",
+ *             "ios-huawei"
+ *         ]
+ *     )
+ *     .inAppConfig(
+ *         inAppAutoRequest: true,
+ *         placementsRequestInterval: .init(value: 10, unit: .minutes),
+ *         maxPlacements: 10
+ *     )
+ *     .build()
  *
- * import Altcraft
+ * AltcraftSDK.initialization(configuration: config)
+ * ```
  *
- * func application(_ application: UIApplication,
- *                  didFinishLaunchingWithOptions launchOptions: [UIApplication.LaunchOptionsKey: Any]?) -> Bool {
+ * Objective-C:
+ * ```objc
+ * AppInfoObjC *info = [[AppInfoObjC alloc]
+ *     initWithAppID:@"com.example.app"
+ *             appIID:@"8b91f3a0-1111-2222-3333-c1a2c1a2c1a2"
+ *            appVer:@"1.0.0"];
  *
- *     // 1) Build configuration
- *     let builder = AltcraftConfiguration_Builder()
- *         .setApiUrl("https://pxl-example.altcraft.com")
- *         // .setRToken(nil) // optional, if you use a static resource token
- *         .setProviderPriorityList([
- *             "ios-apns",     // Apple Push Notification service
- *             "ios-firebase", // Firebase on iOS
- *             "ios-huawei"    // Huawei on iOS
- *         ])
+ * AltcraftConfiguration_Builder *builder = [[AltcraftConfiguration_Builder alloc]
+ *     initWithApiUrl:@"https://pxl-example.altcraft.com"
+ *             rToken:nil
+ *            appInfo:info
+ *      enableLogging:YES];
+ * ```
  *
- *     // Optional  firebase analytics app metadata (use either Swift or ObjC DTO)
- *     // Swift:
- *     // let info = AppInfo(appID: "com.example.app",
- *     //                    appIID: "8b91f3a0-1111-2222-3333-c1a2c1a2c1a2",
- *     //                    appVer: "1.0.0")
- *     // builder.setAppInfo(info)
+ * Provider resources (main application target root):
+ * - "ios-firebase" — add GoogleService-Info.plist
+ * - "ios-huawei"   — add AGConnect-Info.plist
  *
- *     // Objective-C DTO:
- *     // let infoObjC = ACAppInfoObjC(appID: "com.example.app",
- *     //                              appIID: "8b91f3a0-1111-2222-3333-c1a2c1a2c1a2",
- *     //                              appVer: "1.0.0")
- *     // builder.setAppInfo(infoObjC) // ObjC-only API (hidden from Swift)
+ * Capabilities:
+ * - Push Notifications
+ * - Background Modes → Remote notifications
+ * - App Groups — required for AltcraftSDK.setAppGroup(...) and the
+ *   Notification Service Extension (optional, rich push)
  *
- *     return true
- * }
+ * JWT — provide tokens through a JWTInterface implementation
+ * (getToken() -> String?) for anonymous and/or registered users.
  *
- * Notes & prerequisites:
- * - Capabilities:
- *   • Push Notifications (Signing & Capabilities)
- *   • Background Modes → “Remote notifications”
- *   • App Groups → if you call setAppGroup(...)
- *   • (Optional) Notification Service Extension → for rich push (media, buttons)
+ * App Tracking Transparency — to access IDFA on iOS 14.5+, add the
+ * "Privacy - Tracking Usage Description" key (NSUserTrackingUsageDescription)
+ * to the main application target Info.plist.
  *
- * - Provider resources (Bundle files):
- *   • **Firebase**: add **GoogleService-Info.plist** to the main app target (required when using the "ios-firebase" provider).
- *   • **Huawei**: add **AGConnect-Info.plist** to the main app target (required when using the "ios-huawei" provider).
- *
- * - Provider priority:
- *   The list you pass to `setProviderPriorityList([ ... ])` determines which provider is attempted first.
- *   Valid identifiers include: "ios-apns", "ios-firebase", "ios-huawei".
- *
- * - JWT:
- *   Provide a JWT via your `JWTInterface` implementation (anonymous/registered), or update it at runtime.
- *
- * - Objective-C:
- *   All the same steps are available from ObjC via the `AltcraftConfiguration_Builder`
- *   and ObjC-bridged functions/types you added (see AltcraftObjCTypes.swift).
- *
- * - Example of sdk function implementation: Example/Functions/SDKFunctions.swift
+ * Full documentation: README.md → Documentation.
  */

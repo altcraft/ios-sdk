@@ -1,13 +1,44 @@
 //
 //  RetryManagerTests.swift
-//  AltcraftTests
+//  Altcraft
 //
 //  Created by Andrey Pogodin.
 //
-//  © 2025 Altcraft. All rights reserved.
+//  Copyright © 2026 Altcraft. All rights reserved.
 
 import XCTest
-@testable import Altcraft
+@testable import AltcraftCore
+@_spi(_Altcraft) import AltcraftCore
+#if canImport(AltcraftCore)
+@_spi(_Altcraft) import AltcraftCore
+#endif
+#if canImport(AltcraftPush)
+@_spi(_Altcraft) import AltcraftPush
+#endif
+#if canImport(AltcraftProfile)
+@_spi(_Altcraft) import AltcraftProfile
+#endif
+#if canImport(AltcraftInApp)
+@_spi(_Altcraft) import AltcraftInApp
+#endif
+#if canImport(AltcraftTarget)
+@_spi(_Altcraft) import AltcraftTarget
+#endif
+#if canImport(AltcraftCore)
+@testable import AltcraftCore
+#endif
+#if canImport(AltcraftPush)
+@testable import AltcraftPush
+#endif
+#if canImport(AltcraftProfile)
+@testable import AltcraftProfile
+#endif
+#if canImport(AltcraftInApp)
+@testable import AltcraftInApp
+#endif
+#if canImport(AltcraftTarget)
+@testable import AltcraftTarget
+#endif
 
 /**
  * RetryManagerTests
@@ -42,10 +73,10 @@ final class RetryManagerTests: XCTestCase {
         }
 
         mgr.store(key: "K", work: oldWork)
-        mgr.subscribeQueue.asyncAfter(deadline: .now() + 0.15, execute: oldWork)
+        mgr.queue("com.altcraft.retry.subscribe").asyncAfter(deadline: .now() + 0.15, execute: oldWork)
 
         mgr.store(key: "K", work: newWork)
-        mgr.subscribeQueue.asyncAfter(deadline: .now() + 0.10, execute: newWork)
+        mgr.queue("com.altcraft.retry.subscribe").asyncAfter(deadline: .now() + 0.10, execute: newWork)
 
         wait(for: [firedNew, firedOld], timeout: 1.0)
     }
@@ -74,10 +105,10 @@ final class RetryManagerTests: XCTestCase {
         mgr.store(key: "push", work: push)
         mgr.store(key: "mob", work: mob)
 
-        mgr.subscribeQueue.asyncAfter(deadline: .now() + 0.2, execute: sub)
-        mgr.tokenUpdateQueue.asyncAfter(deadline: .now() + 0.2, execute: tok)
-        mgr.pushEventQueue.asyncAfter(deadline: .now() + 0.2, execute: push)
-        mgr.mobileEventQueue.asyncAfter(deadline: .now() + 0.2, execute: mob)
+        mgr.queue("com.altcraft.retry.subscribe").asyncAfter(deadline: .now() + 0.2, execute: sub)
+        mgr.queue("com.altcraft.retry.tokenUpdate").asyncAfter(deadline: .now() + 0.2, execute: tok)
+        mgr.queue("com.altcraft.retry.pushEvent").asyncAfter(deadline: .now() + 0.2, execute: push)
+        mgr.queue("com.altcraft.retry.mobileEvent").asyncAfter(deadline: .now() + 0.2, execute: mob)
 
         mgr.cancelAll()
 
@@ -101,10 +132,10 @@ final class RetryManagerTests: XCTestCase {
         mgr.store(key: "pushQ", work: push)
         mgr.store(key: "mobQ", work: mob)
 
-        mgr.subscribeQueue.asyncAfter(deadline: .now() + 0.05, execute: sub)
-        mgr.tokenUpdateQueue.asyncAfter(deadline: .now() + 0.06, execute: tok)
-        mgr.pushEventQueue.asyncAfter(deadline: .now() + 0.07, execute: push)
-        mgr.mobileEventQueue.asyncAfter(deadline: .now() + 0.08, execute: mob)
+        mgr.queue("com.altcraft.retry.subscribe").asyncAfter(deadline: .now() + 0.05, execute: sub)
+        mgr.queue("com.altcraft.retry.tokenUpdate").asyncAfter(deadline: .now() + 0.06, execute: tok)
+        mgr.queue("com.altcraft.retry.pushEvent").asyncAfter(deadline: .now() + 0.07, execute: push)
+        mgr.queue("com.altcraft.retry.mobileEvent").asyncAfter(deadline: .now() + 0.08, execute: mob)
 
         wait(for: [exp], timeout: 3.0)
     }
@@ -124,7 +155,7 @@ final class RetryManagerTests: XCTestCase {
             DispatchQueue.global().async {
                 let work = DispatchWorkItem { }
                 mgr.store(key: key, work: work)
-                mgr.subscribeQueue.asyncAfter(deadline: .now() + 0.1, execute: work)
+                mgr.queue("com.altcraft.retry.subscribe").asyncAfter(deadline: .now() + 0.1, execute: work)
                 group.leave()
             }
         }
@@ -133,7 +164,7 @@ final class RetryManagerTests: XCTestCase {
 
         let final = DispatchWorkItem { didRun.fulfill() }
         mgr.store(key: key, work: final)
-        mgr.subscribeQueue.async(execute: final)
+        mgr.queue("com.altcraft.retry.subscribe").async(execute: final)
 
         wait(for: [didRun], timeout: 3.0)
     }

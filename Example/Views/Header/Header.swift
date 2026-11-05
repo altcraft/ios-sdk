@@ -1,16 +1,21 @@
 //
 //  Header.swift
-//  Example
+//  Altcraft
 //
 //  Created by Andrey Pogodin.
 //
-//  Copyright © 2025 Altcraft. All rights reserved.
+//  Copyright © 2026 Altcraft. All rights reserved.
 
 import Foundation
+import AltcraftPush
 import SwiftUI
 
-
+/// Rectangle with rounded bottom corners.
 struct BottomRoundedRectangle: Shape {
+    /// Draws the header shape path.
+    ///
+    /// - Parameter rect: Drawing bounds.
+    /// - Returns: Shape path.
     func path(in rect: CGRect) -> Path {
         let radius: CGFloat = 5
         var path = Path()
@@ -29,6 +34,7 @@ struct BottomRoundedRectangle: Shape {
     }
 }
 
+/// Builds the application header view.
 func Header() -> some View {
     ZStack {
         BottomRoundedRectangle()

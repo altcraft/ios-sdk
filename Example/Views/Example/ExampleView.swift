@@ -1,13 +1,17 @@
 //
 //  ExampleView.swift
-//  Example
+//  Altcraft
 //
 //  Created by Andrey Pogodin.
 //
-//  Copyright © 2025 Altcraft. All rights reserved.
+//  Copyright © 2026 Altcraft. All rights reserved.
 
 import SwiftUI
+import AltcraftCore
+import AltcraftPush
+import AltcraftTarget
 
+/// SDK function examples screen.
 struct ExampleView: View {
     @ObservedObject var manager = GlobalNotificationDataManager.shared
     @State private var isExpanded = false
@@ -114,6 +118,7 @@ struct ExampleView: View {
     }
 }
 
+/// Text value demo row.
 struct TextSetting: View {
     @ObservedObject var manager = GlobalNotificationDataManager.shared
     @State private var title: String = ""
@@ -165,6 +170,7 @@ struct TextSetting: View {
     }
 }
 
+/// Image demo row.
 struct ImageSetting: View {
     @ObservedObject var manager = GlobalNotificationDataManager.shared
     @State private var imgUrl: String = ""
@@ -206,6 +212,7 @@ struct ImageSetting: View {
     }
 }
 
+/// Buttons demo section.
 struct ButtonsSettingView: View {
     @ObservedObject var manager: NotificationDataManager
 
@@ -271,6 +278,7 @@ struct ButtonsSettingView: View {
     }
 }
 
+/// Editable button row.
 struct EditableButtonItem: View {
     @State private var editableText: String
     let onTextChanged: (String) -> Void
@@ -312,11 +320,14 @@ struct EditableButtonItem: View {
     }
 }
 
-
-
+/// Shape with a flat top and rounded bottom.
 struct TopFlatRoundedBottom: Shape {
     var radius: CGFloat
 
+    /// Draws the shape path.
+    ///
+    /// - Parameter rect: Drawing bounds.
+    /// - Returns: Shape path.
     func path(in rect: CGRect) -> Path {
         var path = Path()
 
@@ -344,6 +355,7 @@ struct TopFlatRoundedBottom: Shape {
     }
 }
 
+/// Send push demo button.
 struct SendPushButton: View {
     var body: some View {
         let backgroundColor = Color(red: 0.55, green: 0.75, blue: 0.99).opacity(0.2)

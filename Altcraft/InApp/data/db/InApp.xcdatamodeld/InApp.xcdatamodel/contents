@@ -1,0 +1,80 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<model type="com.apple.IDECoreDataModeler.DataModel" documentVersion="1.0" lastSavedToolsVersion="24512" systemVersion="25C56" minimumToolsVersion="Automatic" sourceLanguage="Swift" usedWithSwiftData="YES" userDefinedModelVersionIdentifier="">
+    <entity name="InAppConfigEntity" representedClassName="InAppConfigEntity" syncable="YES">
+        <attribute name="inAppAutoRequest" optional="YES" attributeType="Boolean" usesScalarValueType="YES"/>
+        <attribute name="maxPlacements" optional="YES" attributeType="Integer 32" defaultValueString="0" usesScalarValueType="YES"/>
+        <attribute name="placementsRequestInterval" optional="YES" attributeType="Integer 64" defaultValueString="0" usesScalarValueType="YES"/>
+    </entity>
+    <entity name="InAppEntity" representedClassName="InAppEntity" syncable="YES">
+        <attribute name="actionTriggerName" optional="YES" attributeType="String"/>
+        <attribute name="actionTriggerType" optional="YES" attributeType="String"/>
+        <attribute name="appVersionCondition" optional="YES" attributeType="String"/>
+        <attribute name="appVersions" optional="YES" attributeType="Binary"/>
+        <attribute name="availability" optional="YES" attributeType="Binary"/>
+        <attribute name="checksum" optional="YES" attributeType="String"/>
+        <attribute name="companyId" optional="YES" attributeType="Integer 32" defaultValueString="0" usesScalarValueType="YES"/>
+        <attribute name="contentUrl" optional="YES" attributeType="String"/>
+        <attribute name="deadline" optional="YES" attributeType="Integer 64" defaultValueString="0" usesScalarValueType="YES"/>
+        <attribute name="endDate" optional="YES" attributeType="Integer 64" defaultValueString="0" usesScalarValueType="YES"/>
+        <attribute name="images" optional="YES" attributeType="Binary"/>
+        <attribute name="impressionsLimit" optional="YES" attributeType="Integer 32" defaultValueString="0" usesScalarValueType="YES"/>
+        <attribute name="isAnonim" optional="YES" attributeType="Boolean" usesScalarValueType="YES"/>
+        <attribute name="lastCompanyUpdate" optional="YES" attributeType="Integer 64" defaultValueString="0" usesScalarValueType="YES"/>
+        <attribute name="placements" optional="YES" attributeType="Binary"/>
+        <attribute name="policy" optional="YES" attributeType="Binary"/>
+        <attribute name="priority" optional="YES" attributeType="Integer 16" defaultValueString="0" usesScalarValueType="YES"/>
+        <attribute name="smid" optional="YES" attributeType="String"/>
+        <attribute name="triggerEvents" optional="YES" attributeType="Binary"/>
+        <attribute name="type" optional="YES" attributeType="String"/>
+        <attribute name="uid" optional="YES" attributeType="String"/>
+    </entity>
+    <entity name="InAppEventEntity" representedClassName="InAppEventEntity" syncable="YES">
+        <attribute name="acid" optional="YES" attributeType="String"/>
+        <attribute name="data" optional="YES" attributeType="Binary"/>
+        <attribute name="maxRetryCount" optional="YES" attributeType="Integer 16" defaultValueString="0" usesScalarValueType="YES"/>
+        <attribute name="requestId" optional="YES" attributeType="String"/>
+        <attribute name="retryCount" optional="YES" attributeType="Integer 16" defaultValueString="0" usesScalarValueType="YES"/>
+        <attribute name="smid" optional="YES" attributeType="String"/>
+        <attribute name="time" optional="YES" attributeType="Integer 64" defaultValueString="0.0" usesScalarValueType="YES"/>
+        <attribute name="type" optional="YES" attributeType="String"/>
+    </entity>
+    <entity name="InAppsEntity" representedClassName="InAppsEntity" syncable="YES">
+        <attribute name="acid" optional="YES" attributeType="String"/>
+        <attribute name="deviceId" optional="YES" attributeType="String"/>
+        <attribute name="lastPublish" optional="YES" attributeType="Integer 64" defaultValueString="0" usesScalarValueType="YES"/>
+        <attribute name="lastRequestTime" optional="YES" attributeType="Integer 64" defaultValueString="0" usesScalarValueType="YES"/>
+        <attribute name="placementRulesChecksum" optional="YES" attributeType="String"/>
+    </entity>
+    <entity name="InAppStaticEntity" representedClassName="InAppStaticEntity" syncable="YES">
+        <attribute name="blockCss" optional="YES" attributeType="String"/>
+        <attribute name="blockJs" optional="YES" attributeType="String"/>
+        <attribute name="createdAt" optional="YES" attributeType="Integer 64" defaultValueString="0" usesScalarValueType="YES"/>
+        <attribute name="inAppLibraryJs" optional="YES" attributeType="String"/>
+    </entity>
+    <entity name="InAppSubscribeEntity" representedClassName="InAppSubscribeEntity" syncable="YES">
+        <attribute name="acid" optional="YES" attributeType="String"/>
+        <attribute name="cats" optional="YES" attributeType="Binary"/>
+        <attribute name="customFields" optional="YES" attributeType="Binary"/>
+        <attribute name="deviceId" optional="YES" attributeType="String"/>
+        <attribute name="maxRetryCount" optional="YES" attributeType="Integer 16" defaultValueString="0" usesScalarValueType="YES"/>
+        <attribute name="profileFields" optional="YES" attributeType="Binary"/>
+        <attribute name="replace" optional="YES" attributeType="Boolean" usesScalarValueType="YES"/>
+        <attribute name="requestId" optional="YES" attributeType="String"/>
+        <attribute name="retryCount" optional="YES" attributeType="Integer 16" defaultValueString="0" usesScalarValueType="YES"/>
+        <attribute name="skipTriggers" optional="YES" attributeType="Boolean" usesScalarValueType="YES"/>
+        <attribute name="status" optional="YES" attributeType="String"/>
+        <attribute name="sync" optional="YES" attributeType="Boolean" defaultValueString="0" usesScalarValueType="YES"/>
+        <attribute name="time" optional="YES" attributeType="Integer 64" defaultValueString="0.0" usesScalarValueType="YES"/>
+        <attribute name="userTag" optional="YES" attributeType="String"/>
+    </entity>
+    <entity name="InAppSubStateEntity" representedClassName="InAppSubStateEntity" syncable="YES">
+        <attribute name="status" optional="YES" attributeType="String"/>
+        <attribute name="userTag" optional="YES" attributeType="String"/>
+    </entity>
+    <entity name="PersonalPolicyEntity" representedClassName="PersonalPolicyEntity" syncable="YES">
+        <attribute name="acid" optional="YES" attributeType="String"/>
+        <attribute name="deliveryReport" optional="YES" attributeType="Boolean" usesScalarValueType="YES"/>
+        <attribute name="openCount" optional="YES" attributeType="Integer 32" defaultValueString="0" usesScalarValueType="YES"/>
+        <attribute name="smid" optional="YES" attributeType="String"/>
+    </entity>
+</model>

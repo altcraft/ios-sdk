@@ -1,15 +1,47 @@
 //
 //  AuthManagerTests.swift
-//  AltcraftTests
+//  Altcraft
 //
 //  Created by Andrey Pogodin.
 //
-//  © 2025 Altcraft. All rights reserved.
+//  Copyright © 2026 Altcraft. All rights reserved.
 
 import XCTest
 import CryptoKit
-@testable import Altcraft
+@testable import AltcraftCore
+@_spi(_Altcraft) import AltcraftCore
+#if canImport(AltcraftCore)
+@_spi(_Altcraft) import AltcraftCore
+#endif
+#if canImport(AltcraftPush)
+@_spi(_Altcraft) import AltcraftPush
+#endif
+#if canImport(AltcraftProfile)
+@_spi(_Altcraft) import AltcraftProfile
+#endif
+#if canImport(AltcraftInApp)
+@_spi(_Altcraft) import AltcraftInApp
+#endif
+#if canImport(AltcraftTarget)
+@_spi(_Altcraft) import AltcraftTarget
+#endif
+#if canImport(AltcraftCore)
+@testable import AltcraftCore
+#endif
+#if canImport(AltcraftPush)
+@testable import AltcraftPush
+#endif
+#if canImport(AltcraftProfile)
+@testable import AltcraftProfile
+#endif
+#if canImport(AltcraftInApp)
+@testable import AltcraftInApp
+#endif
+#if canImport(AltcraftTarget)
+@testable import AltcraftTarget
+#endif
 
+/// JWT manager mock.
 private class MockJWTManager {
     static var shared = MockJWTManager()
     var currentJWT: String?
@@ -21,6 +53,7 @@ private class MockJWTManager {
     }
 }
 
+/// Config manager mock.
 private class MockConfigManager {
     static var shared = MockConfigManager()
     var currentConfig: Configuration?
@@ -161,21 +194,19 @@ final class AuthManagerTests: IsolatedTestCase {
     }
 
     /// test_1: Get auth data with R token returns correct auth header and token
-    func test_1_getAuthData_withRToken_returnsHeaderAndToken() {
+    func test_1_getAuthData_withRToken_returnsHeaderAndToken() throws {
         let r = "r-123"
-        let res = getAuthDataMock(rToken: r)
-        XCTAssertNotNil(res, msgNonNil)
-        XCTAssertEqual(res!.0, "Bearer rtoken@\(r)", msgEqual)
-        XCTAssertEqual(res!.1, r, msgEqual)
+        let res = try XCTUnwrap(getAuthDataMock(rToken: r), msgNonNil)
+        XCTAssertEqual(res.0, "Bearer rtoken@\(r)", msgEqual)
+        XCTAssertEqual(res.1, r, msgEqual)
     }
 
     /// test_2: Get auth data with whitespace token treats whitespace as non-empty
-    func test_2_getAuthData_withWhitespaceToken_treatedAsNonEmpty() {
+    func test_2_getAuthData_withWhitespaceToken_treatedAsNonEmpty() throws {
         let r = "   "
-        let res = getAuthDataMock(rToken: r)
-        XCTAssertNotNil(res, msgNonNil)
-        XCTAssertEqual(res!.0, "Bearer rtoken@\(r)", msgEqual)
-        XCTAssertEqual(res!.1, r, msgEqual)
+        let res = try XCTUnwrap(getAuthDataMock(rToken: r), msgNonNil)
+        XCTAssertEqual(res.0, "Bearer rtoken@\(r)", msgEqual)
+        XCTAssertEqual(res.1, r, msgEqual)
     }
 
     /// test_3: Get auth data with empty R token falls back to JWT
@@ -192,12 +223,11 @@ final class AuthManagerTests: IsolatedTestCase {
         let jwt = try makeJWT(matchingObject: matchingObj)
         
         setMockJWT(jwt)
-        let res = getAuthDataMock(rToken: "")
-        
-        XCTAssertNotNil(res, msgNonNil)
-        XCTAssertTrue(res!.0.hasPrefix("Bearer "), msgPrefix)
-        XCTAssertTrue(res!.0.contains(jwt), msgContains)
-        XCTAssertEqual(res!.1, matching, msgEqual)
+        let res = try XCTUnwrap(getAuthDataMock(rToken: ""), msgNonNil)
+
+        XCTAssertTrue(res.0.hasPrefix("Bearer "), msgPrefix)
+        XCTAssertTrue(res.0.contains(jwt), msgContains)
+        XCTAssertEqual(res.1, matching, msgEqual)
     }
 
     /// test_4: Get auth data with JWT returns header with bearer and matching
@@ -214,12 +244,11 @@ final class AuthManagerTests: IsolatedTestCase {
         let jwt = try makeJWT(matchingObject: matchingObj)
         
         setMockJWT(jwt)
-        let res = getAuthDataMock(rToken: nil)
-        
-        XCTAssertNotNil(res, msgNonNil)
-        XCTAssertTrue(res!.0.hasPrefix("Bearer "), msgPrefix)
-        XCTAssertTrue(res!.0.contains(jwt), msgContains)
-        XCTAssertEqual(res!.1, matching, msgEqual)
+        let res = try XCTUnwrap(getAuthDataMock(rToken: nil), msgNonNil)
+
+        XCTAssertTrue(res.0.hasPrefix("Bearer "), msgPrefix)
+        XCTAssertTrue(res.0.contains(jwt), msgContains)
+        XCTAssertEqual(res.1, matching, msgEqual)
     }
 
     /// test_5: Get auth data with invalid JWT returns nil
@@ -238,7 +267,7 @@ final class AuthManagerTests: IsolatedTestCase {
 
     /// test_7: Get user tag when config provides R token returns R token as user tag
     func test_7_getUserTag_returnsRToken_whenConfigProvidesIt() {
-        let cfg = Configuration(url: "https://example.com", rToken: "rt-999", appInfo: nil, providerPriorityList: nil)
+        let cfg = Configuration(apiUrl: "https://example.com", rToken: "rt-999", appInfo: nil)
         setMockConfig(cfg)
         let exp = expectation(description: "userTag")
         getUserTagMock { tag in
@@ -250,7 +279,7 @@ final class AuthManagerTests: IsolatedTestCase {
 
     /// test_8: Get user tag from JWT when R token missing returns SHA256 hash
     func test_8_getUserTag_returnsSHA256Hash_fromJWT_whenRTokenMissing() throws {
-        let cfg = Configuration(url: "https://example.com", rToken: nil, appInfo: nil, providerPriorityList: nil)
+        let cfg = Configuration(apiUrl: "https://example.com", rToken: nil, appInfo: nil)
         let dbId = 7
         let matching = "push_sub"
         let ids = ["idA", "idB"]
@@ -288,7 +317,7 @@ final class AuthManagerTests: IsolatedTestCase {
     
     /// test_10: Get user tag with whitespace R token returns it as-is
     func test_10_getUserTag_withWhitespaceRToken_returnsIt() {
-        let cfg = Configuration(url: "https://example.com", rToken: "   ", appInfo: nil, providerPriorityList: nil)
+        let cfg = Configuration(apiUrl: "https://example.com", rToken: "   ", appInfo: nil)
         setMockConfig(cfg)
         let exp = expectation(description: "userTag-whitespace")
         getUserTagMock { tag in

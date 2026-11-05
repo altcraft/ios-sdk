@@ -1,14 +1,17 @@
 //
 //  FCMProvider.swift
-//  Example
+//  Altcraft
 //
 //  Created by Andrey Pogodin.
 //
-//  Copyright © 2025 Altcraft. All rights reserved.
+//  Copyright © 2026 Altcraft. All rights reserved.
 
 import FirebaseMessaging
-import Altcraft
+import AltcraftCore
+import AltcraftPush
+import AltcraftTarget
 
+/// FCM token provider (`TokenProviderInterface`).
 class FCMProvider: FCMInterface {
     
     /// Retrieves the current FCM token.

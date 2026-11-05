@@ -1,15 +1,23 @@
 //
 //  SubFunctions.swift
-//  Example
+//  Altcraft
 //
 //  Created by Andrey Pogodin.
 //
-//  Copyright © 2025 Altcraft. All rights reserved.
+//  Copyright © 2026 Altcraft. All rights reserved.
 
 import Foundation
+import AltcraftPush
+import AltcraftTarget
 import SwiftUI
 
 extension View {
+    /// Adds a border overlay around the given view content.
+    ///
+    /// - Parameters:
+    ///   - content: View content to decorate.
+    ///   - width: Border width.
+    ///   - cornerRadius: Corner radius of the border.
     public func addBorder<S>(_ content: S, width: CGFloat = 1, cornerRadius: CGFloat) -> some View where S : ShapeStyle {
         let roundedRect = RoundedRectangle(cornerRadius: cornerRadius)
         return clipShape(roundedRect)
@@ -42,6 +50,12 @@ extension Color {
         )
     }
 }
+/// Scales the image to fit the target size.
+///
+/// - Parameters:
+///   - image: Source image.
+///   - targetSize: Maximum resulting size.
+/// - Returns: Scaled image.
 func resizeImage(image: UIImage, targetSize: CGSize) -> UIImage {
     let size = image.size
     let widthRatio  = targetSize.width  / size.width
@@ -59,11 +73,18 @@ func resizeImage(image: UIImage, targetSize: CGSize) -> UIImage {
     return resizedImage
 }
 
+/// Returns the token suffix used for UI display.
+///
+/// - Parameter input: Full token string.
+/// - Returns: Last characters of the token.
 func getTokenSubString(of input: String) -> String {
     return input.count > 10 ? String(input.suffix(10)) : input
 }
 
-
+/// Returns a shortened configuration string for UI display.
+///
+/// - Parameter input: Full configuration string.
+/// - Returns: Truncated string, or an empty string.
 func configSubString(input: String?) -> String {
     guard let input = input else { return ""}
     guard input.count > 12 else {

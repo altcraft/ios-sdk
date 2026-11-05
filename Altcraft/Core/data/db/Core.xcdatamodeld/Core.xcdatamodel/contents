@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<model type="com.apple.IDECoreDataModeler.DataModel" documentVersion="1.0" lastSavedToolsVersion="24512" systemVersion="25C56" minimumToolsVersion="Automatic" sourceLanguage="Swift" usedWithSwiftData="YES" userDefinedModelVersionIdentifier="">
+    <entity name="AuthenticationEntity" representedClassName="AuthenticationEntity" syncable="YES">
+        <attribute name="anonimAcid" optional="YES" attributeType="String"/>
+        <attribute name="currentAcid" optional="YES" attributeType="String"/>
+        <attribute name="currentUserTag" optional="YES" attributeType="String"/>
+        <attribute name="deviceId" optional="YES" attributeType="String"/>
+        <attribute name="isTest" optional="YES" attributeType="Boolean" usesScalarValueType="YES"/>
+        <attribute name="startAnonSession" optional="YES" attributeType="Integer 64" defaultValueString="0" usesScalarValueType="YES"/>
+    </entity>
+    <entity name="AuthRequestEntity" representedClassName="AuthRequestEntity" syncable="YES">
+        <attribute name="maxRetryCount" optional="YES" attributeType="Integer 16" defaultValueString="0" usesScalarValueType="YES"/>
+        <attribute name="requestId" optional="YES" attributeType="String"/>
+        <attribute name="retryCount" optional="YES" attributeType="Integer 16" defaultValueString="0" usesScalarValueType="YES"/>
+        <attribute name="userTag" optional="YES" attributeType="String"/>
+    </entity>
+    <entity name="ConfigurationEntity" representedClassName="ConfigurationEntity" syncable="YES">
+        <attribute name="appInfo" optional="YES" attributeType="Binary"/>
+        <attribute name="rToken" optional="YES" attributeType="String"/>
+        <attribute name="url" optional="YES" attributeType="String"/>
+    </entity>
+</model>

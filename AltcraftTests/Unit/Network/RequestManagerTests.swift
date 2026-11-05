@@ -1,161 +1,156 @@
 //
 //  RequestManagerTests.swift
-//  AltcraftTests
+//  Altcraft
 //
 //  Created by Andrey Pogodin.
 //
-//  Copyright © 2025 Altcraft. All rights reserved.
-//
+//  Copyright © 2026 Altcraft. All rights reserved.
 
 import XCTest
-@testable import Altcraft
+@testable import AltcraftCore
+@_spi(_Altcraft) import AltcraftCore
+#if canImport(AltcraftCore)
+@_spi(_Altcraft) import AltcraftCore
+#endif
+#if canImport(AltcraftPush)
+@_spi(_Altcraft) import AltcraftPush
+#endif
+#if canImport(AltcraftProfile)
+@_spi(_Altcraft) import AltcraftProfile
+#endif
+#if canImport(AltcraftInApp)
+@_spi(_Altcraft) import AltcraftInApp
+#endif
+#if canImport(AltcraftTarget)
+@_spi(_Altcraft) import AltcraftTarget
+#endif
+#if canImport(AltcraftCore)
+@testable import AltcraftCore
+#endif
+#if canImport(AltcraftPush)
+@testable import AltcraftPush
+#endif
+#if canImport(AltcraftProfile)
+@testable import AltcraftProfile
+#endif
+#if canImport(AltcraftInApp)
+@testable import AltcraftInApp
+#endif
+#if canImport(AltcraftTarget)
+@testable import AltcraftTarget
+#endif
 
 /**
 * RequestManagerTests
 *
 * Positive scenarios:
-* - test_1: responseProcessing success 2xx → returns Event with mapped code.
-* - test_2: responseProcessing server error 5xx → returns RetryEvent with mapped code.
-* - test_3: responseProcessing client error 4xx → returns ErrorEvent with mapped code.
+* - test_1: ResponseProcessor.processResponse success 2xx returns Event with mapped data.
+* - test_2: ResponseProcessor.processResponse server error 5xx returns RetryEvent with message.
+* - test_3: ResponseProcessor.processResponse client error 4xx returns ErrorEvent.
 * - test_4: redirect delegate preserves critical headers.
-* - test_5: sendRequest with mock URLSession success 200 → maps success pair.
-* - test_6: sendRequest with mock URLSession server error 5xx → maps retry pair.
-* - test_7: sendRequest with mock URLSession network error → maps retry event.
-* - test_8: responseProcessing mobile event success → uses name in pair.
-*
-*/
+* - test_5: ResponseProcessor.processResponse with PushSubscribeRequestData success returns Event.
+* - test_6: ResponseProcessor.processResponse with non-JSON body still returns correct event type.
+* - test_7: ResponseProcessor.processResponse with empty body returns correct event type.
+ * - test_8: ResponseProcessor.processResponse mobile event success includes name in event data.
+ * - test_9: concurrent access to the shared session yields a single URLSession instance.
+ * - test_10: String.isJsonString mirrors Android SubFunction.isJsonString.
+ * - test_11: processResponse with a 502 HTML body returns a retry event
+ *   without a parse attempt (no decode error log path).
+ *
+ */
 final class RequestManagerTests: IsolatedTestCase {
 
-    private final class RequestManagerAdapter {
-        private let manager: RequestManager
-        private let session: URLSessioning
-
-        init(
-            manager: RequestManager = RequestManager.shared,
-            session: URLSessioning
-        ) {
-            self.manager = manager
-            self.session = session
-        }
-
-        func sendRequest(
-            url: URL,
-            requestName: String,
-            uid: String? = nil,
-            pushEventType: String? = nil,
-            mobileEventName: String? = nil
-        ) async -> Event {
-            await withCheckedContinuation { continuation in
-                session.makeDownloadTask(with: url) { tempURL, response, error in
-                    if let error {
-                        continuation.resume(
-                            returning: retryEvent("sendRequestAdapter: \(requestName)", error: error)
-                        )
-                        return
-                    }
-
-                    guard let httpResponse = response as? HTTPURLResponse else {
-                        continuation.resume(
-                            returning: retryEvent("sendRequestAdapter: \(requestName)", error: invalidResponseFormat)
-                        )
-                        return
-                    }
-
-                    let data = tempURL.flatMap { try? Data(contentsOf: $0) }
-
-                    let event = self.manager.responseProcessing(
-                        response: httpResponse,
-                        data: data,
-                        requestName: requestName,
-                        uid: uid,
-                        type: pushEventType,
-                        name: mobileEventName
-                    )
-
-                    continuation.resume(returning: event)
-                }.resume()
-            }
-        }
+    private func http(_ code: Int) throws -> HTTPURLResponse {
+        let url = try XCTUnwrap(URL(string: "https://example.com/api"))
+        return try XCTUnwrap(
+            HTTPURLResponse(
+                url: url,
+                statusCode: code,
+                httpVersion: "HTTP/1.1",
+                headerFields: [:]
+            )
+        )
     }
 
-    private func http(_ code: Int) -> HTTPURLResponse {
-        HTTPURLResponse(
-            url: URL(string: "https://example.com/api")!,
-            statusCode: code,
-            httpVersion: "HTTP/1.1",
-            headerFields: [:]
-        )!
+    private func json(_ object: Any) throws -> Data {
+        try JSONSerialization.data(withJSONObject: object, options: [])
     }
 
-    private func json(_ object: Any) -> Data {
-        try! JSONSerialization.data(withJSONObject: object, options: [])
-    }
-
-    private func normalize(_ raw: String?) -> String {
-        guard let raw else { return "" }
-
-        if let index = raw.firstIndex(of: "(") {
-            return String(raw[..<index]).trimmingCharacters(in: .whitespacesAndNewlines)
-        }
-
-        return raw.hasSuffix("()")
-            ? String(raw.dropLast(2)).trimmingCharacters(in: .whitespacesAndNewlines)
-            : raw
-    }
-
-    /// responseProcessing success 2xx returns Event with mapped code
-    func test_1_responseProcessing_success_2xx_returns_event_with_mapped_code() {
-        let manager = RequestManager.shared
-
-        let event = manager.responseProcessing(
-            response: http(200),
-            data: json([:]),
-            requestName: Constants.RequestName.pushEvent,
+    /// ResponseProcessor.processResponse success 2xx returns Event with mapped data
+    func test_1_responseProcessing_success_2xx_returns_event() throws {
+        let requestData = RequestModel.PushEventRequestData(
+            path: PushConstants.UrlPath.event,
+            requestId: "RID-1",
+            time: 1000,
+            type: PushConstants.PushEvents.delivery,
             uid: "U1",
-            type: Constants.PushEvents.delivery,
-            name: nil
         )
 
-        XCTAssertTrue(Swift.type(of: event) == Event.self)
-        XCTAssertEqual(event.eventCode, 236)
-        XCTAssertEqual(normalize(event.function), "responseProcessing")
-        XCTAssertNotNil(event.value?[Constants.MapKeys.responseWithHttp] as? ResponseWithHttp)
+        let result = ResponseProcessor.processResponse(
+            request: requestData,
+            response: try http(200),
+            data: try json([:])
+        )
+
+        XCTAssertEqual(result.httpCode, 200)
+        XCTAssertTrue(type(of: result.event) == Event.self)
+        XCTAssertFalse(result.event is ErrorEvent)
+        XCTAssertEqual(result.event.event as? PushModuleEvents, .pushEventRequestSuccessful)
     }
 
-    /// responseProcessing server error 5xx returns RetryEvent with mapped code
-    func test_2_responseProcessing_server_error_5xx_returns_retry_event_with_mapped_code() {
-        let manager = RequestManager.shared
-
-        let event = manager.responseProcessing(
-            response: http(503),
-            data: json(["error": 123, "errorText": "boom"]),
-            requestName: Constants.RequestName.subscribe
+    /// ResponseProcessor.processResponse server error 5xx returns RetryEvent with message
+    func test_2_responseProcessing_server_error_5xx_returns_retry_event() throws {
+        let requestData = RequestModel.PushSubscribeRequestData(
+            path: PushConstants.UrlPath.subscribe,
+            requestId: "RID-2",
+            time: 1000,
+            provider: "ios-apns",
+            deviceToken: "DEV",
+            status: Constants.SubStatus.subscribed,
+            sync: true,
+            profileFields: nil,
+            fields: nil,
+            cats: nil,
+            replace: nil,
+            skipTriggers: nil
         )
 
-        XCTAssertTrue(Swift.type(of: event) == RetryEvent.self)
-        XCTAssertEqual(event.eventCode, 530)
-        XCTAssertTrue((event.message ?? "").contains("http code: 503"))
-        XCTAssertEqual(normalize(event.function), "responseProcessing")
+        let result = ResponseProcessor.processResponse(
+            request: requestData,
+            response: try http(503),
+            data: try json(["error": 123, "errorText": "boom"])
+        )
+
+        XCTAssertEqual(result.httpCode, 503)
+        XCTAssertTrue(result.event is RetryEvent)
+        XCTAssertTrue((result.event.message ?? "").contains("503"))
     }
 
-    /// responseProcessing client error 4xx returns ErrorEvent with mapped code
-    func test_3_responseProcessing_client_error_4xx_returns_error_event_with_mapped_code() {
-        let manager = RequestManager.shared
-
-        let event = manager.responseProcessing(
-            response: http(409),
-            data: json(["error": 12, "errorText": "bad"]),
-            requestName: Constants.RequestName.tokenUpdate
+    /// ResponseProcessor.processResponse client error 4xx returns ErrorEvent
+    func test_3_responseProcessing_client_error_4xx_returns_error_event() throws {
+        let requestData = RequestModel.TokenUpdateRequestData(
+            path: PushConstants.UrlPath.update,
+            requestId: "RID-3",
+            oldToken: "OLD",
+            newToken: "NEW",
+            oldProvider: "ios-apns",
+            newProvider: "ios-firebase",
+            sync: true
         )
 
-        XCTAssertTrue(Swift.type(of: event) == ErrorEvent.self)
-        XCTAssertEqual(event.eventCode, 433)
-        XCTAssertEqual(normalize(event.function), "responseProcessing")
-        XCTAssertNotNil(event.value?[Constants.MapKeys.responseWithHttp] as? ResponseWithHttp)
+        let result = ResponseProcessor.processResponse(
+            request: requestData,
+            response: try http(409),
+            data: try json(["error": 12, "errorText": "bad"])
+        )
+
+        XCTAssertEqual(result.httpCode, 409)
+        XCTAssertTrue(result.event is ErrorEvent)
+        XCTAssertFalse(result.event is RetryEvent)
     }
 
     /// redirect delegate preserves critical headers
-    func test_4_redirect_delegate_preserves_critical_headers() {
+    func test_4_redirect_delegate_preserves_critical_headers() throws {
         let manager = RequestManager.shared
 
         let firstURL = URL(string: "https://stub.local/redirect")!
@@ -170,12 +165,14 @@ final class RequestManagerTests: IsolatedTestCase {
         let session = URLSession(configuration: .ephemeral, delegate: nil, delegateQueue: nil)
         let task = session.dataTask(with: originalRequest)
 
-        let redirectResponse = HTTPURLResponse(
-            url: firstURL,
-            statusCode: 302,
-            httpVersion: "HTTP/1.1",
-            headerFields: ["Location": secondURL.absoluteString]
-        )!
+        let redirectResponse = try XCTUnwrap(
+            HTTPURLResponse(
+                url: firstURL,
+                statusCode: 302,
+                httpVersion: "HTTP/1.1",
+                headerFields: ["Location": secondURL.absoluteString]
+            )
+        )
 
         var newRequest = URLRequest(url: secondURL)
         newRequest.httpMethod = "GET"
@@ -209,78 +206,167 @@ final class RequestManagerTests: IsolatedTestCase {
         wait(for: [expectation], timeout: 1.0)
     }
 
-    /// sendRequest with mock URLSession success 200 maps success pair
-    func test_5_send_request_with_mock_url_session_success_200_maps_success_pair() async {
-        let body = json([:])
-        let mockSession = MockURLSession(result: .success(body), statusCode: 200)
-        let adapter = RequestManagerAdapter(session: mockSession)
-
-        let event = await adapter.sendRequest(
-            url: URL(string: "https://mock.local/success")!,
-            requestName: Constants.RequestName.subscribe
+    /// ResponseProcessor.processResponse with PushSubscribeRequestData success returns Event
+    func test_5_responseProcessing_subscribe_success_returns_event() throws {
+        let requestData = RequestModel.PushSubscribeRequestData(
+            path: PushConstants.UrlPath.subscribe,
+            requestId: "RID-5",
+            time: 1000,
+            provider: "ios-apns",
+            deviceToken: "DEV5",
+            status: Constants.SubStatus.subscribed,
+            sync: true,
+            profileFields: nil,
+            fields: nil,
+            cats: nil,
+            replace: nil,
+            skipTriggers: nil
         )
 
-        XCTAssertTrue(Swift.type(of: event) == Event.self)
-        XCTAssertEqual(event.eventCode, 230)
-        XCTAssertEqual(normalize(event.function), "responseProcessing")
+        let result = ResponseProcessor.processResponse(
+            request: requestData,
+            response: try http(200),
+            data: try json([:])
+        )
+
+        XCTAssertEqual(result.httpCode, 200)
+        XCTAssertTrue(type(of: result.event) == Event.self)
+        XCTAssertEqual(result.event.event as? PushModuleEvents, .pushSubscribeRequestSuccessful)
     }
 
-    /// sendRequest with mock URLSession server error 5xx maps retry pair
-    func test_6_send_request_with_mock_url_session_server_error_5xx_maps_retry_pair() async {
-        let body = json([:])
-        let mockSession = MockURLSession(result: .success(body), statusCode: 503)
-        let adapter = RequestManagerAdapter(session: mockSession)
-
-        let event = await adapter.sendRequest(
-            url: URL(string: "https://mock.local/5xx")!,
-            requestName: Constants.RequestName.pushEvent,
-            uid: "U5",
-            pushEventType: Constants.PushEvents.delivery
+    /// ResponseProcessor.processResponse with non-JSON body still returns correct event type
+    func test_6_responseProcessing_nonJson_body_still_returns_correct_event() throws {
+        let requestData = RequestModel.PushEventRequestData(
+            path: PushConstants.UrlPath.event,
+            requestId: "RID-6",
+            time: 1000,
+            type: PushConstants.PushEvents.delivery,
+            uid: "U6",
         )
 
-        XCTAssertTrue(Swift.type(of: event) == RetryEvent.self)
-        XCTAssertEqual(event.eventCode, 536)
-        XCTAssertEqual(normalize(event.function), "responseProcessing")
+        let nonJsonData = Data("not json".utf8)
+
+        let result = ResponseProcessor.processResponse(
+            request: requestData,
+            response: try http(200),
+            data: nonJsonData
+        )
+
+        XCTAssertEqual(result.httpCode, 200)
+        XCTAssertTrue(type(of: result.event) == Event.self)
     }
 
-    /// sendRequest with mock URLSession network error maps retry event
-    func test_7_send_request_with_mock_url_session_network_error_maps_retry_event() async {
-        let error = NSError(
-            domain: NSURLErrorDomain,
-            code: NSURLErrorNotConnectedToInternet,
-            userInfo: nil
-        )
-        let mockSession = MockURLSession(result: .failure(error), statusCode: 200)
-        let adapter = RequestManagerAdapter(session: mockSession)
-
-        let event = await adapter.sendRequest(
-            url: URL(string: "https://mock.local/error")!,
-            requestName: Constants.RequestName.tokenUpdate
+    /// ResponseProcessor.processResponse with empty body returns correct event type
+    func test_7_responseProcessing_empty_body_returns_correct_event() throws {
+        let requestData = RequestModel.PushEventRequestData(
+            path: PushConstants.UrlPath.event,
+            requestId: "RID-7",
+            time: 1000,
+            type: PushConstants.PushEvents.open,
+            uid: "U7",
         )
 
-        XCTAssertTrue(Swift.type(of: event) == RetryEvent.self)
-        XCTAssertEqual(
-            normalize(event.function),
-            "sendRequestAdapter: \(Constants.RequestName.tokenUpdate)"
+        let result = ResponseProcessor.processResponse(
+            request: requestData,
+            response: try http(200),
+            data: nil
         )
+
+        XCTAssertEqual(result.httpCode, 200)
+        XCTAssertTrue(type(of: result.event) == Event.self)
     }
 
-    /// responseProcessing mobile event success uses name in pair
-    func test_8_response_processing_mobile_event_success_uses_name_in_pair() {
+    /// ResponseProcessor.processResponse mobile event success includes name in event data
+    func test_8_responseProcessing_mobile_event_success_includes_name() throws {
+        let requestData = RequestModel.TargetEventRequestData(
+            path: TargetConstants.UrlPath.event,
+            requestId: "RID-8",
+            sid: "SID-8",
+            name: "open app",
+            parts: [],
+        )
+
+        let result = ResponseProcessor.processResponse(
+            request: requestData,
+            response: try http(200),
+            data: try json([:])
+        )
+
+        XCTAssertEqual(result.httpCode, 200)
+        XCTAssertTrue(type(of: result.event) == Event.self)
+        XCTAssertEqual(result.event.event as? TargetModuleEvents, .mobileEventRequestSuccessful)
+
+        let ev = result.event.value
+        XCTAssertEqual(ev?[Constants.MapKeys.name] as? String, "open app")
+        XCTAssertNotNil(ev?[MapBuilder.httpCodeKey])
+    }
+
+    /// test_9: concurrent access to the shared session yields a single
+    /// URLSession instance
+    func test_9_concurrentSessionAccess_createsSingleSession() async throws {
         let manager = RequestManager.shared
 
-        let event = manager.responseProcessing(
-            response: http(200),
-            data: json([:]),
-            requestName: Constants.RequestName.mobileEvent,
-            uid: "U8",
-            type: nil,
-            name: "open app"
+        let identifiers = try await withThrowingTaskGroup(of: ObjectIdentifier.self) { group in
+            for _ in 0..<100 {
+                group.addTask {
+                    manager.test_sessionIdentifier()
+                }
+            }
+            var ids: [ObjectIdentifier] = []
+            for try await id in group {
+                ids.append(id)
+            }
+            return ids
+        }
+
+        XCTAssertEqual(identifiers.count, 100)
+        XCTAssertEqual(Set(identifiers).count, 1)
+    }
+
+    /// test_10: String.isJsonString mirrors Android SubFunction.isJsonString —
+    /// non-blank bodies starting with `{` or `[` (after leading whitespace)
+    /// are treated as JSON.
+    func test_10_isJsonString_helper_mirrorsAndroidParity() {
+        XCTAssertTrue("{\"error\":1}".isJsonString)
+        XCTAssertTrue("[1,2,3]".isJsonString)
+        XCTAssertTrue("  \n\t{\"error\":1}".isJsonString, "Leading whitespace must be ignored")
+
+        XCTAssertFalse("".isJsonString, "Empty body is not JSON")
+        XCTAssertFalse("   ".isJsonString, "Blank body is not JSON")
+        XCTAssertFalse("<html><body>502 Bad Gateway</body></html>".isJsonString)
+        XCTAssertFalse("not json".isJsonString)
+    }
+
+    /// test_11: processResponse with a 502 HTML body returns a retry event
+    /// and no parsed response; the body must not be passed to the decoder
+    /// (mirrors Android Response.parseResponse skipping non-JSON bodies).
+    func test_11_responseProcessing_502HtmlBody_returnsRetryEventWithoutParseAttempt() throws {
+        let requestData = RequestModel.PushSubscribeRequestData(
+            path: PushConstants.UrlPath.subscribe,
+            requestId: "RID-11",
+            time: 1000,
+            provider: "ios-apns",
+            deviceToken: "DEV11",
+            status: Constants.SubStatus.subscribed,
+            sync: true,
+            profileFields: nil,
+            fields: nil,
+            cats: nil,
+            replace: nil,
+            skipTriggers: nil
         )
 
-        XCTAssertTrue(Swift.type(of: event) == Event.self)
-        XCTAssertEqual(event.eventCode, 237)
-        XCTAssertEqual(normalize(event.function), "responseProcessing")
-        XCTAssertNotNil(event.value?[Constants.MapKeys.responseWithHttp] as? ResponseWithHttp)
+        let htmlBody = Data("<html><body><h1>502 Bad Gateway</h1></body></html>".utf8)
+
+        let result = ResponseProcessor.processResponse(
+            request: requestData,
+            response: try http(502),
+            data: htmlBody
+        )
+
+        XCTAssertEqual(result.httpCode, 502)
+        XCTAssertNil(result.response, "HTML body must not produce a parsed response")
+        XCTAssertTrue(result.event is RetryEvent)
+        XCTAssertTrue((result.event.message ?? "").contains("502"))
     }
 }

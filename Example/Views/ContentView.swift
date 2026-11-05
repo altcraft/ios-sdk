@@ -1,14 +1,14 @@
 //
 //  ContentView.swift
-//  Example
+//  Altcraft
 //
 //  Created by Andrey Pogodin.
 //
-//  Copyright © 2025 Altcraft. All rights reserved.
+//  Copyright © 2026 Altcraft. All rights reserved.
 
 import SwiftUI
-import Altcraft
 
+/// Root navigation view of the example app.
 struct ContentView: View {
     @Binding var mode: Int
 
@@ -19,13 +19,14 @@ struct ContentView: View {
                 case 1: MainView()
                 case 2: ExampleView()
                 case 3: LogsView()
-                case 4: ConfigurationView()
+                case 4: InAppView()
+                case 5: ConfigurationView()
                 default: EmptyView()
                 }
             }
             .frame(maxWidth: .infinity, maxHeight: .infinity)
             .background(Color.white)
-    
+
             NavigatorView(mode: $mode)
                 .frame(height: 60)
         }

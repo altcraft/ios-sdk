@@ -15,7 +15,7 @@
 			<string>altcraft</string>
 			<key>CFBundleURLSchemes</key>
 			<array>
-				<string>apns</string>
+				<string>altcraft.main</string>
 			</array>
 		</dict>
 	</array>
@@ -38,6 +38,20 @@
 	<array>
 		<string>processing</string>
 		<string>remote-notification</string>
+		<string>fetch</string>
+	</array>
+	<key>UILaunchScreen</key>
+	<dict>
+	</dict>
+	<key>UIRequiresFullScreen</key>
+	<true/>
+	<key>UIStatusBarStyle</key>
+	<string>UIStatusBarStyleDefault</string>
+	<key>UISupportedInterfaceOrientations</key>
+	<array>
+		<string>UIInterfaceOrientationPortrait</string>
+		<string>UIInterfaceOrientationLandscapeLeft</string>
+		<string>UIInterfaceOrientationLandscapeRight</string>
 	</array>
 </dict>
 </plist>

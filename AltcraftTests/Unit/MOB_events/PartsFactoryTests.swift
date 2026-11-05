@@ -1,44 +1,81 @@
 //
 //  PartsFactoryTests.swift
-//  AltcraftTests
+//  Altcraft
 //
 //  Created by Andrey Pogodin.
 //
-//  © 2025 Altcraft. All rights reserved.
+//  Copyright © 2026 Altcraft. All rights reserved.
 
 import XCTest
 import CoreData
-@testable import Altcraft
+@testable import AltcraftCore
+@_spi(_Altcraft) import AltcraftCore
+#if canImport(AltcraftCore)
+@_spi(_Altcraft) import AltcraftCore
+#endif
+#if canImport(AltcraftPush)
+@_spi(_Altcraft) import AltcraftPush
+#endif
+#if canImport(AltcraftProfile)
+@_spi(_Altcraft) import AltcraftProfile
+#endif
+#if canImport(AltcraftInApp)
+@_spi(_Altcraft) import AltcraftInApp
+#endif
+#if canImport(AltcraftTarget)
+@_spi(_Altcraft) import AltcraftTarget
+#endif
+#if canImport(AltcraftCore)
+@testable import AltcraftCore
+#endif
+#if canImport(AltcraftPush)
+@testable import AltcraftPush
+#endif
+#if canImport(AltcraftProfile)
+@testable import AltcraftProfile
+#endif
+#if canImport(AltcraftInApp)
+@testable import AltcraftInApp
+#endif
+#if canImport(AltcraftTarget)
+@testable import AltcraftTarget
+#endif
 
 /**
  * PartsFactoryTests
  *
  * Positive scenarios:
- *  - test_1: createMobileEventParts with all required fields → includes timeZone, time, clientID, and eventName as text parts.
- *  - test_2: createMobileEventParts with optional fields → includes matchingType, sendMessageId, and payload when present.
- *  - test_3: createMobileEventParts with time values → correctly converts milliseconds to seconds and leaves seconds unchanged.
- *  - test_4: createMobileEventParts with UTM data → processes campaign, source, and medium from JSON as text parts.
- *  - test_5: createMobileEventParts with JSON data → creates application/json parts for matching, subscription, and profileFields.
+ *  - test_1: createTargetEventParts with all required fields → includes timeZone, time, clientID, and eventName as text parts.
+ *  - test_2: createTargetEventParts with optional fields → includes matchingType, sendMessageId, and payload when present.
+ *  - test_3: createTargetEventParts with time values → correctly converts milliseconds to seconds and leaves seconds unchanged.
+ *  - test_4: createTargetEventParts with UTM data → processes campaign, source, and medium from JSON as text parts.
+ *  - test_5: createTargetEventParts with JSON data → creates application/json parts for matching, subscription, and profileFields.
  *  - test_6: epochSeconds with milliseconds input → converts to seconds by dividing by 1000.
  *  - test_7: epochSeconds with seconds input → returns value unchanged.
  *  - test_8: Time conversion boundary cases → correctly handles threshold values for milliseconds/seconds detection.
  */
 final class PartsFactoryTests: IsolatedTestCase {
 
-    /// test_1: createMobileEventParts with all required fields → includes timeZone, time, clientID, and eventName as text parts
-    func test_1_createMobileEventParts_createsRequiredTextParts() {
-        let event = createMobileEventEntity(
+    override class var useSDKCoreData: Bool { true }
+
+    override class var sdkManagerContainer: NSPersistentContainer? {
+        targetDatabase.persistentContainer
+    }
+
+    /// test_1: createTargetEventParts with all required fields → includes timeZone, time, clientID, and eventName as text parts
+    func test_1_createTargetEventParts_createsRequiredTextParts() {
+        let event = createTargetEntity(
             timeZone: 180,
             time: 1_234_567_890,
             altcraftClientID: "test_client_123",
             eventName: "test_event"
         )
 
-        let parts = PartsFactory.createMobileEventParts(from: event)
-        let timeZonePart = parts.first { $0.name == Constants.MobileEvents.TIME_ZONE }
-        let timePart = parts.first { $0.name == Constants.MobileEvents.TIME_MOB }
-        let clientIDPart = parts.first { $0.name == Constants.MobileEvents.ALTCRAFT_CLIENT_ID }
-        let eventNamePart = parts.first { $0.name == Constants.MobileEvents.MOB_EVENT_NAME }
+        let parts = PartsFactory.createTargetEventParts(from: event)
+        let timeZonePart = parts.first { $0.name == TargetConstants.TargetEvents.TIME_ZONE }
+        let timePart = parts.first { $0.name == TargetConstants.TargetEvents.TIME_MOB }
+        let clientIDPart = parts.first { $0.name == TargetConstants.TargetEvents.ALTCRAFT_CLIENT_ID }
+        let eventNamePart = parts.first { $0.name == TargetConstants.TargetEvents.MOB_EVENT_NAME }
         
         XCTAssertEqual(String(data: timeZonePart?.data ?? Data(), encoding: .utf8), "180")
         XCTAssertEqual(String(data: timePart?.data ?? Data(), encoding: .utf8), "1234567890")
@@ -46,39 +83,39 @@ final class PartsFactoryTests: IsolatedTestCase {
         XCTAssertEqual(String(data: eventNamePart?.data ?? Data(), encoding: .utf8), "test_event")
     }
     
-    /// test_2: createMobileEventParts with optional fields → includes matchingType, sendMessageId, and payload when present
-    func test_2_createMobileEventParts_handlesOptionalFields() {
-        let event = createMobileEventEntity(
+    /// test_2: createTargetEventParts with optional fields → includes matchingType, sendMessageId, and payload when present
+    func test_2_createTargetEventParts_handlesOptionalFields() {
+        let event = createTargetEntity(
             matchingType: "email",
             sendMessageId: "msg_123",
             payload: #"{"key":"value"}"#.data(using: .utf8)
         )
         
-        let parts = PartsFactory.createMobileEventParts(from: event)
-        let matchingTypePart = parts.first { $0.name == Constants.MobileEvents.MATCHING_TYPE }
-        let smidPart = parts.first { $0.name == Constants.MobileEvents.SMID_MOB }
-        let payloadPart = parts.first { $0.name == Constants.MobileEvents.PAYLOAD }
+        let parts = PartsFactory.createTargetEventParts(from: event)
+        let matchingTypePart = parts.first { $0.name == TargetConstants.TargetEvents.MATCHING_TYPE }
+        let smidPart = parts.first { $0.name == TargetConstants.TargetEvents.SMID_MOB }
+        let payloadPart = parts.first { $0.name == TargetConstants.TargetEvents.PAYLOAD }
         
         XCTAssertEqual(String(data: matchingTypePart?.data ?? Data(), encoding: .utf8), "email")
         XCTAssertEqual(String(data: smidPart?.data ?? Data(), encoding: .utf8), "\"msg_123\"")
         XCTAssertEqual(String(data: payloadPart?.data ?? Data(), encoding: .utf8), #"{"key":"value"}"#)
     }
     
-    /// test_3: createMobileEventParts with time values → correctly converts milliseconds to seconds and leaves seconds unchanged
-    func test_3_createMobileEventParts_convertsTimeCorrectly() {
-        let millisEvent = createMobileEventEntity(time: 1_700_000_000_000)
-        let secondsEvent = createMobileEventEntity(time: 1_234_567_890)
-        let millisParts = PartsFactory.createMobileEventParts(from: millisEvent)
-        let secondsParts = PartsFactory.createMobileEventParts(from: secondsEvent)
-        let millisTimePart = millisParts.first { $0.name == Constants.MobileEvents.TIME_MOB }
-        let secondsTimePart = secondsParts.first { $0.name == Constants.MobileEvents.TIME_MOB }
+    /// test_3: createTargetEventParts with time values → correctly converts milliseconds to seconds and leaves seconds unchanged
+    func test_3_createTargetEventParts_convertsTimeCorrectly() {
+        let millisEvent = createTargetEntity(time: 1_700_000_000_000)
+        let secondsEvent = createTargetEntity(time: 1_234_567_890)
+        let millisParts = PartsFactory.createTargetEventParts(from: millisEvent)
+        let secondsParts = PartsFactory.createTargetEventParts(from: secondsEvent)
+        let millisTimePart = millisParts.first { $0.name == TargetConstants.TargetEvents.TIME_MOB }
+        let secondsTimePart = secondsParts.first { $0.name == TargetConstants.TargetEvents.TIME_MOB }
         
         XCTAssertEqual(String(data: millisTimePart?.data ?? Data(), encoding: .utf8), "1700000000")
         XCTAssertEqual(String(data: secondsTimePart?.data ?? Data(), encoding: .utf8), "1234567890")
     }
     
-    /// test_4: createMobileEventParts with UTM data → processes campaign, source, and medium from JSON as text parts
-    func test_4_createMobileEventParts_processesUTMData() {
+    /// test_4: createTargetEventParts with UTM data → processes campaign, source, and medium from JSON as text parts
+    func test_4_createTargetEventParts_processesUTMData() {
         let utmJSON = """
         {
             "campaign": "test_campaign",
@@ -87,29 +124,29 @@ final class PartsFactoryTests: IsolatedTestCase {
         }
         """.data(using: .utf8)
         
-        let event = createMobileEventEntity(utmTags: utmJSON)
-        let parts = PartsFactory.createMobileEventParts(from: event)
-        let campaignPart = parts.first { $0.name == Constants.MobileEvents.UTM_CAMPAIGN }
-        let sourcePart = parts.first { $0.name == Constants.MobileEvents.UTM_SOURCE }
-        let mediumPart = parts.first { $0.name == Constants.MobileEvents.UTM_MEDIUM }
+        let event = createTargetEntity(utmTags: utmJSON)
+        let parts = PartsFactory.createTargetEventParts(from: event)
+        let campaignPart = parts.first { $0.name == TargetConstants.TargetEvents.UTM_CAMPAIGN }
+        let sourcePart = parts.first { $0.name == TargetConstants.TargetEvents.UTM_SOURCE }
+        let mediumPart = parts.first { $0.name == TargetConstants.TargetEvents.UTM_MEDIUM }
         
         XCTAssertEqual(String(data: campaignPart?.data ?? Data(), encoding: .utf8), "test_campaign")
         XCTAssertEqual(String(data: sourcePart?.data ?? Data(), encoding: .utf8), "test_source")
         XCTAssertEqual(String(data: mediumPart?.data ?? Data(), encoding: .utf8), "email")
     }
     
-    /// test_5: createMobileEventParts with JSON data → creates application/json parts for matching, subscription, and profileFields
-    func test_5_createMobileEventParts_createsJsonPartsWhenDataExists() {
-        let event = createMobileEventEntity(
+    /// test_5: createTargetEventParts with JSON data → creates application/json parts for matching, subscription, and profileFields
+    func test_5_createTargetEventParts_createsJsonPartsWhenDataExists() {
+        let event = createTargetEntity(
             matching: #"{"type":"email"}"#.data(using: .utf8),
             subscription: #"{"status":"active"}"#.data(using: .utf8),
             profileFields: #"{"name":"John"}"#.data(using: .utf8)
         )
         
-        let parts = PartsFactory.createMobileEventParts(from: event)
-        let matchingPart = parts.first { $0.name == Constants.MobileEvents.MATCHING_MOB }
-        let subscriptionPart = parts.first { $0.name == Constants.MobileEvents.SUBSCRIPTION_MOB }
-        let profileFieldsPart = parts.first { $0.name == Constants.MobileEvents.PROFILE_FIELDS_MOB }
+        let parts = PartsFactory.createTargetEventParts(from: event)
+        let matchingPart = parts.first { $0.name == TargetConstants.TargetEvents.MATCHING_MOB }
+        let subscriptionPart = parts.first { $0.name == TargetConstants.TargetEvents.SUBSCRIPTION_MOB }
+        let profileFieldsPart = parts.first { $0.name == TargetConstants.TargetEvents.PROFILE_FIELDS_MOB }
         
         XCTAssertNotNil(matchingPart)
         XCTAssertNotNil(subscriptionPart)
@@ -135,24 +172,24 @@ final class PartsFactoryTests: IsolatedTestCase {
     
     /// test_8: Time conversion boundary cases → correctly handles threshold values for milliseconds/seconds detection
     func test_8_timeConversion_boundaryCases() {
-        let thresholdEvent = createMobileEventEntity(time: 1_000_000_000_000)
-        let belowThresholdEvent = createMobileEventEntity(time: 999_999_999_999)
-        let aboveThresholdEvent = createMobileEventEntity(time: 1_000_000_000_001)
+        let thresholdEvent = createTargetEntity(time: 1_000_000_000_000)
+        let belowThresholdEvent = createTargetEntity(time: 999_999_999_999)
+        let aboveThresholdEvent = createTargetEntity(time: 1_000_000_000_001)
         
-        let thresholdParts = PartsFactory.createMobileEventParts(from: thresholdEvent)
-        let belowParts = PartsFactory.createMobileEventParts(from: belowThresholdEvent)
-        let aboveParts = PartsFactory.createMobileEventParts(from: aboveThresholdEvent)
+        let thresholdParts = PartsFactory.createTargetEventParts(from: thresholdEvent)
+        let belowParts = PartsFactory.createTargetEventParts(from: belowThresholdEvent)
+        let aboveParts = PartsFactory.createTargetEventParts(from: aboveThresholdEvent)
         
-        let thresholdTime = thresholdParts.first { $0.name == Constants.MobileEvents.TIME_MOB }
-        let belowTime = belowParts.first { $0.name == Constants.MobileEvents.TIME_MOB }
-        let aboveTime = aboveParts.first { $0.name == Constants.MobileEvents.TIME_MOB }
+        let thresholdTime = thresholdParts.first { $0.name == TargetConstants.TargetEvents.TIME_MOB }
+        let belowTime = belowParts.first { $0.name == TargetConstants.TargetEvents.TIME_MOB }
+        let aboveTime = aboveParts.first { $0.name == TargetConstants.TargetEvents.TIME_MOB }
        
         XCTAssertEqual(String(data: thresholdTime?.data ?? Data(), encoding: .utf8), "1000000000")
         XCTAssertEqual(String(data: belowTime?.data ?? Data(), encoding: .utf8), "999999999999")
         XCTAssertEqual(String(data: aboveTime?.data ?? Data(), encoding: .utf8), "1000000000")
     }
     
-    private func createMobileEventEntity(
+    private func createTargetEntity(
         timeZone: Int = 0,
         time: Int64 = 0,
         altcraftClientID: String? = "default_client",
@@ -164,9 +201,9 @@ final class PartsFactoryTests: IsolatedTestCase {
         matching: Data? = nil,
         subscription: Data? = nil,
         profileFields: Data? = nil
-    ) -> MobileEventEntity {
+    ) -> TargetEntity {
         
-        let entity = MobileEventEntity(context: viewContext)
+        let entity = TargetEntity(context: viewContext)
         entity.timeZone = Int16(timeZone)
         entity.time = time
         entity.altcraftClientID = altcraftClientID
