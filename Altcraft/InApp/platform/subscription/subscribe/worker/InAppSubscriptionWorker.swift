@@ -31,4 +31,16 @@ actor InAppSubscriptionWorker {
             enableRetry: enableRetry
         )
     }
+
+    /// Starts the in-app subscription processing pipeline awaiting its
+    /// completion (background refresh path: the app may be suspended right
+    /// after the system task is marked complete).
+    ///
+    /// - Parameter enableRetry: If `true`, schedules internal retry on failure.
+    func processPendingAwaited(enableRetry: Bool) async {
+        await InAppSubscriptionProcess.shared.enqueueStart(
+            enableRetry: enableRetry,
+            awaitCompletion: true
+        )
+    }
 }

@@ -102,11 +102,19 @@ internal actor PushSubscriptionProcess {
     /// token update (if auth is configured), and then processes all queued
     /// subscriptions from Core Data.
     ///
-    /// - Parameter enableRetry: If `true`, schedules internal retry on failure.
+    /// - Parameters:
+    ///   - enableRetry: If `true`, schedules internal retry on failure.
     ///                          If `false`, no retry is scheduled.
-    func enqueueStart(enableRetry: Bool = true) async {
+    ///   - awaitCompletion: If `true` and the device is currently online, the
+    ///     call awaits the completion of the queued run (background refresh
+    ///     path). Offline the run stays enqueued fire-and-forget — the call
+    ///     returns immediately and the job waits for connectivity itself.
+    func enqueueStart(
+        enableRetry: Bool = true,
+        awaitCompletion: Bool = false
+    ) async {
        let function = getFunc(#function)
-       PushSubscribeQueues.startQueue.submit {
+       let handle = PushSubscribeQueues.startQueue.submit {
             let env = PushEnvironment.fresh()
 
             do {
@@ -132,6 +140,10 @@ internal actor PushSubscriptionProcess {
                 PushLog.retry(function, error: error)
                 if enableRetry { pushSubscribeRetry() }
             }
+        }
+
+        if awaitCompletion, await NetworkMonitor.shared.isOnline() {
+            await handle.value
         }
     }
 

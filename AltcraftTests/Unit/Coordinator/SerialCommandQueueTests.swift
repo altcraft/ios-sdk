@@ -175,6 +175,65 @@ final class SerialCommandQueueTests: IsolatedTestCase {
             "cancelled in-flight job must be dropped, post-reset job must run"
         )
     }
+    /// test_4: submit returns a handle completing only after the job finishes.
+    func test_4_submit_returnsHandleCompletingAfterJob() async {
+        let queue = SerialCommandQueue(label: "test.scq.handle")
+        let flag = Flag()
+
+        let handle = queue.submit {
+            try? await Task.sleep(nanoseconds: 100_000_000)
+            await flag.setTrue()
+        }
+
+        let completedBefore = await flag.value()
+        XCTAssertFalse(
+            completedBefore,
+            "handle must not complete before the job body"
+        )
+
+        await handle.value
+
+        let completedAfter = await flag.value()
+        XCTAssertTrue(
+            completedAfter,
+            "handle must complete only after the job body"
+        )
+    }
+
+    /// test_5: submit on a suspended queue returns a completed handle and
+    /// normal work resumes after `resume()`.
+    func test_5_suspendedQueue_submitReturnsCompletedHandle() async {
+        let queue = SerialCommandQueue(label: "test.scq.suspend")
+        let log = OrderLog()
+
+        queue.suspend()
+
+        let handle = queue.submit { await log.append(1) }
+
+        await handle.value
+
+        let dropped = await log.values()
+        XCTAssertTrue(
+            dropped.isEmpty,
+            "a job submitted while suspended must be dropped"
+        )
+
+        queue.resume()
+
+        queue.submit { await log.append(2) }
+
+        var finished = false
+        for _ in 0..<100 {
+            let values = await log.values()
+            if values.contains(2) {
+                finished = true
+                break
+            }
+            try? await Task.sleep(nanoseconds: 25_000_000)
+        }
+
+        XCTAssertTrue(finished, "post-resume job must run")
+    }
 }
 
 private actor OrderLog {

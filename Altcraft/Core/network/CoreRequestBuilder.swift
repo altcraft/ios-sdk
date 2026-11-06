@@ -140,7 +140,7 @@ import Foundation
         }
 
         guard let config = try? await Environment.create().config(),
-              let auth = getAuthData(rToken: config.rToken) else {
+              let auth = await getAuthData(rToken: config.rToken) else {
             CoreLog.error(
                 #function,
                 error: CoreEvents.externalAuthDataIsNil,

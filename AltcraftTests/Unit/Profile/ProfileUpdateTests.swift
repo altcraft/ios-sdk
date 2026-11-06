@@ -300,7 +300,7 @@ extension ProfileUpdateTests {
 
         // Persist the first token (Android parity: the comparison runs
         // after the configuration is installed).
-        await RTokenChange.shared.checkFromConfig()
+        await RTokenChange.shared.checkFromInit()
 
         _ = try makeUpdate()
         let targetContext = targetDatabase.getContext()
@@ -323,7 +323,7 @@ extension ProfileUpdateTests {
 
         // A previously saved token that differs from the new one notifies
         // the modules (Android parity, `RTokenChange`).
-        await RTokenChange.shared.checkFromConfig()
+        await RTokenChange.shared.checkFromInit()
 
         let targets = try await targetDatabase.performBackgroundTask { context in
             try context.count(for: TargetEntity.fetchRequest())

@@ -35,4 +35,17 @@ actor PushTokenWorker {
             enableRetry: enableRetry
         )
     }
+
+    /// Runs the device token update pipeline awaiting its completion
+    /// (background refresh path: the app may be suspended right after the
+    /// system task is marked complete).
+    ///
+    /// An offline snapshot skips the attempt: an offline send would fail and
+    /// be dropped without retry, so the token stays unsaved for the next pass.
+    ///
+    /// - Parameter enableRetry: If `true`, schedules retry on retryable failure.
+    func processPendingAwaited(enableRetry: Bool) async {
+        guard await NetworkMonitor.shared.isOnline() else { return }
+        await processPending(enableRetry: enableRetry)
+    }
 }

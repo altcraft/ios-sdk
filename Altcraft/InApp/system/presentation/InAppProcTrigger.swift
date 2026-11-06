@@ -34,6 +34,8 @@ enum InAppProcTrigger {
     /// the first matching campaign.
     ///
     /// Flow:
+    /// - validates that the stored placements identity matches the current
+    ///   one, dropping the trigger otherwise;
     /// - retrieves campaigns matching the trigger and placement;
     /// - filters them by availability, version, deadline,
     ///   common policy, and personal policy;
@@ -45,6 +47,10 @@ enum InAppProcTrigger {
     private static func triggerProcessing(
         _ trigger: InAppModel.InAppTrigger
     ) async {
+        guard await isTriggerIdentityCurrent() else {
+            return
+        }
+
         let candidates = await InAppDAO.getTargetInAppList(
             triggerType: trigger.type.rawValue,
             eventName: trigger.name,
@@ -57,7 +63,7 @@ enum InAppProcTrigger {
         ) else {
             return
         }
-
+    
         inApp.actionTriggerName = trigger.name
         inApp.actionTriggerType = trigger.type
 
@@ -77,6 +83,33 @@ enum InAppProcTrigger {
             inApp,
             trigger: trigger
         )
+    }
+
+    /// Returns whether the stored placements identity matches the current one.
+    ///
+    /// The stored `InAppsState` is written when placements are saved and is
+    /// bound to the identity (acid/deviceId) the campaigns were loaded for.
+    /// A trigger worker released by an early placements-gate completion must
+    /// not present campaigns loaded for a previous identity: between the gate
+    /// release and the rToken-change wipe the database still holds the
+    /// previous resource's campaigns. The check mirrors the identity
+    /// validation in ``InAppPlacementsProcess/requestPlacements``.
+    ///
+    /// - Returns: `true` when the stored acid/deviceId match the current
+    ///   authentication data; `false` on mismatch, missing state, or an
+    ///   authentication error.
+    static func isTriggerIdentityCurrent() async -> Bool {
+        do {
+            let env = InAppEnvironment.fresh()
+            let auth = try await env.internalAuth()
+            let context = inAppDatabase.getContext()
+            let state = await InAppsDAO.getInAppsState(context: context)
+
+            return state?.acid == auth.currentAcid
+                && state?.deviceId == auth.deviceId
+        } catch {
+            return false
+        }
     }
 
     /// Drops queued trigger events and cancels pending delayed presentations.

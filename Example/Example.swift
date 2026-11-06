@@ -8,7 +8,6 @@
 import SwiftUI
 import FirebaseCore
 import FirebaseMessaging
-import AppTrackingTransparency
 
 import AltcraftCore
 import AltcraftPush
@@ -28,7 +27,6 @@ let anonJWT: String? = nil
 ///
 /// Can also be configured through the application UI.
 let regJWT: String? = nil
-
 /// Example application entry point.
 @main
 struct IOSAPNsExampleApp: App {
@@ -135,8 +133,8 @@ class AppDelegate: UIResponder,
         )
 
         // MARK: SDK initialization
-        initSDK(config: getConfigFromUserDefault())
-  
+       initSDK(config: getConfigFromUserDefault())
+        
         return true
     }
 
@@ -225,3 +223,4 @@ class AppDelegate: UIResponder,
  *
  * Full documentation: README.md → Documentation.
  */
+

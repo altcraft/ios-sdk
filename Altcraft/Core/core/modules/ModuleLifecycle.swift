@@ -17,9 +17,16 @@ internal enum ModuleLifecycle {
 
     /// Performs SDK initialization after network connectivity and foreground
     /// state are available: notifies all registered modules.
+    ///
+    /// Waits for an in-flight role-token change notification first (Android
+    /// parity: `AuthManager.jwtReader` awaits
+    /// `RTokenChange.checkRTokenChangedFromJWT` inline, so a change detected
+    /// by a JWT read completes its module notification before
+    /// `ModuleRegistry.notifyInitialized` reaches the modules).
     @available(iOSApplicationExtension, unavailable)
     static func performInitOperations() {
         Task {
+            await RTokenChange.shared.waitUntilSettled()
             await ModuleRegistry.shared.notifyInitialized()
         }
     }

@@ -75,11 +75,19 @@ import Foundation
     /// linking; otherwise a job submitted before a reset could start
     /// unchained and break FIFO ordering.
     ///
+    /// The returned handle completes when the submitted job finishes (or when
+    /// the job is dropped by suspension/reset). Callers that do not need to
+    /// await the job keep ignoring the result.
+    ///
     /// - Parameter job: Async closure to execute.
-    public func submit(_ job: @escaping Job) {
+    /// - Returns: Handle completing with the job.
+    @discardableResult
+    public func submit(_ job: @escaping Job) -> Task<Void, Never> {
         let parentCheck = Self.isCurrent
-        stateQueue.sync {
-            guard !self.suspended else { return }
+        return stateQueue.sync {
+            guard !self.suspended else {
+                return Task {}
+            }
             let gen = self.generation
             let prev = self.tail
             let usesEpoch = self.usesEpoch
@@ -116,6 +124,7 @@ import Foundation
                 }
             }
             self.tail = task
+            return task
         }
     }
 

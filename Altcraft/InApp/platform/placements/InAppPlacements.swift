@@ -69,13 +69,22 @@ internal actor InAppPlacementsProcess {
     ///   - userReq: If `true`, request is forced by public API and ignores
     ///     automatic request configuration and request timeout.
     ///   - enableRetry: If `true`, schedules retry when processing fails.
+    ///   - awaitCompletion: If `true`, the call awaits the completion of the
+    ///     full placements processing (background refresh path: the app may
+    ///     be suspended right after the system task is marked complete).
+    ///     Online the pipeline runs inline within the queue job — the normal
+    ///     two-stage submit is flattened to avoid waiting on the same serial
+    ///     queue (a job awaiting its own queue's next job deadlocks). Offline
+    ///     the attempt is not consumed: the request is enqueued fire-and-
+    ///     forget and waits for connectivity like any normal request.
     func requestPlacements(
         userReq: Bool = false,
-        enableRetry: Bool = true
+        enableRetry: Bool = true,
+        awaitCompletion: Bool = false
     ) async {
         let function = getFunc(#function)
 
-        queue.submit {
+        let handle = queue.submit {
             let initGate = await InitBarrier.shared.current()
 
             await withInitReady(function: function, gate: initGate) {
@@ -85,14 +94,24 @@ internal actor InAppPlacementsProcess {
 
                     let config = await env.config()
 
-                    guard config.inAppAutoRequest || userReq else {
-                        await self.placementsReady()
-                        return
-                    }
-
                     let auth = try await env.internalAuth()
                     let context = inAppDatabase.getContext()
                     let state = await InAppsDAO.getInAppsState(context: context)
+
+                    guard config.inAppAutoRequest || userReq else {
+                        // Automatic requests are disabled: cached placements
+                        // may only be released to the trigger worker when
+                        // they belong to the current identity. A stale
+                        // identity means the stored campaigns belong to a
+                        // previous resource — the gate stays closed until a
+                        // fresh request validates new data.
+                        if state?.acid == auth.currentAcid,
+                           state?.deviceId == auth.deviceId {
+                            await self.placementsReady()
+                        }
+
+                        return
+                    }
 
                     if state?.acid != auth.currentAcid ||
                         state?.deviceId != auth.deviceId {
@@ -117,15 +136,43 @@ internal actor InAppPlacementsProcess {
                         InAppConstants.RetryKey.inAppPlacements
                     )
 
+                    let requestId = UUID().uuidString
+
+                    if awaitCompletion, await NetworkMonitor.shared.isOnline() {
+                        // Awaited background path (online snapshot): run the
+                        // pipeline inline instead of submitting it after this
+                        // job into the same serial queue.
+                        let result = await self.processPlacements(
+                            requestId: requestId
+                        )
+
+                        if !result && enableRetry {
+                            inAppPlacementsRetry(requestId: requestId)
+                        }
+
+                        return
+                    }
+
                     await self.enqueueStart(
                         enableRetry: enableRetry,
-                        requestId: UUID().uuidString
+                        requestId: requestId
                     )
                 } catch {
                     InAppLog.error(function, error: error)
-                    await self.placementsReady()
+
+                    // The placements gate stays closed: without validated
+                    // authentication data the stored campaigns cannot be
+                    // trusted to belong to the current identity, and a
+                    // trigger worker released here would present the previous
+                    // resource's campaigns. A later request (rToken-change
+                    // flow, user request, retry) releases the parked worker
+                    // with fresh, identity-checked data.
                 }
             }
+        }
+
+        if awaitCompletion {
+            await handle.value
         }
     }
 

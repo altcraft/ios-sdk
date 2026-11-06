@@ -22,6 +22,9 @@ Pod::Spec.new do |s|
   s.exclude_files    = ['**/Package.swift']
   s.pod_target_xcconfig = { 'ENABLE_USER_SCRIPT_SANDBOXING' => 'NO', 'APPLICATION_EXTENSION_API_ONLY' => 'NO' }
   s.resource_bundles = {
-    'AltcraftCoreResources' => ['Altcraft/Core/data/db/Core.xcdatamodeld']
+    'AltcraftCoreResources' => [
+      'Altcraft/Core/data/db/Core.xcdatamodeld',
+      'Altcraft/Core/PrivacyInfo.xcprivacy'
+    ]
   }
 end

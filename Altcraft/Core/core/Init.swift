@@ -41,8 +41,11 @@ actor AltcraftInit {
 
         // Compares the previously stored role token with the new one and
         // notifies modules on change (Android parity, `Init.init` →
-        // `RTokenChange.checkRTokenChangedFromInit`).
-        await RTokenChange.shared.checkFromConfig()
+        // `RTokenChange.checkRTokenChangedFromInit`). The check is repeated
+        // at the initialization dispatch point (`ModuleRegistry.notifyInitialized`),
+        // where a change missed here because the JWT was not yet available
+        // is detected and settled before the module initialization phase.
+        await RTokenChange.shared.checkFromInit()
 
         await Authenticate.shared.setAuth()
 

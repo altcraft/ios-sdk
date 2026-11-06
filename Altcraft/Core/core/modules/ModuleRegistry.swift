@@ -45,12 +45,20 @@ import Foundation
     /// Discovers linked modules that need no explicit configuration, including
     /// stores left by a previous process session.
     func registerLinkedModules() async {
-        for name in ["AltcraftInAppModuleProvider", "AltcraftProfileModuleProvider", "AltcraftTargetModuleProvider"] {
-            guard let provider = NSClassFromString(name) as? any LinkedModuleProvider.Type else {
+        for name in [
+            "AltcraftInAppModuleProvider",
+            "AltcraftProfileModuleProvider",
+            "AltcraftTargetModuleProvider"
+        ] {
+            guard let provider = NSClassFromString(
+                name
+            ) as? any LinkedModuleProvider.Type else {
                 continue
             }
             let module = provider.lifecycle
-            if modules[module.moduleId] == nil { await register(module) }
+            if modules[module.moduleId] == nil {
+                await register(module)
+            }
         }
     }
 
@@ -136,8 +144,11 @@ import Foundation
     /// Notifies Altcraft SDK that core has been initialized successfully.
     ///
     /// Waits for network connectivity and the first foreground activation,
-    /// resets retry counters, and then processes every registered queue worker
-    /// without local retries. Runs only once per process session.
+    /// then executes the initialization dispatch (``notifyInitializedInternal()``).
+    /// Runs only once per process session.
+    ///
+    /// Mirrors Android `ModuleRegistry.notifyInitialized` (gated entry)
+    /// delegating to `notifyInitializedInternal`.
     @available(iOSApplicationExtension, unavailable)
     func notifyInitialized() async {
         guard !initStarted else { return }
@@ -148,8 +159,48 @@ import Foundation
         await ForegroundCheck.shared.waitUntilForeground()
 
         guard generation == initializationGeneration else { return }
+
+        await notifyInitializedInternal(generation: generation)
+    }
+
+    /// Executes the initialization dispatch: the role-token dispatch-time
+    /// re-check, core initialization, and the module initialization phase.
+    ///
+    /// The re-check runs first (Android parity, the pre-check in
+    /// `ModuleRegistry.notifyInitializedInternal`): a change missed at
+    /// configuration time because the JWT was not yet available is detected
+    /// here and settles before the module initialization phase starts, so
+    /// module data processing never races the change notification.
+    ///
+    /// A role-token change detected by a JWT read while the module
+    /// initialization phase is already running (the JWT became available
+    /// mid-dispatch) settles after the phase, and the phase is re-run once
+    /// so its data processing happens after the last completed change
+    /// notification.
+    ///
+    /// - Parameter generation: Initialization generation snapshot guarding
+    ///   the dispatch against a concurrent clear/re-initialization. When
+    ///   `nil`, the current generation is snapshotted (unit test entry).
+    func notifyInitializedInternal(generation: UInt64? = nil) async {
+        let generation = generation ?? initializationGeneration
+
+        // Dispatch-time role-token re-check: the change notification runs
+        // inline and settles before the module initialization phase starts.
+        await RTokenChange.shared.checkFromInit()
+
         await ModuleLifecycle.onSdkInitialized()
         guard generation == initializationGeneration else { return }
+
+        let notificationsBefore = await RTokenChange.shared.notificationCount
+        for module in modules.values { await module.onSdkInitialized() }
+
+        // Settle a change delivered while the module initialization phase
+        // was running and re-run the phase once against the new identity.
+        await RTokenChange.shared.waitUntilSettled()
+        guard generation == initializationGeneration else { return }
+        guard await RTokenChange.shared.hasChanged(
+            since: notificationsBefore
+        ) else { return }
         for module in modules.values { await module.onSdkInitialized() }
     }
 

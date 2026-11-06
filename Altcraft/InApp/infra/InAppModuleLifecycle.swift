@@ -41,6 +41,19 @@ final actor InAppModuleLifecycle: AltcraftModule {
         await InAppSubscriptionWorker.shared.processPending(enableRetry: enableRetry)
     }
 
+    /// Processes pending in-app operations awaiting their completion
+    /// (background refresh path: the app may be suspended right after the
+    /// system task is marked complete, so asynchronously enqueued work would
+    /// never run).
+    ///
+    /// - Parameter enableRetry: If `true`, failed operations schedule a local
+    ///   retry; if `false`, failures are dropped without retry.
+    func processPendingAwaited(enableRetry: Bool) async {
+        await InAppEventWorker.shared.processPendingAwaited(enableRetry: enableRetry)
+        await InAppPlacementsWorker.shared.processPendingAwaited(enableRetry: enableRetry)
+        await InAppSubscriptionWorker.shared.processPendingAwaited(enableRetry: enableRetry)
+    }
+
     /// In-app module initialization: processes pending operations without retries.
     func onSdkInitialized() async {
         didRunInitDispatch = true
@@ -157,9 +170,10 @@ final actor InAppModuleLifecycle: AltcraftModule {
         // Cancel one-time in-flight retries (Android parity, cancelling
         // one-time worker tags). Per-entity event retries are keyed by
         // object identifier and self-neutralize after the entity wipe below.
-        RetryManager.shared.cancel(key: InAppConstants.RetryKey.inAppSubscribe)
+    
         RetryManager.shared.cancel(key: InAppConstants.RetryKey.inAppEvent)
         RetryManager.shared.cancel(key: InAppConstants.RetryKey.inAppStatic)
+        RetryManager.shared.cancel(key: InAppConstants.RetryKey.inAppSubscribe)
         RetryManager.shared.cancel(key: InAppConstants.RetryKey.inAppPlacements)
 
         // Clear data bound to the previous rToken: all in-app entities

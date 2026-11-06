@@ -103,6 +103,8 @@ public final class AltcraftSDK: NSObject, @unchecked Sendable {
     ///
     /// - Parameter groupName: App Group identifier used for the shared container.
     public static func setAppGroup(groupName: String?) {
-        SDKStateCoordinator.shared.setAppGroup(groupName)
+        SDKStateCoordinator.shared.setAppGroup(
+            groupName
+        )
     }
 }

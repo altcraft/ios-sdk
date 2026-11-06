@@ -73,11 +73,19 @@ internal actor ProfileUpdateProcess {
 
     /// Enqueues profile update processing into the serial command queue.
     ///
-    /// - Parameter enableRetry: If `true`, schedules internal retry on failure.
-    func enqueueStart(enableRetry: Bool = true) async {
+    /// - Parameters:
+    ///   - enableRetry: If `true`, schedules internal retry on failure.
+    ///   - awaitCompletion: If `true` and the device is currently online, the
+    ///     call awaits the completion of the queued run (background refresh
+    ///     path). Offline the run stays enqueued fire-and-forget — the call
+    ///     returns immediately and the job waits for connectivity itself.
+    func enqueueStart(
+        enableRetry: Bool = true,
+        awaitCompletion: Bool = false
+    ) async {
         guard SerialCommandQueue.isCurrent() else { return }
         let function = getFunc(#function)
-        ProfileUpdateQueues.startQueue.submit {
+        let handle = ProfileUpdateQueues.startQueue.submit {
             do {
                 await NetworkMonitor.shared.waitConnected()
                 guard SerialCommandQueue.isCurrent() else { return }
@@ -97,6 +105,10 @@ internal actor ProfileUpdateProcess {
                     profileUpdateRetry()
                 }
             }
+        }
+
+        if awaitCompletion, await NetworkMonitor.shared.isOnline() {
+            await handle.value
         }
     }
 

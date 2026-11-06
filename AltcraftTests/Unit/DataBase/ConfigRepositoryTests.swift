@@ -406,7 +406,7 @@ final class ConfigRepositoryTests: IsolatedTestCase {
         XCTAssertTrue(firstResult)
 
         // First saved token: no notification.
-        await RTokenChange.shared.checkFromConfig()
+        await RTokenChange.shared.checkFromInit()
 
         XCTAssertEqual(
             sdkCount(entityName: PushConstants.EntityNames.subscribeEntity),
@@ -425,7 +425,7 @@ final class ConfigRepositoryTests: IsolatedTestCase {
         XCTAssertTrue(secondResult)
 
         // Previously saved token differs from the new one: notify modules.
-        await RTokenChange.shared.checkFromConfig()
+        await RTokenChange.shared.checkFromInit()
 
         XCTAssertEqual(
             sdkCount(entityName: PushConstants.EntityNames.subscribeEntity),

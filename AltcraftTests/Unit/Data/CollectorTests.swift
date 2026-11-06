@@ -117,9 +117,9 @@ final class CollectorTests: IsolatedTestCase {
     }
 
     /// test_1: getAuthData with R token returns bearer R token
-    func test_1_get_auth_data_with_r_token_returns_bearer_r_token() {
+    func test_1_get_auth_data_with_r_token_returns_bearer_r_token() async {
         let token = "rTok123"
-        let result = getAuthData(rToken: token)
+        let result = await getAuthData(rToken: token)
 
         XCTAssertNotNil(result, "Expected non-nil auth data when rToken is provided")
         XCTAssertEqual(result?.0, "Bearer rtoken@\(token)")

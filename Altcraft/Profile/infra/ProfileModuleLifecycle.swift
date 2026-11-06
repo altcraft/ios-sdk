@@ -34,6 +34,17 @@ final actor ProfileModuleLifecycle: AltcraftModule {
         await ProfileUpdateWorker.shared.processPending(enableRetry: enableRetry)
     }
 
+    /// Processes pending profile updates awaiting their completion
+    /// (background refresh path: the app may be suspended right after the
+    /// system task is marked complete, so asynchronously enqueued work would
+    /// never run).
+    ///
+    /// - Parameter enableRetry: If `true`, a failed update schedules a local
+    ///   retry; if `false`, failures are dropped without retry.
+    func processPendingAwaited(enableRetry: Bool) async {
+        await ProfileUpdateWorker.shared.processPendingAwaited(enableRetry: enableRetry)
+    }
+
     /// Profile module initialization: processes pending updates without retries.
     func onSdkInitialized() async {
         await processPending(enableRetry: false)

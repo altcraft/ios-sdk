@@ -12,8 +12,10 @@ import CryptoKit
 /// Retrieves the current user tag from configuration using either JWT or a resource token.
 ///
 /// Every JWT read also checks for a role token change (Android parity,
-/// `AuthManager` → `jwtReader` → `RTokenChange.checkRTokenChangedFromJWT`).
-/// The check runs detached: the authentication path never waits for it.
+/// `AuthManager` → `jwtReader` → `RTokenChange.checkRTokenChangedFromJWT`):
+/// the check is awaited inline, so its module notification (data wipe and
+/// follow-up requests) completes before the caller proceeds past the JWT
+/// read.
 ///
 /// - Returns: User tag string, or `nil` if unavailable.
 func getUserTag() async -> String? {
@@ -21,11 +23,43 @@ func getUserTag() async -> String? {
         CoreLog.error(#function, error: CoreEvents.configIsNil)
         return nil
     }
+
+    // The configuration role token has priority over the JWT (Android
+    // parity, `ExternalAuth.user`): the JWT is read and checked for a role
+    // token change only in JWT mode.
+    guard config.rToken == nil else {
+        return config.rToken
+    }
+
     let jwt = JWTManager.shared.getJWT()
 
-    Task { await RTokenChange.shared.checkFromJWT(jwt: jwt) }
+    await RTokenChange.shared.checkFromJWT(jwt: jwt)
 
-    return config.rToken ?? getMatchingFields(jwt: jwt)?.hash
+    return getMatchingFields(jwt: jwt)?.hash
+}
+
+/// Extracts the role token (`rtoken` claim) from a JWT payload.
+///
+/// Mirrors Android `JWTProcessor.extractRToken`. A missing JWT is a normal
+/// state (the provider is not registered yet) and is treated as "no role
+/// token" without emitting an error.
+///
+/// - Parameter jwt: The JWT token string (`header.payload.signature`), may be `nil`.
+/// - Returns: The role token, or `nil` if the token is absent or the payload
+///   cannot be decoded.
+func extractRToken(jwt: String?) -> String? {
+    guard let jwt else { return nil }
+
+    guard
+        let part = jwt.split(separator: ".").dropFirst().first,
+        let payload = Data(base64UrlEncoded: String(part)),
+        let json = try? JSONSerialization.jsonObject(with: payload) as? [String: Any]
+    else {
+        CoreLog.error(#function, error: CoreEvents.jwtParsingError)
+        return nil
+    }
+
+    return json[Constants.AuthKeys.rtoken] as? String
 }
 
 /// Computes a SHA-256 hash of the JSON string built from matching claim data.
@@ -141,27 +175,38 @@ private func validateMatchingFields(
 
 /// Retrieves the authentication header and identifier for authorized requests.
 ///
+/// The configuration role token has priority over the JWT (Android parity,
+/// `ExternalAuth`): in rToken mode the JWT is not read at all, so its stale
+/// payload cannot trigger a role token change.
+///
+/// Every JWT read also checks for a role token change (Android parity,
+/// `AuthManager` → `jwtReader` → `RTokenChange.checkRTokenChangedFromJWT`):
+/// the check is awaited inline, so its module notification completes before
+/// the request is built. A nested read inside the notification chain (e.g.,
+/// the in-app re-request) observes the already saved token and returns
+/// without notifying again.
+///
 /// - Parameter rToken: Optional resource token. If it is non-empty, it is used
 ///   with priority over JWT.
 /// - Returns: A tuple containing the authorization header and:
 ///   - the resource token when `rToken` is used
 ///   - the JWT matching value when JWT is used
 ///   Returns `nil` if no auth data is available.
-func getAuthData(rToken: String?) -> (String, String)? {
-    let jwt = JWTManager.shared.getJWT()
-
-    // Every JWT read also checks for a role token change (Android parity,
-    // `AuthManager` → `jwtReader` → `RTokenChange.checkRTokenChangedFromJWT`).
-    // The check runs detached: the authentication path never waits for it,
-    // so a role token change reported from inside a running request flow
-    // cannot deadlock the caller.
-    Task { await RTokenChange.shared.checkFromJWT(jwt: jwt) }
-
+func getAuthData(rToken: String?) async -> (String, String)? {
+    // The configuration role token has priority over the JWT (Android
+    // parity, `ExternalAuth`): in rToken mode the JWT is not read at all,
+    // so its stale payload cannot trigger a role token change.
     if let rToken = rToken, !rToken.isEmpty {
         return ("Bearer rtoken@\(rToken)", Constants.AuthKeys.rTokenMatching)
+    }
+
+    let jwt = JWTManager.shared.getJWT()
+
+    await RTokenChange.shared.checkFromJWT(jwt: jwt)
+
+    if let fields = getMatchingFields(jwt: jwt) {
+        return ("Bearer \(fields.jwt)", fields.matching)
     } else {
-        if let fields = getMatchingFields(jwt: jwt){
-            return ("Bearer \(fields.jwt)", fields.matching)
-        }else { return nil }
+        return nil
     }
 }

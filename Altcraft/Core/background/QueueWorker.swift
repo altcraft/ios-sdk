@@ -23,6 +23,26 @@ import Foundation
     func processPending(enableRetry: Bool) async
 }
 
+@_spi(_Altcraft) public extension AltcraftBackgroundOperation {
+    /// Processes pending operations awaiting their completion.
+    ///
+    /// Called by the background refresh task instead of
+    /// ``AltcraftBackgroundOperation/processPending(enableRetry:)``: once the
+    /// system background task is marked complete the app may be suspended,
+    /// so work that only enqueues asynchronously would never run. Modules
+    /// whose pipelines enqueue asynchronously override this to await the
+    /// enqueued processing; an offline snapshot check must not consume a
+    /// processing attempt.
+    ///
+    /// Default implementation delegates to ``processPending(enableRetry:)``.
+    ///
+    /// - Parameter enableRetry: If `true`, a failed operation schedules a local
+    ///   retry; if `false`, failures are dropped without scheduling a retry.
+    func processPendingAwaited(enableRetry: Bool) async {
+        await processPending(enableRetry: enableRetry)
+    }
+}
+
 /// A single queue worker per module.
 ///
 /// The module registry and the background refresh task dispatch work over the

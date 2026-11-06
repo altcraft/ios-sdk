@@ -30,4 +30,16 @@ actor TargetEventWorker {
             enableRetry: enableRetry
         )
     }
+
+    /// Starts the mobile event processing pipeline awaiting its completion
+    /// (background refresh path: the app may be suspended right after the
+    /// system task is marked complete).
+    ///
+    /// - Parameter enableRetry: If `true`, schedules internal retry on failure.
+    func processPendingAwaited(enableRetry: Bool) async {
+        await TargetEventProcess.shared.enqueueStart(
+            enableRetry: enableRetry,
+            awaitCompletion: true
+        )
+    }
 }

@@ -173,8 +173,11 @@ public actor BackgroundTask {
     #if canImport(BackgroundTasks)
     /// Executes background refresh work sequentially.
     ///
-    /// Dispatches pending work to every registered module queue worker.
-    /// Stops early if the task is cancelled or expired.
+    /// Dispatches pending work to every registered module queue worker and
+    /// awaits its completion (`processPendingAwaited`): the app may be
+    /// suspended right after the system task is marked complete, so work
+    /// that only enqueues asynchronously would never run. Stops early if the
+    /// task is cancelled or expired.
     ///
     /// - Parameter coordinator: Controls task state and completion.
     private func backgroundHandler(
@@ -186,7 +189,7 @@ public actor BackgroundTask {
 
         for worker in workers {
             guard coordinator.isActive() else { return }
-            await worker.processPending(enableRetry: false)
+            await worker.processPendingAwaited(enableRetry: false)
         }
 
         guard coordinator.isActive() else { return }

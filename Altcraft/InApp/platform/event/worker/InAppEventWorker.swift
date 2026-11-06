@@ -27,4 +27,17 @@ actor InAppEventWorker {
     func processPending() async {
         await InAppEventProcess.shared.sendAllInAppEvents()
     }
+
+    /// Flushes all pending in-app events awaiting completion (background
+    /// refresh path).
+    ///
+    /// An offline snapshot skips the attempt: an offline send would fail and
+    /// be dropped without retry, so the events stay stored for the next pass.
+    ///
+    /// - Parameter enableRetry: Unused; the batch send never schedules
+    ///   internal retries.
+    func processPendingAwaited(enableRetry: Bool) async {
+        guard await NetworkMonitor.shared.isOnline() else { return }
+        await processPending()
+    }
 }

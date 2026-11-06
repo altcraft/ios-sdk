@@ -65,6 +65,20 @@ private class MockConfigManager {
     }
 }
 
+/// JWT provider stub registered in the real `JWTManager`.
+private final class MockTokenProvider: JWTInterface {
+
+    private let token: String?
+
+    init(token: String?) {
+        self.token = token
+    }
+
+    func getToken() -> String? {
+        token
+    }
+}
+
 /**
  * AuthManagerTests
  *
@@ -79,6 +93,12 @@ private class MockConfigManager {
  *  - test_8: Get user tag from JWT when R token missing returns SHA256 hash.
  *  - test_9: Get user tag with no config and no JWT returns nil.
  *  - test_10: Get user tag with whitespace R token in config returns whitespace as-is.
+ *  - test_11: getAuthData in rToken mode ignores a stale JWT claim.
+ *  - test_12: getUserTag in rToken mode ignores a stale JWT claim.
+ *  - test_13: Concurrent JWT checks collapse into a single change notification.
+ *  - test_14: Init settle gate waits for an in-flight change notification.
+ *  - test_15: getAuthData completes the change notification before returning.
+ *  - test_16: getUserTag completes the change notification before returning.
  */
 final class AuthManagerTests: IsolatedTestCase {
 
@@ -129,6 +149,33 @@ final class AuthManagerTests: IsolatedTestCase {
 
     private func setMockConfig(_ config: Configuration?) {
         MockConfigManager.shared.setConfig(config)
+    }
+
+    /// Builds a minimal JWT carrying the given `rtoken` claim.
+    private func makeRTokenJWT(_ token: String) -> String {
+        let header = ["alg": "none", "typ": "JWT"]
+        let payload = [Constants.AuthKeys.rtoken: token]
+
+        guard
+            let header64 = b64url(
+                try? JSONSerialization.data(withJSONObject: header, options: [])
+            ),
+            let payload64 = b64url(
+                try? JSONSerialization.data(withJSONObject: payload, options: [])
+            )
+        else {
+            return ""
+        }
+
+        return "\(header64).\(payload64)."
+    }
+
+    private func b64url(_ data: Data?) -> String? {
+        guard let data else { return nil }
+        return data.base64EncodedString()
+            .replacingOccurrences(of: "+", with: "-")
+            .replacingOccurrences(of: "/", with: "_")
+            .replacingOccurrences(of: "=", with: "")
     }
 
     private func getAuthDataMock(rToken: String?) -> (String, String)? {
@@ -326,6 +373,277 @@ final class AuthManagerTests: IsolatedTestCase {
         }
         wait(for: [exp], timeout: 1.0)
     }
+
+    /// test_11: getAuthData in rToken mode ignores a stale JWT claim
+    ///
+    /// Android parity (`ExternalAuth`): when the configuration role token is
+    /// used, the JWT is not read at all, so its stale `rtoken` claim cannot
+    /// flip the saved role token back and re-trigger a change cycle.
+    func test_11_getAuthData_rTokenMode_skipsJWTChangeCheck() async {
+        StoredVariablesManager.shared.setCurrentRToken(value: "r2")
+        JWTManager.shared.register(MockTokenProvider(token: makeRTokenJWT("r1")))
+        defer {
+            JWTManager.shared.register(NullJWTProvider())
+            StoredVariablesManager.shared.setCurrentRToken(value: nil)
+        }
+
+        let auth = await getAuthData(rToken: "r2")
+
+        XCTAssertEqual(auth?.0, "Bearer rtoken@r2", msgEqual)
+        XCTAssertEqual(auth?.1, Constants.AuthKeys.rTokenMatching, msgEqual)
+
+        // Give a wrongly scheduled JWT check time to run, should it exist.
+        try? await Task.sleep(nanoseconds: 300_000_000)
+
+        XCTAssertEqual(
+            StoredVariablesManager.shared.getCurrentRToken(),
+            "r2",
+            "stale JWT claim must not flip the saved role token in rToken mode"
+        )
+    }
+
+    /// test_12: getUserTag in rToken mode ignores a stale JWT claim
+    ///
+    /// Android parity (`ExternalAuth.user`): the configuration role token is
+    /// returned as-is and the JWT is neither read nor checked for a change.
+    func test_12_getUserTag_rTokenMode_skipsJWTChangeCheck() async {
+        let saved = await ConfigManager.shared.setConfig(
+            AltcraftConfiguration.Builder(
+                apiUrl: "https://example.invalid",
+                rToken: "r2"
+            )
+            .build()
+        )
+        XCTAssertTrue(saved, msgNonNil)
+
+        StoredVariablesManager.shared.setCurrentRToken(value: "r2")
+        JWTManager.shared.register(MockTokenProvider(token: makeRTokenJWT("r1")))
+        defer {
+            JWTManager.shared.register(NullJWTProvider())
+            StoredVariablesManager.shared.setCurrentRToken(value: nil)
+        }
+
+        let tag = await getUserTag()
+
+        XCTAssertEqual(tag, "r2", msgEqual)
+
+        try? await Task.sleep(nanoseconds: 300_000_000)
+
+        XCTAssertEqual(
+            StoredVariablesManager.shared.getCurrentRToken(),
+            "r2",
+            "stale JWT claim must not flip the saved role token in rToken mode"
+        )
+    }
+
+    /// test_13: concurrent JWT checks collapse into a single notification
+    ///
+    /// The read–compare–save sequence in `RTokenChange.check` contains no
+    /// suspension point, so a burst of concurrent JWT reads must emit exactly
+    /// one change cycle (Android parity, `checkRTokenChanged` mutex section).
+    func test_13_concurrentJWTChecks_emitSingleNotification() async {
+        StoredVariablesManager.shared.setCurrentRToken(value: "r-old")
+        JWTManager.shared.register(MockTokenProvider(token: makeRTokenJWT("r-new")))
+        defer {
+            JWTManager.shared.register(NullJWTProvider())
+            StoredVariablesManager.shared.setCurrentRToken(value: nil)
+        }
+
+        let lock = NSLock()
+        var notifications = 0
+
+        SDKEvents.shared.subscribe { ev in
+            guard let sdkEvent = ev.event,
+                  sdkEvent.message.hasPrefix("Role token change") else { return }
+            lock.lock()
+            notifications += 1
+            lock.unlock()
+        }
+        defer { SDKEvents.shared.unsubscribe() }
+
+        let jwt = makeRTokenJWT("r-new")
+        await withTaskGroup(of: Void.self) { group in
+            for _ in 0..<8 {
+                group.addTask {
+                    await RTokenChange.shared.checkFromJWT(jwt: jwt)
+                }
+            }
+        }
+
+        try? await Task.sleep(nanoseconds: 300_000_000)
+
+        lock.lock()
+        let count = notifications
+        lock.unlock()
+
+        XCTAssertEqual(
+            count, 1,
+            "a burst of concurrent JWT checks must emit exactly one change cycle"
+        )
+    }
+
+    /// test_14: init settle gate waits for an in-flight notification
+    ///
+    /// `RTokenChange.waitUntilSettled` is the serialization point used by the
+    /// SDK initialization dispatch: when a role-token change notification is
+    /// being delivered, the gate must return only after the notification
+    /// completes its module dispatch (Android parity: `AuthManager.jwtReader`
+    /// awaits `checkRTokenChangedFromJWT` inline, so the notification
+    /// completes before `ModuleRegistry.notifyInitialized`).
+    func test_14_waitUntilSettled_waitsForInFlightNotification() async {
+        StoredVariablesManager.shared.setCurrentRToken(value: "r-old")
+        JWTManager.shared.register(MockTokenProvider(token: makeRTokenJWT("r-new")))
+        let probe = ProbeModule()
+        await ModuleRegistry.shared.register(probe)
+        defer {
+            Task { await ModuleRegistry.shared.unregister(probe.moduleId) }
+            JWTManager.shared.register(NullJWTProvider())
+            StoredVariablesManager.shared.setCurrentRToken(value: nil)
+        }
+
+        let lock = NSLock()
+        var eventSeen = false
+
+        SDKEvents.shared.subscribe { ev in
+            guard let sdkEvent = ev.event,
+                  sdkEvent.message.hasPrefix("Role token change") else { return }
+            lock.lock()
+            eventSeen = true
+            lock.unlock()
+        }
+        defer { SDKEvents.shared.unsubscribe() }
+
+        // Detach the check and wait until its notification has actually
+        // started (the change event is emitted inside the notification).
+        Task { await RTokenChange.shared.checkFromJWT(jwt: makeRTokenJWT("r-new")) }
+
+        var started = false
+        for _ in 0..<50 {
+            lock.lock()
+            let seen = eventSeen
+            lock.unlock()
+            if seen {
+                started = true
+                break
+            }
+            try? await Task.sleep(nanoseconds: 20_000_000)
+        }
+
+        XCTAssertTrue(started, "notification must be in flight")
+
+        // The gate must return only after the notification completed its
+        // module dispatch.
+        await RTokenChange.shared.waitUntilSettled()
+
+        XCTAssertTrue(
+            probe.rtokenChanged,
+            "gate must return only after the notification completed its module dispatch"
+        )
+    }
+
+    /// test_15: getAuthData completes the change notification before returning
+    ///
+    /// JWT reads await the role-token check inline (Android parity,
+    /// `AuthManager.jwtReader`): when `getAuthData` reads a JWT whose claim
+    /// differs from the saved token, the change notification (module data
+    /// wipe and follow-up requests) must complete before `getAuthData`
+    /// returns.
+    func test_15_getAuthData_jwtMode_completesNotificationBeforeReturn() async {
+        StoredVariablesManager.shared.setCurrentRToken(value: "r-old")
+        JWTManager.shared.register(MockTokenProvider(token: makeRTokenJWT("r-new")))
+        let probe = ProbeModule()
+        await ModuleRegistry.shared.register(probe)
+        defer {
+            Task { await ModuleRegistry.shared.unregister(probe.moduleId) }
+            JWTManager.shared.register(NullJWTProvider())
+            StoredVariablesManager.shared.setCurrentRToken(value: nil)
+        }
+
+        // JWT mode: no resource token — the JWT is read and checked.
+        _ = await getAuthData(rToken: nil)
+
+        XCTAssertTrue(
+            probe.rtokenChanged,
+            "the change notification must complete before getAuthData returns"
+        )
+        XCTAssertEqual(
+            StoredVariablesManager.shared.getCurrentRToken(),
+            "r-new",
+            msgEqual
+        )
+    }
+
+    /// test_16: getUserTag completes the change notification before returning
+    ///
+    /// Same inline contract as test_15, for the user tag read path.
+    func test_16_getUserTag_jwtMode_completesNotificationBeforeReturn() async {
+        let saved = await ConfigManager.shared.setConfig(
+            AltcraftConfiguration.Builder(
+                apiUrl: "https://example.invalid",
+                rToken: nil
+            )
+            .build()
+        )
+        XCTAssertTrue(saved, msgNonNil)
+
+        StoredVariablesManager.shared.setCurrentRToken(value: "r-old")
+        JWTManager.shared.register(MockTokenProvider(token: makeRTokenJWT("r-new")))
+        let probe = ProbeModule()
+        await ModuleRegistry.shared.register(probe)
+        defer {
+            Task { await ModuleRegistry.shared.unregister(probe.moduleId) }
+            JWTManager.shared.register(NullJWTProvider())
+            StoredVariablesManager.shared.setCurrentRToken(value: nil)
+        }
+
+        _ = await getUserTag()
+
+        XCTAssertTrue(
+            probe.rtokenChanged,
+            "the change notification must complete before getUserTag returns"
+        )
+        XCTAssertEqual(
+            StoredVariablesManager.shared.getCurrentRToken(),
+            "r-new",
+            msgEqual
+        )
+    }
+}
+
+/// JWT provider that supplies no token, used to reset the real `JWTManager`.
+private final class NullJWTProvider: JWTInterface {
+
+    func getToken() -> String? {
+        nil
+    }
+}
+
+/// Test module recording that the rToken change notification reached it.
+private final class ProbeModule: AltcraftModule, @unchecked Sendable {
+
+    let moduleId = "probe-rtoken-module"
+
+    private let lock = NSLock()
+    private var rtokenChangedFlag = false
+
+    /// Whether `onSdkRTokenChanged` has been dispatched.
+    var rtokenChanged: Bool {
+        lock.lock()
+        defer { lock.unlock() }
+        return rtokenChangedFlag
+    }
+
+    func onSdkInitialized() async {}
+
+    func onSdkClear() async {}
+
+    func onSdkRTokenChanged() async {
+        lock.lock()
+        rtokenChangedFlag = true
+        lock.unlock()
+    }
+
+    func processPending(enableRetry: Bool) async {}
 }
 
 private extension String {

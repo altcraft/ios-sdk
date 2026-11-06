@@ -53,6 +53,10 @@ import CoreData
  * - test_4: request event is retry when backend request data cannot be created.
  * - test_6: processPlacements error path releases parked placements waiters.
  * - test_8: reset keeps parked waiters parked until the next gate completion.
+ * - test_9: trigger identity guard blocks processing with stale identity.
+ * - test_10: requestPlacements with unavailable authentication keeps the gate closed.
+ * - test_11: auto request disabled releases cached placements only for the current identity.
+ * - test_12: awaited requestPlacements completes the processing before returning.
  *
  */
 final class InAppPlacementsTests: IsolatedTestCase {
@@ -71,7 +75,8 @@ final class InAppPlacementsTests: IsolatedTestCase {
         ], context: context)
 
         sdkWipe([
-            Constants.EntityNames.configurationEntity
+            Constants.EntityNames.configurationEntity,
+            Constants.EntityNames.authenticationEntity
         ])
     }
 
@@ -83,7 +88,8 @@ final class InAppPlacementsTests: IsolatedTestCase {
         ], context: context)
 
         sdkWipe([
-            Constants.EntityNames.configurationEntity
+            Constants.EntityNames.configurationEntity,
+            Constants.EntityNames.authenticationEntity
         ])
 
         context = NSManagedObjectContext(concurrencyType: .mainQueueConcurrencyType)
@@ -302,19 +308,19 @@ final class InAppPlacementsTests: IsolatedTestCase {
             lock.unlock()
         }
     }
-
     /// test_7: requestPlacements waits for SDK initialization before processing
     ///
     /// A placements request submitted before `initialization` completes must
     /// not run against a missing configuration: the request task stays
-    /// suspended on the init barrier and reaches the readiness signal only
+    /// suspended on the init barrier and only reaches the placements flow
     /// once initialization is done (Android parity, `submitSdkCommand` with
     /// `initAwait = true`).
     ///
     /// `queue.submit` returns as soon as the job is enqueued, so completion
-    /// is observed through the placements readiness waiter (`waitUntilReady`)
-    /// released by the request body, not through the `requestPlacements`
-    /// call itself.
+    /// is observed through the placements readiness waiter (`waitUntilReady`).
+    /// After initialization the planning flow cannot build placements without
+    /// configuration/authentication data, so the gate stays closed and the
+    /// parked waiter is released only by the budget-exhaustion safety.
     func test_7_requestPlacements_waitsForInit_thenResumes() async throws {
         // Fresh closed gate: initialization is not complete.
         let gate = await resetBarrierToFreshGate()
@@ -338,14 +344,26 @@ final class InAppPlacementsTests: IsolatedTestCase {
         // While initialization is incomplete the request must not reach the
         // readiness signal.
         try? await Task.sleep(nanoseconds: 300_000_000)
+
         XCTAssertFalse(
             done.isSet,
             "request must wait for initialization to complete"
         )
 
-        // Completing initialization releases the waiting request; the body
-        // then finishes and signals readiness.
+        // Completing initialization lets the request body run; without
+        // configuration/authentication data the planning flow cannot open
+        // the gate, so the waiter keeps waiting.
         await InitBarrier.shared.complete(gate)
+
+        try? await Task.sleep(nanoseconds: 300_000_000)
+
+        XCTAssertFalse(
+            done.isSet,
+            "planning error must keep the gate closed"
+        )
+
+        // The budget-exhaustion safety releases the parked waiter.
+        await InAppPlacementsProcess.shared.retryBudgetExhausted()
 
         var finished = false
         for _ in 0..<80 {
@@ -358,7 +376,7 @@ final class InAppPlacementsTests: IsolatedTestCase {
 
         XCTAssertTrue(
             finished,
-            "request must resume after initialization completes"
+            "waiter must be released when the gate completes"
         )
 
         waiter.cancel()
@@ -410,6 +428,291 @@ final class InAppPlacementsTests: IsolatedTestCase {
         )
 
         waiter.cancel()
+    }
+
+    /// test_9: trigger identity guard blocks processing with stale identity
+    ///
+    /// Early placements-gate completions (request error, "too early", auto
+    /// request disabled) release the trigger worker without fresh data. The
+    /// worker must verify that the stored placements identity still matches
+    /// the current one before presenting campaigns from the database —
+    /// otherwise a campaign of the previous resource is displayed between
+    /// the gate release and the rToken-change wipe.
+    func test_9_triggerIdentityGuard_blocksStaleIdentity() async throws {
+        // Ensure the environment resolves authentication data.
+        let saved = await ConfigManager.shared.setConfig(
+            AltcraftConfiguration.Builder(
+                apiUrl: "https://example.invalid",
+                rToken: "guard-rt"
+            )
+            .build()
+        )
+        XCTAssertTrue(saved, "configuration must be installed")
+
+        // Seed the authentication entity so internal auth data resolves.
+        await Authenticate.shared.setAuth()
+
+        let auth = try await InAppEnvironment.fresh().internalAuth()
+
+        // Identity bound to a previous resource/session.
+        _ = await InAppsDAO.setInAppsEntity(
+            acid: "stale-acid",
+            lastRequestTime: 0,
+            deviceId: "stale-device",
+            lastPublish: 0,
+            placementRulesChecksum: ""
+        )
+
+        let stale = await InAppProcTrigger.isTriggerIdentityCurrent()
+        XCTAssertFalse(
+            stale,
+            "stale placements identity must not pass the trigger guard"
+        )
+
+        // Identity matching the current authentication data passes.
+        _ = await InAppsDAO.setInAppsEntity(
+            acid: auth.currentAcid,
+            lastRequestTime: 0,
+            deviceId: auth.deviceId,
+            lastPublish: 0,
+            placementRulesChecksum: ""
+        )
+
+        let current = await InAppProcTrigger.isTriggerIdentityCurrent()
+        XCTAssertTrue(
+            current,
+            "current placements identity must pass the trigger guard"
+        )
+
+        await InAppsDAO.clearInAppsData()
+        StoredVariablesManager.shared.setCurrentRToken(value: nil)
+    }
+
+    /// test_10: requestPlacements with unavailable authentication keeps the gate closed
+    ///
+    /// A planning error (for example, missing internal authentication data)
+    /// must not release the trigger worker: without validated identity the
+    /// stored campaigns cannot be shown. A later request releases the parked
+    /// worker with fresh, identity-checked data.
+    func test_10_requestPlacements_authUnavailable_keepsGateClosed() async {
+        // Ensure SDK initialization is ready so the request body runs
+        // immediately instead of waiting out the init barrier timeout.
+        let currentGate = await InitBarrier.shared.current()
+        await InitBarrier.shared.complete(currentGate)
+
+        let saved = await ConfigManager.shared.setConfig(
+            AltcraftConfiguration.Builder(
+                apiUrl: "https://example.invalid",
+                rToken: "gate-rt"
+            )
+            .build()
+        )
+        XCTAssertTrue(saved, "configuration must be installed")
+
+        // No authentication entity seeded: internal auth data is unavailable.
+        await InAppPlacementsProcess.shared.reset()
+
+        let box = WaiterFlag()
+        let waiter = Task {
+            await InAppPlacementsProcess.shared.waitUntilReady()
+            box.set()
+        }
+        try? await Task.sleep(nanoseconds: 200_000_000)
+
+        await InAppPlacementsProcess.shared.requestPlacements()
+
+        try? await Task.sleep(nanoseconds: 500_000_000)
+
+        XCTAssertFalse(
+            box.isSet,
+            "gate must stay closed when authentication data is unavailable"
+        )
+
+        waiter.cancel()
+        await InAppConfigManager.shared.clearCache()
+        StoredVariablesManager.shared.setCurrentRToken(value: nil)
+    }
+
+    /// test_11: auto request disabled releases cached placements only for the current identity
+    ///
+    /// With automatic requests disabled no fresh request validates the data,
+    /// so the cached placements may only be released when their stored
+    /// identity matches the current one. A stale identity keeps the gate
+    /// closed until a user-initiated request loads fresh data.
+    func test_11_autoRequestDisabled_releasesCachedPlacementsOnlyForCurrentIdentity() async throws {
+        // Ensure SDK initialization is ready so placements requests are not
+        // suspended on the init barrier (otherwise the default gate would
+        // delay each request by its timeout).
+        let currentGate = await InitBarrier.shared.current()
+        await InitBarrier.shared.complete(currentGate)
+
+        // Apply the in-app module configuration with automatic requests
+        // disabled (the module configuration is independent of the core one).
+        await InAppConfigManager.shared.setConfig(
+            InAppConfiguration(
+                inAppAutoRequest: false,
+                placementsRequestInterval: 600_000,
+                maxPlacements: 10
+            )
+        )
+
+        let saved = await ConfigManager.shared.setConfig(
+            AltcraftConfiguration.Builder(
+                apiUrl: "https://example.invalid",
+                rToken: "gate-rt"
+            )
+            .build()
+        )
+        XCTAssertTrue(saved, "configuration must be installed")
+
+        // Seed the authentication entity so internal auth data resolves.
+        await Authenticate.shared.setAuth()
+
+        // Identity bound to a previous resource/session.
+        _ = await InAppsDAO.setInAppsEntity(
+            acid: "stale-acid",
+            lastRequestTime: 0,
+            deviceId: "stale-device",
+            lastPublish: 0,
+            placementRulesChecksum: ""
+        )
+
+        await InAppPlacementsProcess.shared.reset()
+
+        let box = WaiterFlag()
+        let waiter = Task {
+            await InAppPlacementsProcess.shared.waitUntilReady()
+            box.set()
+        }
+        try? await Task.sleep(nanoseconds: 200_000_000)
+
+        await InAppPlacementsProcess.shared.requestPlacements()
+
+        try? await Task.sleep(nanoseconds: 500_000_000)
+
+        XCTAssertFalse(
+            box.isSet,
+            "stale cached placements must not be released when auto request is disabled"
+        )
+
+        // Identity matching the current authentication data passes.
+        let auth = try await InAppEnvironment.fresh().internalAuth()
+        _ = await InAppsDAO.setInAppsEntity(
+            acid: auth.currentAcid,
+            lastRequestTime: 0,
+            deviceId: auth.deviceId,
+            lastPublish: 0,
+            placementRulesChecksum: ""
+        )
+
+        await InAppPlacementsProcess.shared.requestPlacements()
+
+        var released = false
+        for _ in 0..<50 {
+            if box.isSet {
+                released = true
+                break
+            }
+            try? await Task.sleep(nanoseconds: 100_000_000)
+        }
+
+        XCTAssertTrue(
+            released,
+            "current cached placements must be released when auto request is disabled"
+        )
+
+        waiter.cancel()
+        await InAppsDAO.clearInAppsData()
+        await InAppConfigManager.shared.clearCache()
+        StoredVariablesManager.shared.setCurrentRToken(value: nil)
+    }
+
+    /// test_12: awaited requestPlacements completes the processing before returning
+    ///
+    /// The background refresh path awaits the placements processing: when the
+    /// awaited call returns, the queue job must already have completed its
+    /// body. Online the pipeline runs inline within the queue job (the normal
+    /// two-stage submit is flattened); offline the attempt is not consumed
+    /// and the call falls back to the fire-and-forget enqueue.
+    func test_12_requestPlacementsAwaited_releasesGateBeforeReturn() async throws {
+        // Ensure SDK initialization is ready so the request body runs
+        // immediately instead of waiting out the init barrier timeout.
+        let currentGate = await InitBarrier.shared.current()
+        await InitBarrier.shared.complete(currentGate)
+
+        await InAppConfigManager.shared.setConfig(
+            InAppConfiguration(
+                inAppAutoRequest: false,
+                placementsRequestInterval: 600_000,
+                maxPlacements: 10
+            )
+        )
+
+        let saved = await ConfigManager.shared.setConfig(
+            AltcraftConfiguration.Builder(
+                apiUrl: "https://example.invalid",
+                rToken: "gate-rt"
+            )
+            .build()
+        )
+        XCTAssertTrue(saved, "configuration must be installed")
+
+        // Seed the authentication entity and cached placements bound to the
+        // current identity: the auto-request-disabled path releases the gate
+        // for the matching identity without any network involvement.
+        await Authenticate.shared.setAuth()
+
+        let auth = try await InAppEnvironment.fresh().internalAuth()
+        _ = await InAppsDAO.setInAppsEntity(
+            acid: auth.currentAcid,
+            lastRequestTime: 0,
+            deviceId: auth.deviceId,
+            lastPublish: 0,
+            placementRulesChecksum: ""
+        )
+
+        await InAppPlacementsProcess.shared.reset()
+
+        let box = WaiterFlag()
+        let waiter = Task {
+            await InAppPlacementsProcess.shared.waitUntilReady()
+            box.set()
+        }
+        try? await Task.sleep(nanoseconds: 200_000_000)
+
+        let online = await NetworkMonitor.shared.isOnline()
+
+        await InAppPlacementsProcess.shared.requestPlacements(
+            awaitCompletion: true
+        )
+
+        if online {
+            XCTAssertTrue(
+                box.isSet,
+                "awaited request must release the placements gate before returning"
+            )
+        } else {
+            // Offline fallback: the request stays fire-and-forget; the gate
+            // is released asynchronously by the enqueued job.
+            var released = false
+            for _ in 0..<50 {
+                if box.isSet {
+                    released = true
+                    break
+                }
+                try? await Task.sleep(nanoseconds: 100_000_000)
+            }
+
+            XCTAssertTrue(
+                released,
+                "offline fallback must still release the gate asynchronously"
+            )
+        }
+
+        waiter.cancel()
+        await InAppsDAO.clearInAppsData()
+        await InAppConfigManager.shared.clearCache()
+        StoredVariablesManager.shared.setCurrentRToken(value: nil)
     }
 }
 

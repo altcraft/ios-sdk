@@ -36,6 +36,19 @@ final actor TargetModuleLifecycle: AltcraftModule {
         )
     }
 
+    /// Processes pending mobile events awaiting their completion
+    /// (background refresh path: the app may be suspended right after the
+    /// system task is marked complete, so asynchronously enqueued work would
+    /// never run).
+    ///
+    /// - Parameter enableRetry: If `true`, a failed event schedules a local
+    ///   retry; if `false`, failures are dropped without retry.
+    func processPendingAwaited(enableRetry: Bool) async {
+        await TargetEventWorker.shared.processPendingAwaited(
+            enableRetry: enableRetry
+        )
+    }
+
     /// Target module initialization: processes pending events without retries.
     func onSdkInitialized() async {
         await processPending(enableRetry: false)

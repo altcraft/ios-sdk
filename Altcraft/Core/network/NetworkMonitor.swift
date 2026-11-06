@@ -84,6 +84,15 @@ import Foundation
         }
     }
 
+    /// Returns `true` when the device is currently online.
+    ///
+    /// Point-in-time snapshot: unlike ``waitConnected()`` the call never
+    /// suspends waiting for connectivity. Used by background-refresh paths,
+    /// where an offline device must not consume a processing attempt.
+    @_spi(_Altcraft) public func isOnline() async -> Bool {
+        isConnected
+    }
+
     /// Executes the provided async action when network connectivity is available.
     ///
     /// If the device is already online, the action is executed immediately.

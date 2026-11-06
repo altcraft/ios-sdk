@@ -63,6 +63,7 @@
 		A970D5F249CDE589720AAB34 /* AltcraftObjCTypesTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2A1CF138F95E88BF15082BCB /* AltcraftObjCTypesTests.swift */; };
 		AA33B0000000000000000001 /* NetworkMonitorTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA33F0000000000000000001 /* NetworkMonitorTests.swift */; };
 		AA33B0000000000000000002 /* PushConfigManagerTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA33F0000000000000000002 /* PushConfigManagerTests.swift */; };
+		AA33F1000000000000000401 /* RTokenChangeDispatchTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA33F0000000000000000401 /* RTokenChangeDispatchTests.swift */; };
 		AB883D2C6F51E8613C80800F /* CoreDataIsolation.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0EF0B16477E9D7F1F65430BC /* CoreDataIsolation.swift */; };
 		AC3B7B63077E3797D4EEC5A9 /* AppVersionMatcherTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7C3527829830E0082BB518D3 /* AppVersionMatcherTests.swift */; };
 		AE37F7CCC328B30DB469F554 /* CommonsRepositoryTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5A0409AD25935AFF84348869 /* CommonsRepositoryTests.swift */; };
@@ -171,6 +172,7 @@
 		AA2E60B809234FAFB7908315 /* InAppBridgeTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = InAppBridgeTests.swift; sourceTree = "<group>"; };
 		AA33F0000000000000000001 /* NetworkMonitorTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NetworkMonitorTests.swift; sourceTree = "<group>"; };
 		AA33F0000000000000000002 /* PushConfigManagerTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PushConfigManagerTests.swift; sourceTree = "<group>"; };
+		AA33F0000000000000000401 /* RTokenChangeDispatchTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RTokenChangeDispatchTests.swift; sourceTree = "<group>"; };
 		AC3110A08806C5F04821D0AC /* CheckAvailabilityTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CheckAvailabilityTests.swift; sourceTree = "<group>"; };
 		B465123C9822E0C5E4ECE3D4 /* EnvironmentTest.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = EnvironmentTest.swift; sourceTree = "<group>"; };
 		BB558A7DD684912DF3E57FC8 /* MockURLSession.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MockURLSession.swift; sourceTree = "<group>"; };
@@ -226,6 +228,7 @@
 			isa = PBXGroup;
 			children = (
 				469588A56E5A83DF531D2B58 /* AuthManagerTests.swift */,
+				AA33F0000000000000000401 /* RTokenChangeDispatchTests.swift */,
 			);
 			path = Auth;
 			sourceTree = "<group>";
@@ -259,7 +262,7 @@
 			path = Configuration;
 			sourceTree = "<group>";
 		};
-		3E05FAFC0DF9BD480A6C19C9 /* AltcraftTests */ = {
+		3E05FAFC0DF9BD480A6C19C9 /* ../AltcraftTests */ = {
 			isa = PBXGroup;
 			children = (
 				D04CE1FF0CCC072561924F0B /* AltcraftTestsPlan.xctestplan */,
@@ -502,7 +505,7 @@
 		E158D63CCFBB7E27D740AD4A = {
 			isa = PBXGroup;
 			children = (
-				3E05FAFC0DF9BD480A6C19C9 /* AltcraftTests */,
+				3E05FAFC0DF9BD480A6C19C9 /* ../AltcraftTests */,
 				A2D3E906B6198B6E5C993A37 /* Products */,
 			);
 			sourceTree = "<group>";
@@ -602,6 +605,7 @@
 				648C673DD63B91491E5C6DF2 /* AsyncLazyTests.swift in Sources */,
 				F8BF038C9D8E1908973C63F1 /* AsyncSemaphoreTests.swift in Sources */,
 				AFA2026746A84A0B3764DA27 /* AuthManagerTests.swift in Sources */,
+				AA33F1000000000000000401 /* RTokenChangeDispatchTests.swift in Sources */,
 				B475F10D0352E27BBCDAB611 /* BackgroundTaskTests.swift in Sources */,
 				B476F10D0352E27BBCDAB612 /* AccessToBackgroundTests.swift in Sources */,
 				0779A61AAF6997DA91B576F2 /* CacheIndexImageTests.swift in Sources */,
@@ -708,6 +712,10 @@
 				PRODUCT_BUNDLE_IDENTIFIER = com.altcraft.core.tests;
 				PRODUCT_NAME = AltcraftTests;
 				SDKROOT = iphoneos;
+				SUPPORTED_PLATFORMS = "iphoneos iphonesimulator";
+				SUPPORTS_MACCATALYST = NO;
+				SUPPORTS_MAC_DESIGNED_FOR_IPHONE_IPAD = NO;
+				SUPPORTS_XR_DESIGNED_FOR_IPHONE_IPAD = NO;
 				SWIFT_VERSION = 5.0;
 				TARGETED_DEVICE_FAMILY = "1,2";
 				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/Example.app/Example";
@@ -734,6 +742,10 @@
 				PRODUCT_BUNDLE_IDENTIFIER = com.altcraft.core.tests;
 				PRODUCT_NAME = AltcraftTests;
 				SDKROOT = iphoneos;
+				SUPPORTED_PLATFORMS = "iphoneos iphonesimulator";
+				SUPPORTS_MACCATALYST = NO;
+				SUPPORTS_MAC_DESIGNED_FOR_IPHONE_IPAD = NO;
+				SUPPORTS_XR_DESIGNED_FOR_IPHONE_IPAD = NO;
 				SWIFT_VERSION = 5.0;
 				TARGETED_DEVICE_FAMILY = "1,2";
 				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/Example.app/Example";

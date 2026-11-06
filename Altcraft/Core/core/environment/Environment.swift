@@ -89,7 +89,7 @@ final class Environment: @unchecked Sendable {
     /// throws if auth data is missing.
     func externalAuth() async throws -> (header: String, matching: String) {
         let value = try await authLazy.get { [self] in
-            guard let pair = getAuthData(
+            guard let pair = await getAuthData(
                 rToken: try await config().rToken
             ) else {
                 return nil
@@ -134,7 +134,7 @@ final class Environment: @unchecked Sendable {
 
     /// Builds authorization header and matching mode from configuration/JWT.
     func loadExternalAuth() async throws -> (header: String, matching: String)? {
-        guard let pair = getAuthData(
+        guard let pair = await getAuthData(
             rToken: try await config().rToken
         ) else {
             return nil

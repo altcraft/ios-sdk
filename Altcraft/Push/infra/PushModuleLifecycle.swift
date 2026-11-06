@@ -43,6 +43,25 @@ final actor PushModuleLifecycle: AltcraftModule {
         await PushSubscriptionWorker.shared.processPending(enableRetry: enableRetry)
     }
 
+    /// Processes pending push operations awaiting their completion
+    /// (background refresh path: the app may be suspended right after the
+    /// system task is marked complete, so asynchronously enqueued work would
+    /// never run).
+    ///
+    /// The pipeline runs only when the push module is active.
+    ///
+    /// - Parameter enableRetry: If `true`, failed operations schedule a local
+    ///   retry; if `false`, failures are dropped without retry.
+    func processPendingAwaited(enableRetry: Bool) async {
+        guard await TokenManager.shared.pushModuleIsActive() else {
+            return
+        }
+
+        await PushTokenWorker.shared.processPendingAwaited(enableRetry: enableRetry)
+        await PushEventWorker.shared.processPendingAwaited(enableRetry: enableRetry)
+        await PushSubscriptionWorker.shared.processPendingAwaited(enableRetry: enableRetry)
+    }
+
     /// Push module initialization: processes pending operations without retries.
     func onSdkInitialized() async {
         await processPending(enableRetry: false)

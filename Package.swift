@@ -32,7 +32,8 @@ let package = Package(
             name: "AltcraftCore",
             path: "Altcraft/Core",
             resources: [
-                .process("data/db/Core.xcdatamodeld")
+                .process("data/db/Core.xcdatamodeld"),
+                .process("PrivacyInfo.xcprivacy")
             ]
         ),
         .target(
@@ -40,7 +41,8 @@ let package = Package(
             dependencies: ["AltcraftCore"],
             path: "Altcraft/Push",
             resources: [
-                .process("data/db/Push.xcdatamodeld")
+                .process("data/db/Push.xcdatamodeld"),
+                .process("PrivacyInfo.xcprivacy")
             ]
         ),
         .target(
@@ -48,7 +50,8 @@ let package = Package(
             dependencies: ["AltcraftCore"],
             path: "Altcraft/Profile",
             resources: [
-                .process("data/db/Profile.xcdatamodeld")
+                .process("data/db/Profile.xcdatamodeld"),
+                .process("PrivacyInfo.xcprivacy")
             ]
         ),
         .target(
@@ -56,7 +59,8 @@ let package = Package(
             dependencies: ["AltcraftCore"],
             path: "Altcraft/InApp",
             resources: [
-                .process("data/db/InApp.xcdatamodeld")
+                .process("data/db/InApp.xcdatamodeld"),
+                .process("PrivacyInfo.xcprivacy")
             ]
         ),
         .target(
@@ -64,7 +68,8 @@ let package = Package(
             dependencies: ["AltcraftCore"],
             path: "Altcraft/Target",
             resources: [
-                .process("data/db/Target.xcdatamodeld")
+                .process("data/db/Target.xcdatamodeld"),
+                .process("PrivacyInfo.xcprivacy")
             ]
         ),
         .target(

@@ -28,4 +28,17 @@ actor PushEventWorker {
     func processPending() async {
         await PushEventProcess.shared.sendAllPushEvents()
     }
+
+    /// Flushes all pending push events awaiting completion (background
+    /// refresh path).
+    ///
+    /// An offline snapshot skips the attempt: an offline send would fail and
+    /// be dropped without retry, so the events stay stored for the next pass.
+    ///
+    /// - Parameter enableRetry: Unused; the batch send never schedules
+    ///   internal retries.
+    func processPendingAwaited(enableRetry: Bool) async {
+        guard await NetworkMonitor.shared.isOnline() else { return }
+        await processPending()
+    }
 }

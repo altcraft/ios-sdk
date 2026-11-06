@@ -39,27 +39,3 @@ class JWTManager: @unchecked Sendable {
         return provider?.getToken()
     }
 }
-
-/// Extracts the role token (`rtoken` claim) from a JWT payload.
-///
-/// Mirrors Android `JWTProcessor.extractRToken`. A missing JWT is a normal
-/// state (the provider is not registered yet) and is treated as "no role
-/// token" without emitting an error.
-///
-/// - Parameter jwt: The JWT token string (`header.payload.signature`), may be `nil`.
-/// - Returns: The role token, or `nil` if the token is absent or the payload
-///   cannot be decoded.
-func extractRToken(jwt: String?) -> String? {
-    guard let jwt else { return nil }
-
-    guard
-        let part = jwt.split(separator: ".").dropFirst().first,
-        let payload = Data(base64UrlEncoded: String(part)),
-        let json = try? JSONSerialization.jsonObject(with: payload) as? [String: Any]
-    else {
-        CoreLog.error(#function, error: CoreEvents.jwtParsingError)
-        return nil
-    }
-
-    return json[Constants.AuthKeys.rtoken] as? String
-}
