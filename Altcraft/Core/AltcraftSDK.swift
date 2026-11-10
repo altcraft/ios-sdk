@@ -26,7 +26,7 @@ import Foundation
 /// without a `shared` qualifier.
 ///
 /// Module-specific properties are added by each module through `public extension AltcraftSDK`,
-/// so they are only visible when the corresponding pod / module is linked. The facade itself
+/// so they are only visible when the corresponding module is linked. The facade itself
 /// lives in `AltcraftCore` so every consumer of the SDK always has a single, well-known entry point.
 @objcMembers
 @available(iOSApplicationExtension, unavailable)

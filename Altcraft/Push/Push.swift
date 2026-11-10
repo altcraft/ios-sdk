@@ -70,7 +70,7 @@ public final class Push: @unchecked Sendable {
 /// Exposes the Push module through the unified `AltcraftSDK` entry point.
 ///
 /// Mirrors the Android `val AltcraftSDK.push: Push get() = Push` extension property.
-/// Only visible when the `AltcraftPush` module (Pod / SPM product) is linked.
+/// Only visible when the `AltcraftPush` module (SPM product) is linked.
 @available(iOSApplicationExtension, unavailable)
 public extension AltcraftSDK {
 

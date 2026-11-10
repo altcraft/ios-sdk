@@ -11,7 +11,7 @@ import Foundation
 
 /// Target / mobile-event NSE APIs.
 ///
-/// Available when the `AltcraftTarget` module (Pod / SPM product) is present.
+/// Available when the `AltcraftTarget` module (SPM product) is present.
 public extension AltcraftNSE {
 
     /// Sends a mobile (target) event.

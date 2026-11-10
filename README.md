@@ -6,7 +6,6 @@
 [![Platforms](https://img.shields.io/badge/Platforms-iOS-green?style=flat-square)](https://developer.apple.com/ios/)
 [![Push Providers](https://img.shields.io/badge/Push-APNs_Firebase_Huawei-green?style=flat-square)](#)
 [![Swift Package Manager](https://img.shields.io/badge/Swift_Package_Manager-compatible-orange?style=flat-square)](https://img.shields.io/badge/Swift_Package_Manager-compatible-orange?style=flat-square)
-[![CocoaPods Compatible](https://img.shields.io/cocoapods/v/Altcraft.svg?style=flat-square)](https://cocoapods.org/pods/Altcraft)
 
 Altcraft iOS SDK is a library for interacting with the **Altcraft Marketing Platform**. It uses a modular architecture in which each component provides a specific set of capabilities.
 
@@ -64,13 +63,13 @@ The in-app module is responsible for in-app campaigns.
 
 ## Dependencies
 
-Altcraft iOS SDK modules are distributed via Swift Package Manager and CocoaPods. Add the modules used by your application. The Core module is included automatically as a dependency of other SDK modules and does not need to be added separately.
+Altcraft iOS SDK modules are distributed via Swift Package Manager. Add the modules used by your application. The Core module is included automatically as a dependency of other SDK modules and does not need to be added separately.
 
 **Swift Package Manager:**
 
 ```swift
 dependencies: [
-    .package(url: "https://github.com/altcraft/ios-sdk", from: "0.2.0")
+    .package(url: "https://github.com/altcraft/ios-sdk", from: "2.0.0")
 ]
 ```
 
@@ -84,17 +83,6 @@ Add the products used by your application to the target dependencies:
 ```
 
 If you only need Core, add the `AltcraftCore` product directly.
-
-**CocoaPods:**
-
-```ruby
-pod 'AltcraftPush', '0.2.0'
-pod 'AltcraftInApp', '0.2.0'
-pod 'AltcraftTarget', '0.2.0'
-pod 'AltcraftProfile', '0.2.0'
-```
-
-If you only need Core, add `pod 'AltcraftCore', '0.2.0'` directly.
 
 ---
 

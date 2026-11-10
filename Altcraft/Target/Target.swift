@@ -92,7 +92,7 @@ public final class Target: @unchecked Sendable {
 /// Exposes the Target module through the unified `AltcraftSDK` entry point.
 ///
 /// Mirrors the Android `val AltcraftSDK.target: Target get() = Target` extension
-/// property. Only visible when the `AltcraftTarget` module (Pod / SPM product) is
+/// property. Only visible when the `AltcraftTarget` module (SPM product) is
 /// linked.
 @available(iOSApplicationExtension, unavailable)
 public extension AltcraftSDK {

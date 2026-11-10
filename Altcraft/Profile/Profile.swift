@@ -70,7 +70,7 @@ public final class Profile: @unchecked Sendable {
 /// Exposes the Profile module through the unified `AltcraftSDK` entry point.
 ///
 /// Mirrors the Android `val AltcraftSDK.profile: Profile get() = Profile` extension
-/// property. Only visible when the `AltcraftProfile` module (Pod / SPM product) is
+/// property. Only visible when the `AltcraftProfile` module (SPM product) is
 /// linked.
 @available(iOSApplicationExtension, unavailable)
 public extension AltcraftSDK {

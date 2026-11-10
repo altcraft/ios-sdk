@@ -65,7 +65,6 @@
 		C7CA084E65CEA3FF27A1FC72 /* InAppRequestData.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3C35CED2A6A61EFE8344A388 /* InAppRequestData.swift */; };
 		CD4C042BEF935115C0E60CD2 /* package.xcworkspace in Resources */ = {isa = PBXBuildFile; fileRef = 08432EFA3E7912D18BF09F98 /* package.xcworkspace */; };
 		D0AC9918DA829A94D96DC58C /* InAppPlacementsRequestFactory.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8056F0D64CCB4917D747B3A8 /* InAppPlacementsRequestFactory.swift */; };
-		D5AA85704945AB270166B9F5 /* AltcraftInApp.podspec in Resources */ = {isa = PBXBuildFile; fileRef = BE9B525F4957C714C859889D /* AltcraftInApp.podspec */; };
 		D5DB442C14920D6AB38737F0 /* InAppSubscribeEntity+CoreDataClass.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5ACCDCB76CC43320F0B9F293 /* InAppSubscribeEntity+CoreDataClass.swift */; };
 		D7619EFCE87CFCAA28863F00 /* InAppSubscribe.swift in Sources */ = {isa = PBXBuildFile; fileRef = 615CE45AADD1A7FCA4C00BCA /* InAppSubscribe.swift */; };
 		D828CF8FA8EE7E8E4D8110B7 /* InAppsEntity+CoreDataClass.swift in Sources */ = {isa = PBXBuildFile; fileRef = C62B7401FF001816F5843868 /* InAppsEntity+CoreDataClass.swift */; };
@@ -173,7 +172,6 @@
 		B5CC47D94A86C57438C43469 /* InAppMapper.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = InAppMapper.swift; sourceTree = "<group>"; };
 		BA8DD740300CF7BF1F279570 /* RetryTrackable+InApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "RetryTrackable+InApp.swift"; sourceTree = "<group>"; };
 		BC34D265337A321AC73FD7EB /* InAppEntity+CoreDataClass.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "InAppEntity+CoreDataClass.swift"; sourceTree = "<group>"; };
-		BE9B525F4957C714C859889D /* AltcraftInApp.podspec */ = {isa = PBXFileReference; path = ../AltcraftInApp.podspec; sourceTree = SOURCE_ROOT; };
 		BF21C4DB63CEF5C0B65A232E /* InAppAnimator.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = InAppAnimator.swift; sourceTree = "<group>"; };
 		BFB46601E168AFBC80E280DA /* InAppAnimatorImpl.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = InAppAnimatorImpl.swift; sourceTree = "<group>"; };
 		C62B7401FF001816F5843868 /* InAppsEntity+CoreDataClass.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "InAppsEntity+CoreDataClass.swift"; sourceTree = "<group>"; };
@@ -241,7 +239,6 @@
 		25B09E5E5911CB1CB99E3001 /* InApp */ = {
 			isa = PBXGroup;
 			children = (
-				BE9B525F4957C714C859889D /* AltcraftInApp.podspec */,
 				DE674B9237AB5E4CEC035508 /* InApp.swift */,
 				95FC354F9694E09731BCB131 /* .swiftpm */,
 				7BD605A4BB1A26A9B2E7017A /* config */,
@@ -706,7 +703,6 @@
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				D5AA85704945AB270166B9F5 /* AltcraftInApp.podspec in Resources */,
 				CD4C042BEF935115C0E60CD2 /* package.xcworkspace in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;

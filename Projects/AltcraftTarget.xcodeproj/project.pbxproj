@@ -7,7 +7,6 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
-		06C1BF1123A81C1E3CF569D2 /* AltcraftTarget.podspec in Resources */ = {isa = PBXBuildFile; fileRef = 2FBF6F18320E290566A6503E /* AltcraftTarget.podspec */; };
 		080CBA957FD88A61A8DE2701 /* Target.xcdatamodeld in Sources */ = {isa = PBXBuildFile; fileRef = BF8A079502410ED654253332 /* Target.xcdatamodeld */; };
 		3115BAF3F169B9487576F22D /* PartsFactory.swift in Sources */ = {isa = PBXBuildFile; fileRef = A948B6CB33AD6484DBF85905 /* PartsFactory.swift */; };
 		41982B1784D25341C58EFE69 /* TargetEnvironment.swift in Sources */ = {isa = PBXBuildFile; fileRef = 70D088BFA30FF785D51F578B /* TargetEnvironment.swift */; };
@@ -59,7 +58,6 @@
 		1E836DEA05C1434437751B9A /* Target.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Target.swift; sourceTree = "<group>"; };
 		2BEF55A7561CB0CDDFDCD889 /* TargetEventWorker.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TargetEventWorker.swift; sourceTree = "<group>"; };
 		2D715E22CE7FAFF5C77D21A2 /* AltcraftTarget.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; includeInIndex = 0; path = AltcraftTarget.framework; sourceTree = BUILT_PRODUCTS_DIR; };
-		2FBF6F18320E290566A6503E /* AltcraftTarget.podspec */ = {isa = PBXFileReference; path = ../AltcraftTarget.podspec; sourceTree = SOURCE_ROOT; };
 		30F6147CDE46484CC23AE8B5 /* TargetRequestDataFactory.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TargetRequestDataFactory.swift; sourceTree = "<group>"; };
 		441E442EF80A804523B9F2E1 /* TargetEventQueue.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TargetEventQueue.swift; sourceTree = "<group>"; };
 		44A4039BDF3FEAD46F18AB48 /* TargetConstants.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TargetConstants.swift; sourceTree = "<group>"; };
@@ -239,7 +237,6 @@
 		B714855820F8C2BC3A786D17 /* Target */ = {
 			isa = PBXGroup;
 			children = (
-				2FBF6F18320E290566A6503E /* AltcraftTarget.podspec */,
 				1E836DEA05C1434437751B9A /* Target.swift */,
 				7B21531CDDADCFE6677CEB94 /* .swiftpm */,
 				71520AE9218D9A9A92BA347C /* data */,
@@ -372,7 +369,6 @@
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				06C1BF1123A81C1E3CF569D2 /* AltcraftTarget.podspec in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

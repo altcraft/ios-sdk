@@ -23,7 +23,6 @@
 		AA10PB000000000000000003 /* ProfileDatabase.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA10PF000000000000000001 /* ProfileDatabase.swift */; };
 		AA10PB000000000000000004 /* ProfileDao.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA10PF000000000000000002 /* ProfileDao.swift */; };
 		AA10PB00000000000000000D /* AltcraftCore.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = AA10PR000000000000000001 /* AltcraftCore.framework */; };
-		B8DE3C21CD2983EBB8BDF6C5 /* AltcraftProfile.podspec in Resources */ = {isa = PBXBuildFile; fileRef = C22E0BA288844363A241BBC0 /* AltcraftProfile.podspec */; };
 		BB2F271DF2459005CC50288B /* ProfileModuleEvents.swift in Sources */ = {isa = PBXBuildFile; fileRef = A6CF6D4FCC1D365813952C2E /* ProfileModuleEvents.swift */; };
 		C32A3AC7F14D349D95048943 /* ProfileRetry.swift in Sources */ = {isa = PBXBuildFile; fileRef = AD9683F2DEEF1CB10B740C50 /* ProfileRetry.swift */; };
 		CE22FD84F4DC9B90012F1728 /* ProfileEnvironment.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8100CE1265B7C02E92EC35E7 /* ProfileEnvironment.swift */; };
@@ -66,7 +65,6 @@
 		AA10PF000000000000000001 /* ProfileDatabase.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ProfileDatabase.swift; sourceTree = "<group>"; };
 		AA10PF000000000000000002 /* ProfileDao.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ProfileDao.swift; sourceTree = "<group>"; };
 		AD9683F2DEEF1CB10B740C50 /* ProfileRetry.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ProfileRetry.swift; sourceTree = "<group>"; };
-		C22E0BA288844363A241BBC0 /* AltcraftProfile.podspec */ = {isa = PBXFileReference; lastKnownFileType = text; path = ../AltcraftProfile.podspec; sourceTree = SOURCE_ROOT; };
 		D35BF6CD646BADDB30BB6F4D /* UpdateAPI.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = UpdateAPI.swift; sourceTree = "<group>"; };
 		DE3E75C8AA7EFC2B34483DB6 /* ProfileLog.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ProfileLog.swift; sourceTree = "<group>"; };
 		E41C1D939A34DFAFB2760591 /* ProfileRequest.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ProfileRequest.swift; sourceTree = "<group>"; };
@@ -253,7 +251,6 @@
 		C7F219895B9B360439CA9846 /* Profile */ = {
 			isa = PBXGroup;
 			children = (
-				C22E0BA288844363A241BBC0 /* AltcraftProfile.podspec */,
 				F2F71C82F78E1A929F909671 /* Profile.swift */,
 				5264D88BA02AEF960D8B4F3E /* .swiftpm */,
 				B2DBEC66420CF593A5D523C0 /* data */,
@@ -377,7 +374,6 @@
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				B8DE3C21CD2983EBB8BDF6C5 /* AltcraftProfile.podspec in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

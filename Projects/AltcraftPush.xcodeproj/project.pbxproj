@@ -38,7 +38,6 @@
 		AA10B0000000000000000007 /* TokenDataObjC.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA10F0000000000000000007 /* TokenDataObjC.swift */; };
 		AA10B0000000000000000008 /* ImageFormat.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA10F0000000000000000008 /* ImageFormat.swift */; };
 		AA10B0000000000000000009 /* AltcraftCore.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = AA10R0000000000000000001 /* AltcraftCore.framework */; };
-		927CB86B2DCB88ECC33BDA72 /* AltcraftPush.podspec in Resources */ = {isa = PBXBuildFile; fileRef = E83493C63B7DF917B780DBFB /* AltcraftPush.podspec */; };
 		94409DE141CAC255F057FA57 /* RetryTrackable+Push.swift in Sources */ = {isa = PBXBuildFile; fileRef = ED133C1E7EDBCE517FBDBEFC /* RetryTrackable+Push.swift */; };
 		9514F0D0CAF61188B5AA0F75 /* NotificationManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = BF2198695FC3A0648558DDF5 /* NotificationManager.swift */; };
 		9652D2B704F97C9640F41A0F /* AltcraftPushReceiver.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6AE74A32522C7F84E2BFE3EE /* AltcraftPushReceiver.swift */; };
@@ -132,7 +131,6 @@
 		C6E9B16E92B55EC2DDB1984B /* PushModuleEvents.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PushModuleEvents.swift; sourceTree = "<group>"; };
 		C96F53CFDF133DA4E54C9ABC /* PushConfiguration.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PushConfiguration.swift; sourceTree = "<group>"; };
 		D5F78465FC847EE89D339512 /* PushRequestDataFactory.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PushRequestDataFactory.swift; sourceTree = "<group>"; };
-		E83493C63B7DF917B780DBFB /* AltcraftPush.podspec */ = {isa = PBXFileReference; path = ../AltcraftPush.podspec; sourceTree = SOURCE_ROOT; };
 		E9BCAA94AE733576B653A5C4 /* TokenData.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TokenData.swift; sourceTree = "<group>"; };
 		ED133C1E7EDBCE517FBDBEFC /* RetryTrackable+Push.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "RetryTrackable+Push.swift"; sourceTree = "<group>"; };
 		F726100759B8C92EF35206A9 /* PushAction.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PushAction.swift; sourceTree = "<group>"; };
@@ -467,7 +465,6 @@
 		D8B16EB8891921DA4BCA0C42 /* Push */ = {
 			isa = PBXGroup;
 			children = (
-				E83493C63B7DF917B780DBFB /* AltcraftPush.podspec */,
 				314DB63CB2F4F4CC3BEAAE43 /* Push.swift */,
 				00BB291F206FCB72BED36399 /* .swiftpm */,
 				543BBA8FCEF80E6D7250E980 /* config */,
@@ -603,7 +600,6 @@
 			buildActionMask = 2147483647;
 			files = (
 				6F25D86584AAB7CFE4C97E26 /* Push.xcdatamodeld in Resources */,
-				927CB86B2DCB88ECC33BDA72 /* AltcraftPush.podspec in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

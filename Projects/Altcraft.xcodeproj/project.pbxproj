@@ -58,7 +58,6 @@
 		2FC3BD765C4DCBC02E0BAD8B /* ProfileUpdateWorker.swift in Sources */ = {isa = PBXBuildFile; fileRef = A7A67F8D986C552281CA9C84 /* ProfileUpdateWorker.swift */; };
 		30262A0EB7C250F354CB6A11 /* PushConfigManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = F530D337B3F934AB78DC34BF /* PushConfigManager.swift */; };
 		312D19349ADE1EA4CE576EA4 /* AltcraftNSE.swift in Sources */ = {isa = PBXBuildFile; fileRef = 170DA856F561BCCE1B0CE0AF /* AltcraftNSE.swift */; };
-		32DC54A296611AA145F9576E /* AltcraftInApp.podspec in Resources */ = {isa = PBXBuildFile; fileRef = 4D98C2188BB8EABA74E1D6B8 /* AltcraftInApp.podspec */; };
 		33F9442530B314ADF0C25D8A /* SDKStateCoordinator.swift in Sources */ = {isa = PBXBuildFile; fileRef = CD57FA88B475DE24AE7DDCC3 /* SDKStateCoordinator.swift */; };
 		35A66B7E28E37A8324C13938 /* AuthenticationEntity+CoreDataProperties.swift in Sources */ = {isa = PBXBuildFile; fileRef = 20F34A1AAA6F124A9D2B7975 /* AuthenticationEntity+CoreDataProperties.swift */; };
 		36F30DEF7D510CC371F20457 /* ImageFormat.swift in Sources */ = {isa = PBXBuildFile; fileRef = D3C0AA1F7B2E4D5C89B0A123 /* ImageFormat.swift */; };
@@ -139,7 +138,6 @@
 		8E89E05A32F4A1BCAD062CDD /* TargetLog.swift in Sources */ = {isa = PBXBuildFile; fileRef = CB3184FBF481FC8B868D09E1 /* TargetLog.swift */; };
 		8EE4785AEBDB1D4D74C41F2F /* InternalAuthModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 24C30546412EA40B39BBC0CE /* InternalAuthModel.swift */; };
 		8EE9B1C69475EB0A7CA60614 /* InAppEnvironment.swift in Sources */ = {isa = PBXBuildFile; fileRef = F6D03E46FEDC232BBA86ED69 /* InAppEnvironment.swift */; };
-		911E28DA89827D8AC398CBCD /* AltcraftProfile.podspec in Resources */ = {isa = PBXBuildFile; fileRef = F587411540AF4ED0DC7A927A /* AltcraftProfile.podspec */; };
 		922308B50E3261B6FC32A0E7 /* Logger.swift in Sources */ = {isa = PBXBuildFile; fileRef = D912E40CC7F18B65DC84FDD9 /* Logger.swift */; };
 		94F163685776B39D42126F83 /* StoredVariablesManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 15FE02906F87C164BE2C9655 /* StoredVariablesManager.swift */; };
 		952CFDFC9ACE974B54FB71F8 /* ProfileModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = E3FFBE2A7B7F6FC07FC75609 /* ProfileModel.swift */; };
@@ -211,7 +209,6 @@
 		CA8F799861F1E8CFCA83CE59 /* AppLifecycleTracker.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0519BEFF8C0A27DD8CF69CB5 /* AppLifecycleTracker.swift */; };
 		CB155049C83FFD415EFB0372 /* JWTInterface.swift in Sources */ = {isa = PBXBuildFile; fileRef = B11C45A62BF608EE3F833AA4 /* JWTInterface.swift */; };
 		CDCE9453E300261CBAD486AA /* InAppAnimator.swift in Sources */ = {isa = PBXBuildFile; fileRef = 49B1DC510F0B5B8C5FAA5603 /* InAppAnimator.swift */; };
-		CE76F28C21FA3A678E2FEB0D /* AltcraftTarget.podspec in Resources */ = {isa = PBXBuildFile; fileRef = 9D6A5BACEFEABBAAEB83488E /* AltcraftTarget.podspec */; };
 		CEBAA40B98282ABBD09DAF92 /* AuthorizationDao.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7F83393C733BD708BD1C6B48 /* AuthorizationDao.swift */; };
 		CEDD6A524549246CD5B74B7F /* RetryTrackable+InApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = BF7C10B7BAFC554C8E9E7A25 /* RetryTrackable+InApp.swift */; };
 		CFB8778D77B6479A2840E96D /* CoreEnvironmentProvider.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2EC7C3DFB618BF6C3AD52768 /* CoreEnvironmentProvider.swift */; };
@@ -274,7 +271,6 @@
 		FB7E6D1F08A15345F1BEBA30 /* InAppWebView.swift in Sources */ = {isa = PBXBuildFile; fileRef = EA3A3A97CCB443785E5F79D6 /* InAppWebView.swift */; };
 		FC56AD7C71A4F0B0AF6BD04F /* TargetModuleLifecycle.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2C53DBC37FA34F22BDC2AF90 /* TargetModuleLifecycle.swift */; };
 		FC871CEE759A16E810C68D8E /* EventList.swift in Sources */ = {isa = PBXBuildFile; fileRef = AAC0FAA00F62E08A050FA281 /* EventList.swift */; };
-		FCA6FB003D43D34219D6CA48 /* AltcraftPush.podspec in Resources */ = {isa = PBXBuildFile; fileRef = 8EE1FEEF7B55F76B4B37B750 /* AltcraftPush.podspec */; };
 		FF0FFEE000AA11BB22CC33EE /* CoreConfigDao.swift in Sources */ = {isa = PBXBuildFile; fileRef = EE0FFEE000AA11BB22CC33EE /* CoreConfigDao.swift */; };
 		FF16997EE9E32D998F4F9222 /* PushStoredVariables.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3F6EE1B4E684C2C684900991 /* PushStoredVariables.swift */; };
 		FF5139C78CA0661FCAFCF6D0 /* PushTokenWorker.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8A3329038AAC30C8C863D59F /* PushTokenWorker.swift */; };
@@ -388,7 +384,6 @@
 		48C85C89BE12A87726F31202 /* Path.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Path.swift; sourceTree = "<group>"; };
 		49B1DC510F0B5B8C5FAA5603 /* InAppAnimator.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = InAppAnimator.swift; sourceTree = "<group>"; };
 		4D0E667E61213CF5702F359D /* InAppDisplayType.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = InAppDisplayType.swift; sourceTree = "<group>"; };
-		4D98C2188BB8EABA74E1D6B8 /* AltcraftInApp.podspec */ = {isa = PBXFileReference; lastKnownFileType = text; path = ../AltcraftInApp.podspec; sourceTree = SOURCE_ROOT; };
 		51376CD8207E12AE34D6A2F8 /* AuthRequestEntity+CoreDataClass.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "AuthRequestEntity+CoreDataClass.swift"; sourceTree = "<group>"; };
 		5214D7DD591446932F3DF391 /* ClosureBox.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ClosureBox.swift; sourceTree = "<group>"; };
 		52D2EA3DA5DDD8093A0A0960 /* AltcraftNSE+Profile.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "AltcraftNSE+Profile.swift"; sourceTree = "<group>"; };
@@ -438,7 +433,6 @@
 		8ADB1932FF0883841F6E793A /* AltcraftCore.xcscheme */ = {isa = PBXFileReference; lastKnownFileType = text.xml; path = AltcraftCore.xcscheme; sourceTree = "<group>"; };
 		8B5EA9B9DDF5C1D08A4DC12E /* WebViewPrewarmer.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WebViewPrewarmer.swift; sourceTree = "<group>"; };
 		8C6E4A1D2B7F9E0A5C3D1F8B /* PushConfigEntity+CoreDataProperties.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "PushConfigEntity+CoreDataProperties.swift"; sourceTree = "<group>"; };
-		8EE1FEEF7B55F76B4B37B750 /* AltcraftPush.podspec */ = {isa = PBXFileReference; lastKnownFileType = text; path = ../AltcraftPush.podspec; sourceTree = SOURCE_ROOT; };
 		8EF277490CAC620401D36B70 /* InAppConfigExtension.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = InAppConfigExtension.swift; sourceTree = "<group>"; };
 		91745F4E6FBA9705B0DB62D3 /* Core.xcdatamodel */ = {isa = PBXFileReference; lastKnownFileType = wrapper.xcdatamodel; path = Core.xcdatamodel; sourceTree = "<group>"; };
 		93A693E5FD2BBC6D796E8DBA /* MultipartBody.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MultipartBody.swift; sourceTree = "<group>"; };
@@ -456,7 +450,6 @@
 		9BB36DDD2393EB5E64B31200 /* Push.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Push.swift; sourceTree = "<group>"; };
 		9BC46B160F0A4001E8F91403 /* LIFOQueue.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LIFOQueue.swift; sourceTree = "<group>"; };
 		9CAD36A64BD38FEDB1EC48D7 /* APNSInterface.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = APNSInterface.swift; sourceTree = "<group>"; };
-		9D6A5BACEFEABBAAEB83488E /* AltcraftTarget.podspec */ = {isa = PBXFileReference; lastKnownFileType = text; path = ../AltcraftTarget.podspec; sourceTree = SOURCE_ROOT; };
 		9E8BFB9CE3BD25A4A7CEB9F3 /* EventRequest.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = EventRequest.swift; sourceTree = "<group>"; };
 		9F49DE182AB3442F2B090D1E /* InAppEntity+CoreDataProperties.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "InAppEntity+CoreDataProperties.swift"; sourceTree = "<group>"; };
 		9FF7D6A14260D681D219723E /* InAppHTMLRewriter.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = InAppHTMLRewriter.swift; sourceTree = "<group>"; };
@@ -571,7 +564,6 @@
 		F3F17F5FD3DE8D9FFD99E9F7 /* FCMInterface.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FCMInterface.swift; sourceTree = "<group>"; };
 		F4B9C2D835011A7E4C93E08A /* SubscriptionConverter.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SubscriptionConverter.swift; sourceTree = "<group>"; };
 		F530D337B3F934AB78DC34BF /* PushConfigManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PushConfigManager.swift; sourceTree = "<group>"; };
-		F587411540AF4ED0DC7A927A /* AltcraftProfile.podspec */ = {isa = PBXFileReference; lastKnownFileType = text; path = ../AltcraftProfile.podspec; sourceTree = SOURCE_ROOT; };
 		F6D03E46FEDC232BBA86ED69 /* InAppEnvironment.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = InAppEnvironment.swift; sourceTree = "<group>"; };
 		F7028952321DC83D23745707 /* InAppEntity+CoreDataClass.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "InAppEntity+CoreDataClass.swift"; sourceTree = "<group>"; };
 		F72EC4197E76A79550EB895E /* AuthAPI.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AuthAPI.swift; sourceTree = "<group>"; };
@@ -798,7 +790,6 @@
 		200FB7D645C6F1AD62FB2E9E /* Profile */ = {
 			isa = PBXGroup;
 			children = (
-				F587411540AF4ED0DC7A927A /* AltcraftProfile.podspec */,
 				A506B2A9DCA09E954C45FA69 /* Profile.swift */,
 				1E42A592FE29EC9615FA0129 /* .swiftpm */,
 				76EC0A0AA1A2C36ACADBE4FD /* data */,
@@ -943,7 +934,6 @@
 		47221FE65CD0FE5CB8D51425 /* Target */ = {
 			isa = PBXGroup;
 			children = (
-				9D6A5BACEFEABBAAEB83488E /* AltcraftTarget.podspec */,
 				BE6A8912DE4493CD7E3F9EB7 /* Target.swift */,
 				8550FD7B760E32F9C938F7E0 /* .swiftpm */,
 				DC0396B5F4AA98CC455C64BD /* data */,
@@ -1591,7 +1581,6 @@
 		C991ACD10AF4291546B70F6E /* InApp */ = {
 			isa = PBXGroup;
 			children = (
-				4D98C2188BB8EABA74E1D6B8 /* AltcraftInApp.podspec */,
 				73C3A6F75CF8F4449455E40B /* InApp.swift */,
 				4C420DD5217375F5AB1A7260 /* .swiftpm */,
 				2EF73D4D370DA3D4459FC5C4 /* config */,
@@ -1740,7 +1729,6 @@
 		D9EC9DE9FA468C2AA40607EE /* Push */ = {
 			isa = PBXGroup;
 			children = (
-				8EE1FEEF7B55F76B4B37B750 /* AltcraftPush.podspec */,
 				9BB36DDD2393EB5E64B31200 /* Push.swift */,
 				E88B67233A1B895C3456E4C3 /* .swiftpm */,
 				7B28867C070AC49D6F1A820A /* config */,
@@ -2181,7 +2169,6 @@
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				32DC54A296611AA145F9576E /* AltcraftInApp.podspec in Resources */,
 				4B94B09CE3ADC9CE7DD41648 /* package.xcworkspace in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
@@ -2190,7 +2177,6 @@
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				FCA6FB003D43D34219D6CA48 /* AltcraftPush.podspec in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -2198,7 +2184,6 @@
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				911E28DA89827D8AC398CBCD /* AltcraftProfile.podspec in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -2206,7 +2191,6 @@
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				CE76F28C21FA3A678E2FEB0D /* AltcraftTarget.podspec in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

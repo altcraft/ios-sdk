@@ -11,7 +11,7 @@ import Foundation
 
 /// Profile NSE APIs.
 ///
-/// Available when the `AltcraftProfile` module (Pod / SPM product) is present.
+/// Available when the `AltcraftProfile` module (SPM product) is present.
 public extension AltcraftNSE {
 
     /// Updates the user profile fields on the Altcraft platform.

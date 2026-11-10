@@ -14,7 +14,7 @@ private let pushReceiver = AltcraftPushReceiver()
 
 /// Push-specific NSE APIs.
 ///
-/// Available when the `AltcraftPush` module (Pod / SPM product) is present.
+/// Available when the `AltcraftPush` module (SPM product) is present.
 public extension AltcraftNSE {
 
     /// Determines whether the given notification request belongs to Altcraft.

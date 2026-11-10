@@ -154,7 +154,7 @@ import CoreData
                     if let bundle = Bundle(url: fwPath) {
                         candidates.append(bundle)
                     }
-                    // 3b. CocoaPods puts resource bundles (e.g. AltcraftPushResources.bundle)
+                    // 3b. Resource bundles (e.g. AltcraftPushResources.bundle) may live
                     //     inside each framework's Resources/. Search for nested *.bundle there.
                     let fwResourcesDir = fwPath.appendingPathComponent("Resources")
                     if let resContents = try? FileManager.default.contentsOfDirectory(atPath: fwResourcesDir.path) {
@@ -199,7 +199,7 @@ import CoreData
         /// Loads the Core Data model from a single bundle.
         ///
         /// Searches for:
-        ///   - `name.momd` (compiled, Xcode framework or CocoaPods pre-processed)
+        ///   - `name.momd` (compiled, pre-processed by the build system)
         ///   - `name.mom`  (single compiled model)
         ///   - `name.xcdatamodeld` (source directory, SPM `.process` keeps it as-is)
         ///

@@ -120,7 +120,7 @@ public final class InApp: @unchecked Sendable {
 /// Exposes the In-App module through the unified `AltcraftSDK` entry point.
 ///
 /// Mirrors the Android `val AltcraftSDK.inApp: InApp get() = InApp` extension property.
-/// Only visible when the `AltcraftInApp` module (Pod / SPM product) is linked.
+/// Only visible when the `AltcraftInApp` module (SPM product) is linked.
 @available(iOSApplicationExtension, unavailable)
 public extension AltcraftSDK {
 
