@@ -33,24 +33,27 @@ private let networkMonitor = NetworkMonitor.shared
 func pushSubscribeRetry() {
     let counterKey = PushConstants.RetryKey.pushSubscribe
     let attempt = RetryCounters.shared.incrementAndGet(counterKey)
-
+    
     guard attempt <= PushConstants.Retry.maxLocalRetryCount else {
         return
     }
-
+    
     let work = DispatchWorkItem {
         Task {
             await networkMonitor.performWhenConnected {
-                await PushSubscriptionWorker.shared.processPending(enableRetry: true)
+                await PushSubscriptionWorker.shared.processPending(
+                    enableRetry: true
+                )
             }
         }
     }
-
+    
     RetryManager.shared.store(key: counterKey, work: work)
-    RetryManager.shared.queue(PushConstants.RetryQueues.subscribe).asyncAfter(
-        deadline: .now() + delay(retryCount: attempt),
-        execute: work
-    )
+    RetryManager.shared.queue(PushConstants.RetryQueues.subscribe)
+        .asyncAfter(
+            deadline: .now() + delay(retryCount: attempt),
+            execute: work
+        )
 }
 
 /// Retries the token update flow while under the local retry limit.
@@ -69,11 +72,11 @@ func tokenUpdateRetry(
 ) {
     let counterKey = PushConstants.RetryKey.tokenUpdate
     let attempt = RetryCounters.shared.incrementAndGet(counterKey)
-
+    
     guard attempt <= PushConstants.Retry.maxLocalRetryCount else {
         return
     }
-
+    
     let work = DispatchWorkItem {
         Task {
             await networkMonitor.performWhenConnected {
@@ -84,12 +87,13 @@ func tokenUpdateRetry(
             }
         }
     }
-
+    
     RetryManager.shared.store(key: counterKey, work: work)
-    RetryManager.shared.queue(PushConstants.RetryQueues.tokenUpdate).asyncAfter(
-        deadline: .now() + delay(retryCount: attempt),
-        execute: work
-    )
+    RetryManager.shared.queue(PushConstants.RetryQueues.tokenUpdate)
+        .asyncAfter(
+            deadline: .now() + delay(retryCount: attempt),
+            execute: work
+        )
 }
 
 /// Registry key for a per-entity push event retry.
@@ -110,16 +114,16 @@ func pushEventRetryKey(_ objectID: NSManagedObjectID) -> String {
 func pushEventRetry(objectID: NSManagedObjectID) {
     let counterKey = PushConstants.RetryKey.pushEvent
     let attempt = RetryCounters.shared.incrementAndGet(counterKey)
-
+    
     guard attempt <= PushConstants.Retry.maxLocalRetryCount else {
         return
     }
-
+    
     let work = DispatchWorkItem {
         Task {
             await networkMonitor.performWhenConnected {
                 let context = pushDatabase.getContext()
-
+                
                 _ = await pushEvent.sendPushEvent(
                     context: context,
                     event: objectID,
@@ -128,12 +132,13 @@ func pushEventRetry(objectID: NSManagedObjectID) {
             }
         }
     }
-
+    
     let key = pushEventRetryKey(objectID)
-
+    
     RetryManager.shared.store(key: key, work: work)
-    RetryManager.shared.queue(PushConstants.RetryQueues.pushEvent).asyncAfter(
-        deadline: .now() + delay(retryCount: attempt),
-        execute: work
-    )
+    RetryManager.shared.queue(PushConstants.RetryQueues.pushEvent)
+        .asyncAfter(
+            deadline: .now() + delay(retryCount: attempt),
+            execute: work
+        )
 }

@@ -101,6 +101,51 @@
 		FCD9AA41043298634FBDA850 /* AltcraftPushReceiverTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3FC78A7B340B3D960596554D /* AltcraftPushReceiverTests.swift */; };
 /* End PBXBuildFile section */
 
+/* Begin PBXContainerItemProxy section */
+		A11C0DE00000000000000101 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = A11C0DE000000000000000A1 /* Altcraft */;
+			proxyType = 1;
+			remoteGlobalIDString = 51BBB5E6CD0116A95E5EEE7D;
+			remoteInfo = AltcraftCore;
+		};
+		A11C0DE00000000000000102 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = A11C0DE000000000000000A1 /* Altcraft */;
+			proxyType = 1;
+			remoteGlobalIDString = 7752749D67692531CB816923;
+			remoteInfo = AltcraftPush;
+		};
+		A11C0DE00000000000000103 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = A11C0DE000000000000000A1 /* Altcraft */;
+			proxyType = 1;
+			remoteGlobalIDString = 1BA63FC785F8D7F926523749;
+			remoteInfo = AltcraftProfile;
+		};
+		A11C0DE00000000000000104 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = A11C0DE000000000000000A1 /* Altcraft */;
+			proxyType = 1;
+			remoteGlobalIDString = 2BD93928E6DDC7B70FFD6AC9;
+			remoteInfo = AltcraftInApp;
+		};
+		A11C0DE00000000000000105 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = A11C0DE000000000000000A1 /* Altcraft */;
+			proxyType = 1;
+			remoteGlobalIDString = 63C5A3494F1BD07AAA9D7F46;
+			remoteInfo = AltcraftTarget;
+		};
+		A11C0DE00000000000000106 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = A11C0DE000000000000000E1 /* Example */;
+			proxyType = 1;
+			remoteGlobalIDString = 9878B5EABC7D83477291BAFC;
+			remoteInfo = Example;
+		};
+/* End PBXContainerItemProxy section */
+
 /* Begin PBXFileReference section */
 		004448B42DAA9AD33D4B2F06 /* TargetEventTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TargetEventTests.swift; sourceTree = "<group>"; };
 		0100BA48505D04F65E983768 /* JsonFactoryTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = JsonFactoryTests.swift; sourceTree = "<group>"; };
@@ -163,6 +208,8 @@
 		99CB88EA34D740E2CB10BAB2 /* ModuleLogPrefixTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ModuleLogPrefixTests.swift; sourceTree = "<group>"; };
 		9C4E81F2A6D3B7051E8C4D27 /* InAppFullscreenLifecycleTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = InAppFullscreenLifecycleTests.swift; sourceTree = "<group>"; };
 		A00D9F57636EC1F6A64E35F3 /* InitTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = InitTests.swift; sourceTree = "<group>"; };
+		A11C0DE000000000000000A1 /* Altcraft */ = {isa = PBXFileReference; lastKnownFileType = "wrapper.pb-project"; name = Altcraft; path = Altcraft.xcodeproj; sourceTree = "<group>"; };
+		A11C0DE000000000000000E1 /* Example */ = {isa = PBXFileReference; lastKnownFileType = "wrapper.pb-project"; name = Example; path = Example.xcodeproj; sourceTree = "<group>"; };
 		A1B2C3D4E5F60718293A4B5C /* NSEEnvironmentResetTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NSEEnvironmentResetTests.swift; sourceTree = "<group>"; };
 		A2F1628F3A31EE9CD98CB444 /* HashingTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HashingTests.swift; sourceTree = "<group>"; };
 		A4AC0FD67F7B60414E0781E6 /* StoredVariablesManagerTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StoredVariablesManagerTests.swift; sourceTree = "<group>"; };
@@ -406,6 +453,20 @@
 			path = Token;
 			sourceTree = "<group>";
 		};
+		A11C0DE000000000000000A2 /* Products */ = {
+			isa = PBXGroup;
+			children = (
+			);
+			name = Products;
+			sourceTree = "<group>";
+		};
+		A11C0DE000000000000000E2 /* Products */ = {
+			isa = PBXGroup;
+			children = (
+			);
+			name = Products;
+			sourceTree = "<group>";
+		};
 		A2D3E906B6198B6E5C993A37 /* Products */ = {
 			isa = PBXGroup;
 			children = (
@@ -506,6 +567,8 @@
 			isa = PBXGroup;
 			children = (
 				3E05FAFC0DF9BD480A6C19C9 /* ../AltcraftTests */,
+				A11C0DE000000000000000A1 /* Altcraft */,
+				A11C0DE000000000000000E1 /* Example */,
 				A2D3E906B6198B6E5C993A37 /* Products */,
 			);
 			sourceTree = "<group>";
@@ -553,6 +616,12 @@
 			buildRules = (
 			);
 			dependencies = (
+				A11C0DE00000000000000201 /* PBXTargetDependency */,
+				A11C0DE00000000000000202 /* PBXTargetDependency */,
+				A11C0DE00000000000000203 /* PBXTargetDependency */,
+				A11C0DE00000000000000204 /* PBXTargetDependency */,
+				A11C0DE00000000000000205 /* PBXTargetDependency */,
+				A11C0DE00000000000000206 /* PBXTargetDependency */,
 			);
 			name = AltcraftTests;
 			packageProductDependencies = (
@@ -582,6 +651,16 @@
 			preferredProjectObjectVersion = 77;
 			productRefGroup = A2D3E906B6198B6E5C993A37 /* Products */;
 			projectDirPath = "";
+			projectReferences = (
+				{
+					ProductGroup = A11C0DE000000000000000A2 /* Products */;
+					ProjectRef = A11C0DE000000000000000A1 /* Altcraft */;
+				},
+				{
+					ProductGroup = A11C0DE000000000000000E2 /* Products */;
+					ProjectRef = A11C0DE000000000000000E1 /* Example */;
+				},
+			);
 			projectRoot = "";
 			targets = (
 				5429CF178CD39EF7656B8BCC /* AltcraftTests */,
@@ -691,12 +770,46 @@
 		};
 /* End PBXSourcesBuildPhase section */
 
+/* Begin PBXTargetDependency section */
+		A11C0DE00000000000000201 /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			name = AltcraftCore;
+			targetProxy = A11C0DE00000000000000101 /* PBXContainerItemProxy */;
+		};
+		A11C0DE00000000000000202 /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			name = AltcraftPush;
+			targetProxy = A11C0DE00000000000000102 /* PBXContainerItemProxy */;
+		};
+		A11C0DE00000000000000203 /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			name = AltcraftProfile;
+			targetProxy = A11C0DE00000000000000103 /* PBXContainerItemProxy */;
+		};
+		A11C0DE00000000000000204 /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			name = AltcraftInApp;
+			targetProxy = A11C0DE00000000000000104 /* PBXContainerItemProxy */;
+		};
+		A11C0DE00000000000000205 /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			name = AltcraftTarget;
+			targetProxy = A11C0DE00000000000000105 /* PBXContainerItemProxy */;
+		};
+		A11C0DE00000000000000206 /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			name = Example;
+			targetProxy = A11C0DE00000000000000106 /* PBXContainerItemProxy */;
+		};
+/* End PBXTargetDependency section */
+
 /* Begin XCBuildConfiguration section */
 		44B16985C9C5868F1E5FB424 /* Debug */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				BUNDLE_LOADER = "$(TEST_HOST)";
 				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = "";
 				FRAMEWORK_SEARCH_PATHS = (
 					"$(inherited)",
 					"$(BUILT_PRODUCTS_DIR)",
@@ -727,6 +840,7 @@
 			buildSettings = {
 				BUNDLE_LOADER = "$(TEST_HOST)";
 				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = "";
 				FRAMEWORK_SEARCH_PATHS = (
 					"$(inherited)",
 					"$(BUILT_PRODUCTS_DIR)",

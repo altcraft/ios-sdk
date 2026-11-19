@@ -66,6 +66,12 @@ internal actor TargetEventProcess {
             do {
                 try env.checkCoreDataError()
                 let userTag = try await env.userTag()
+
+                // The role token may have changed during the JWT read,
+                // invalidating this queue epoch. Do not persist an event for
+                // the already-cleared identity.
+                guard SerialCommandQueue.isCurrent() else { return }
+
                 let timeZone = DeviceInfo.getTimeZone()
 
                 switch await TargetDAO.addTargetEntity(

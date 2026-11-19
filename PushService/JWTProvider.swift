@@ -14,8 +14,9 @@ class JWTProvider: JWTInterface {
     /// Returns the JWT supplied through the shared app group storage
     /// (`JWTInterface` implementation).
     func getToken() -> String? {
-        return UserDefaults(suiteName: NotificationService().appGroupID)?.string(
+        let token =  UserDefaults(suiteName: NotificationService().appGroupID)?.string(
             forKey: "JWT_KEY"
         )
+        return token
     }
 }

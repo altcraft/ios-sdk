@@ -468,14 +468,62 @@ internal enum Check {
     /// - Returns: `true` if the campaign passes all display checks.
     static func canShow(_ inApp: InAppModel.InApp) async -> Bool {
         let env = InAppEnvironment.fresh()
-        guard await Check.RToken.canShow() else { return false }
-        guard Check.Availability.canShow(inApp: inApp) else { return false }
-        guard Check.CommonPolicy.canShow(inApp: inApp) else { return false }
-        guard await Check.Deadline.canShow(inApp: inApp) else { return false }
-        guard await Check.PersonalPolicy.canShow(inApp: inApp) else { return false }
-        guard await Check.SubStatusCheck.canShow(inApp: inApp) else { return false }
-        guard await Check.Version.canShow(env: env, inApp: inApp) else { return false }
-        guard await Check.Orientation.canShow() else { return false }
+
+        func check(
+            _ name: String,
+            _ condition: () async -> Bool
+        ) async -> Bool {
+            guard await condition() else {
+                let value: [String: Any?] = [
+                    InAppConstants.MapKeys.check: name,
+                    InAppConstants.MapKeys.trigger: inApp.actionTriggerName
+                ]
+
+                InAppLog.event(
+                    InAppConstants.PolicyChecks.canShow,
+                    event: InAppModuleEvents.inAppCanShowFailed,
+                    eventValue: value,
+                    logValue: ResponseModel.OrderedLogValue(value)
+                )
+
+                return false
+            }
+
+            return true
+        }
+
+        guard await check(
+            InAppConstants.PolicyChecks.rToken,
+            { await Check.RToken.canShow() }
+        ) else { return false }
+        guard await check(
+            InAppConstants.PolicyChecks.availability,
+            { Check.Availability.canShow(inApp: inApp) }
+        ) else { return false }
+        guard await check(
+            InAppConstants.PolicyChecks.commonPolicy,
+            { Check.CommonPolicy.canShow(inApp: inApp) }
+        ) else { return false }
+        guard await check(
+            InAppConstants.PolicyChecks.deadline,
+            { await Check.Deadline.canShow(inApp: inApp) }
+        ) else { return false }
+        guard await check(
+            InAppConstants.PolicyChecks.personalPolicy,
+            { await Check.PersonalPolicy.canShow(inApp: inApp) }
+        ) else { return false }
+        guard await check(
+            InAppConstants.PolicyChecks.subStatus,
+            { await Check.SubStatusCheck.canShow(inApp: inApp) }
+        ) else { return false }
+        guard await check(
+            InAppConstants.PolicyChecks.version,
+            { await Check.Version.canShow(env: env, inApp: inApp) }
+        ) else { return false }
+        guard await check(
+            InAppConstants.PolicyChecks.orientation,
+            { await Check.Orientation.canShow() }
+        ) else { return false }
 
         return true
     }

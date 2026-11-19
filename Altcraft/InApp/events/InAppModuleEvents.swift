@@ -66,5 +66,9 @@ public enum InAppModuleEvents: String, SDKEvent {
 
     case placementsLimitExceeded = "in-app placements limit exceeded"
 
+    // MARK: - Presentation policy
+
+    case inAppCanShowFailed = "in-app was not shown because a display policy check failed:"
+
     public var message: String { rawValue }
 }

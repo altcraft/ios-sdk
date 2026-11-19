@@ -19,6 +19,12 @@ import Foundation
     private var suspended = false
     private var tail: Task<Void, Never>?
 
+    /// Identity of the queue whose job is currently executing.
+    ///
+    /// Used by ``resetAndWait()`` to avoid awaiting the calling task (or its
+    /// queue chain) when a reset is requested from inside this queue.
+    @TaskLocal private static var currentQueueIdentity: ObjectIdentifier?
+
     /// Validity of the queue operation across suspension points.
     @TaskLocal public static var isCurrent: @Sendable () -> Bool = { true }
 
@@ -46,7 +52,17 @@ import Foundation
     }
 
     /// Drops waiting commands and waits for the active producer to finish.
+    ///
+    /// When called from a job of this queue, the active producer is the
+    /// calling task itself (or a task that is waiting for it). Awaiting it
+    /// would deadlock the queue, so in that case the queue is reset without
+    /// waiting.
     public func resetAndWait() async {
+        if Self.currentQueueIdentity == ObjectIdentifier(self) {
+            reset(dropCurrent: true)
+            return
+        }
+
         let previous = stateQueue.sync {
             generation &+= 1
             let previous = tail
@@ -108,18 +124,20 @@ import Foundation
                 // and interleave with post-reset submissions.
                 guard !Task.isCancelled else { return }
                 guard parentCheck() else { return }
-                await Self.$isCurrent.withValue({
-                    parentCheck() && (!usesEpoch || self.stateQueue.sync { self.generation == gen })
-                }) {
-                    await Self.$performIfCurrent.withValue({ operation in
-                        guard parentCheck() else { return false }
-                        return self.stateQueue.sync {
-                            guard !usesEpoch || self.generation == gen else { return false }
-                            operation()
-                            return true
-                        }
+                await Self.$currentQueueIdentity.withValue(ObjectIdentifier(self)) {
+                    await Self.$isCurrent.withValue({
+                        parentCheck() && (!usesEpoch || self.stateQueue.sync { self.generation == gen })
                     }) {
-                        await job()
+                        await Self.$performIfCurrent.withValue({ operation in
+                            guard parentCheck() else { return false }
+                            return self.stateQueue.sync {
+                                guard !usesEpoch || self.generation == gen else { return false }
+                                operation()
+                                return true
+                            }
+                        }) {
+                            await job()
+                        }
                     }
                 }
             }

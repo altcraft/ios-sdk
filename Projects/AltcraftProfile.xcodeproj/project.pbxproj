@@ -110,14 +110,7 @@
 			);
 			sourceTree = "<group>";
 		};
-		5264D88BA02AEF960D8B4F3E /* .swiftpm */ = {
-			isa = PBXGroup;
-			children = (
-				AFAE096FED4C8F097E336E18 /* xcode */,
-			);
-			path = .swiftpm;
-			sourceTree = "<group>";
-		};
+
 		5595BD6A3090D2D900D9B02B /* Recovered References */ = {
 			isa = PBXGroup;
 			children = (
@@ -223,13 +216,7 @@
 			path = dao;
 			sourceTree = "<group>";
 		};
-		AFAE096FED4C8F097E336E18 /* xcode */ = {
-			isa = PBXGroup;
-			children = (
-			);
-			path = xcode;
-			sourceTree = "<group>";
-		};
+
 		B2961DCC6AB32A352F77A44D /* Frameworks */ = {
 			isa = PBXGroup;
 			children = (
@@ -252,7 +239,6 @@
 			isa = PBXGroup;
 			children = (
 				F2F71C82F78E1A929F909671 /* Profile.swift */,
-				5264D88BA02AEF960D8B4F3E /* .swiftpm */,
 				B2DBEC66420CF593A5D523C0 /* data */,
 				6227317DE976AD8E31B82F44 /* events */,
 				7347E96305B9D2D9D613C897 /* infra */,

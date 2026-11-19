@@ -258,6 +258,21 @@ public enum InAppConstants {
         static let url = "url"
         static let smid = "smid"
         static let allSmidKey = "allSmidKey"
+        static let check = "check"
+        static let trigger = "trigger"
+    }
+
+    /// Names of the in-app display policy checks.
+    enum PolicyChecks {
+        static let canShow = "canShow"
+        static let rToken = "RToken"
+        static let availability = "Availability"
+        static let deadline = "Deadline"
+        static let orientation = "Orientation"
+        static let commonPolicy = "CommonPolicy"
+        static let subStatus = "SubStatus"
+        static let personalPolicy = "PersonalPolicy"
+        static let version = "Version"
     }
 
     /// Subscription status values.

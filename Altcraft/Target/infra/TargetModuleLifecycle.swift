@@ -66,8 +66,21 @@ final actor TargetModuleLifecycle: AltcraftModule {
     }
 
     /// Clears pending target events when the SDK rToken changes.
-    func onSdkRTokenChanged() async { await onSdkClear() }
-
+    ///
+    /// The change may be detected by a JWT read performed inside a
+    /// `TargetEventQueues.entityQueue` job. Awaiting `resetAndWait()` here
+    /// would make that job wait for its own queue chain (or for a task that
+    /// is itself waiting for the job), deadlocking delivery until the process
+    /// restarts. Both queues are therefore invalidated without waiting and
+    /// the stale entities are removed afterwards.
+    func onSdkRTokenChanged() async {
+        TargetEventQueues.entityQueue.reset()
+        TargetEventQueues.startQueue.reset()
+        RetryManager.shared.cancel(key: TargetConstants.RetryKey.targetEvent)
+        _ = await targetDatabase.deleteAll(
+            ofEntityNamed: TargetConstants.EntityNames.targetEventEntity
+        )
+    }
 }
 
 /// Discoverable even when the application has not accessed the module facade.

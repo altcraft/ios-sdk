@@ -234,6 +234,49 @@ final class SerialCommandQueueTests: IsolatedTestCase {
 
         XCTAssertTrue(finished, "post-resume job must run")
     }
+
+    /// test_6: resetAndWait called from a job of the same queue must not
+    /// await the calling task and deadlock the queue.
+    func test_6_resetAndWait_fromInsideQueue_doesNotDeadlock() async {
+        let queue = SerialCommandQueue(label: "test.scq.self-reset")
+        let finished = Flag()
+
+        queue.submit {
+            await queue.resetAndWait()
+            await finished.setTrue()
+        }
+
+        var didFinish = false
+        for _ in 0..<100 {
+            if await finished.value() {
+                didFinish = true
+                break
+            }
+            try? await Task.sleep(nanoseconds: 25_000_000)
+        }
+
+        XCTAssertTrue(
+            didFinish,
+            "resetAndWait must not await its own queue task"
+        )
+
+        let sentinel = Flag()
+        queue.submit { await sentinel.setTrue() }
+
+        var sentinelFinished = false
+        for _ in 0..<100 {
+            if await sentinel.value() {
+                sentinelFinished = true
+                break
+            }
+            try? await Task.sleep(nanoseconds: 25_000_000)
+        }
+
+        XCTAssertTrue(
+            sentinelFinished,
+            "the queue must remain usable after a self-reset"
+        )
+    }
 }
 
 private actor OrderLog {

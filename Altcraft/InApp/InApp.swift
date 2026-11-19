@@ -22,14 +22,12 @@ public final class InApp: @unchecked Sendable {
     /// Shared In-App facade instance.
     public static let shared = InApp()
 
-    private init() {}
+    private init() { Self.ensureRegistered() }
 
     // MARK: - Module registration
 
     /// Ensures the in-app module is registered with the SDK.
-    static func ensureRegistered() {
-        // Module registration logic
-    }
+    static func ensureRegistered() {}
 
     // MARK: - Events
 

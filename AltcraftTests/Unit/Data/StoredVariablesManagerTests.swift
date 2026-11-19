@@ -59,6 +59,9 @@ import XCTest
  * - test_13: per-module CRIT_DB flags are stored and isolated between modules.
  * - test_14: legacy Core-scoped setCritDB/getDbErrorStatus map to the Core module flag.
  * - test_15: clearAllSDKUserDefaults removes Core keys from standard and App Group defaults.
+ * - test_16: the current role token is stored in the App Group suite.
+ * - test_17: without an App Group the current role token uses standard defaults.
+ * - test_18: the App Group role token takes precedence over standard defaults.
  *
  */
 final class StoredVariablesManagerTests: IsolatedTestCase {
@@ -86,6 +89,7 @@ final class StoredVariablesManagerTests: IsolatedTestCase {
             "\(prefix)_CRIT_DB_InApp",
             "\(prefix)_CRIT_DB_Target",
             "\(prefix)_GROUP_NAME",
+            "\(prefix)_RTOKEN",
             "\(prefix)_MANUAL_TOKEN",
             "\(prefix)_CURRENT_TOKEN",
             "\(prefix)_LOGGING_STATUS"
@@ -311,6 +315,7 @@ final class StoredVariablesManagerTests: IsolatedTestCase {
         let keys = [
             "\(Constants.UDPrefix)_INIT_STATUS",
             "\(Constants.UDPrefix)_CRIT_DB",
+            "\(Constants.UDPrefix)_RTOKEN",
             "\(Constants.UDPrefix)_LOGGING_STATUS"
         ]
 
@@ -334,5 +339,60 @@ final class StoredVariablesManagerTests: IsolatedTestCase {
         }
 
         UserDefaults().removePersistentDomain(forName: groupName)
+    }
+
+    /// test_16: the current role token is stored in the App Group suite
+    func test_16_current_r_token_uses_app_group_suite() {
+        let groupName = "AltcraftTests.rToken.\(UUID().uuidString)"
+        let key = "\(Constants.UDPrefix)_RTOKEN"
+        StoredVariablesManager.shared.setGroupsName(value: groupName)
+        defer { UserDefaults().removePersistentDomain(forName: groupName) }
+
+        StoredVariablesManager.shared.setCurrentRToken(value: "r-group")
+
+        let groupDefaults = UserDefaults(suiteName: groupName)
+        XCTAssertEqual(groupDefaults?.string(forKey: key), "r-group", msgEqual)
+        XCTAssertEqual(
+            StoredVariablesManager.shared.getCurrentRToken(),
+            "r-group",
+            msgEqual
+        )
+    }
+
+    /// test_17: without an App Group the current role token falls back to
+    /// standard defaults
+    func test_17_current_r_token_falls_back_to_standard_defaults() {
+        let key = "\(Constants.UDPrefix)_RTOKEN"
+        StoredVariablesManager.shared.setGroupsName(value: nil)
+
+        StoredVariablesManager.shared.setCurrentRToken(value: "r-standard")
+
+        XCTAssertEqual(
+            UserDefaults.standard.string(forKey: key),
+            "r-standard",
+            msgEqual
+        )
+        XCTAssertEqual(
+            StoredVariablesManager.shared.getCurrentRToken(),
+            "r-standard",
+            msgEqual
+        )
+    }
+
+    /// test_18: the App Group value takes precedence over standard defaults
+    func test_18_current_r_token_prefers_app_group_over_standard() {
+        let groupName = "AltcraftTests.rToken.\(UUID().uuidString)"
+        let key = "\(Constants.UDPrefix)_RTOKEN"
+        StoredVariablesManager.shared.setGroupsName(value: groupName)
+        defer { UserDefaults().removePersistentDomain(forName: groupName) }
+
+        UserDefaults.standard.set("r-standard", forKey: key)
+        UserDefaults(suiteName: groupName)?.set("r-group", forKey: key)
+
+        XCTAssertEqual(
+            StoredVariablesManager.shared.getCurrentRToken(),
+            "r-group",
+            msgEqual
+        )
     }
 }

@@ -456,6 +456,30 @@ extension ProfileUpdateTests {
             "update must be stored after initialization completes"
         )
     }
+
+    /// test_11: a role-token change detected inside the entity queue must not
+    /// deadlock the profile queues or leave the start queue suspended.
+    func test_11_rTokenChangeInsideEntityQueue_doesNotDeadlock() async {
+        ProfileUpdateQueues.entityQueue.reset()
+        ProfileUpdateQueues.startQueue.reset()
+
+        let changed = expectation(description: "rToken change completed")
+
+        ProfileUpdateQueues.entityQueue.submit {
+            await ProfileModuleLifecycle.shared.onSdkRTokenChanged()
+            changed.fulfill()
+        }
+
+        await fulfillment(of: [changed], timeout: 2.0)
+
+        let usable = expectation(description: "start queue still usable")
+
+        ProfileUpdateQueues.startQueue.submit {
+            usable.fulfill()
+        }
+
+        await fulfillment(of: [usable], timeout: 2.0)
+    }
 }
 
 private actor LifecycleTestGate {

@@ -154,8 +154,9 @@ final class InAppFunctions: NSObject, @unchecked Sendable {
         _ completion: @escaping (ResponseWithHttpCodeObjC?) -> Void
     ) {
         let completionBox = CallbackBox<ResponseWithHttpCodeObjC?>(completion)
-
-        InApp.shared.subscription.getSubscriptionStatus { (response: ResponseModel.ResponseWithHttpCode<ResponseModel.ResponseWithProfile>?) in
+        
+        InApp.shared.subscription.getSubscriptionStatus {
+            (response: ResponseModel.ResponseWithHttpCode<ResponseModel.ResponseWithProfile>?) in
             completionBox.call(ResponseWithHttpCodeObjC.from(response))
         }
     }

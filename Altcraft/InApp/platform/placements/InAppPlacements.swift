@@ -99,12 +99,6 @@ internal actor InAppPlacementsProcess {
                     let state = await InAppsDAO.getInAppsState(context: context)
 
                     guard config.inAppAutoRequest || userReq else {
-                        // Automatic requests are disabled: cached placements
-                        // may only be released to the trigger worker when
-                        // they belong to the current identity. A stale
-                        // identity means the stored campaigns belong to a
-                        // previous resource — the gate stays closed until a
-                        // fresh request validates new data.
                         if state?.acid == auth.currentAcid,
                            state?.deviceId == auth.deviceId {
                             await self.placementsReady()
@@ -139,9 +133,6 @@ internal actor InAppPlacementsProcess {
                     let requestId = UUID().uuidString
 
                     if awaitCompletion, await NetworkMonitor.shared.isOnline() {
-                        // Awaited background path (online snapshot): run the
-                        // pipeline inline instead of submitting it after this
-                        // job into the same serial queue.
                         let result = await self.processPlacements(
                             requestId: requestId
                         )
@@ -159,14 +150,6 @@ internal actor InAppPlacementsProcess {
                     )
                 } catch {
                     InAppLog.error(function, error: error)
-
-                    // The placements gate stays closed: without validated
-                    // authentication data the stored campaigns cannot be
-                    // trusted to belong to the current identity, and a
-                    // trigger worker released here would present the previous
-                    // resource's campaigns. A later request (rToken-change
-                    // flow, user request, retry) releases the parked worker
-                    // with fresh, identity-checked data.
                 }
             }
         }

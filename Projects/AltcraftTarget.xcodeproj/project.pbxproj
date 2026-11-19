@@ -158,13 +158,7 @@
 			name = Products;
 			sourceTree = "<group>";
 		};
-		4D38EA94ABFF1FC50F88D300 /* xcode */ = {
-			isa = PBXGroup;
-			children = (
-			);
-			path = xcode;
-			sourceTree = "<group>";
-		};
+
 		4F56E1CD4FA6B809F4E7F611 /* Frameworks */ = {
 			isa = PBXGroup;
 			children = (
@@ -192,14 +186,7 @@
 			path = data;
 			sourceTree = "<group>";
 		};
-		7B21531CDDADCFE6677CEB94 /* .swiftpm */ = {
-			isa = PBXGroup;
-			children = (
-				4D38EA94ABFF1FC50F88D300 /* xcode */,
-			);
-			path = .swiftpm;
-			sourceTree = "<group>";
-		};
+
 		7C2ACA1C7E7699F29EAB72C3 /* platform */ = {
 			isa = PBXGroup;
 			children = (
@@ -238,7 +225,6 @@
 			isa = PBXGroup;
 			children = (
 				1E836DEA05C1434437751B9A /* Target.swift */,
-				7B21531CDDADCFE6677CEB94 /* .swiftpm */,
 				71520AE9218D9A9A92BA347C /* data */,
 				CEBDFBD797B04D0DD610E982 /* events */,
 				9CDEE40147B2D0837C3F4ACE /* infra */,

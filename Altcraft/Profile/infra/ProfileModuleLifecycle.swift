@@ -62,7 +62,23 @@ final actor ProfileModuleLifecycle: AltcraftModule {
     }
 
     /// Clears pending profile updates when the SDK rToken changes.
-    func onSdkRTokenChanged() async { await onSdkClear() }
+    ///
+    /// The change may be detected by a JWT read performed inside a
+    /// `ProfileUpdateQueues.entityQueue` job. Awaiting `resetAndWait()` here
+    /// would make that job wait for its own queue chain (or for a task that
+    /// is itself waiting for the job), deadlocking delivery until the process
+    /// restarts. Both queues are therefore invalidated without waiting and
+    /// the stale entities are removed afterwards.
+    func onSdkRTokenChanged() async {
+        ProfileUpdateQueues.entityQueue.reset()
+        ProfileUpdateQueues.startQueue.reset()
+        RetryManager.shared.cancel(
+            key: ProfileConstants.RetryKey.profileUpdate
+        )
+        _ = await profileDatabase.deleteAll(
+            ofEntityNamed: ProfileConstants.EntityNames.profileUpdateEntity
+        )
+    }
 
 }
 

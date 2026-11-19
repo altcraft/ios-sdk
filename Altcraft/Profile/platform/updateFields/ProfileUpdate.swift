@@ -49,6 +49,11 @@ internal actor ProfileUpdateProcess {
                 try env.checkCoreDataError()
                 let userTag = try await env.userTag()
 
+                // The role token may have changed during the JWT read,
+                // invalidating this queue epoch. Do not persist an update for
+                // the already-cleared identity.
+                guard SerialCommandQueue.isCurrent() else { return }
+
                 switch await ProfileUpdateDAO.addProfileUpdateEntity(
                     userTag: userTag,
                     profileFields: profileFields,

@@ -25,11 +25,13 @@ class NotificationService: UNNotificationServiceExtension {
     /// buttons and delivers the modified content.
     override func didReceive(
         _ request: UNNotificationRequest,
-        withContentHandler contentHandler: @escaping (UNNotificationContent) -> Void
+        withContentHandler contentHandler: @escaping (
+            UNNotificationContent
+        ) -> Void
     ) {
         AltcraftNSE.setAppGroup(groupName: appGroupID)
         AltcraftNSE.setJWTProvider(provider: jwtProvider)
-
+        
         if AltcraftNSE.isAltcraftPush(request) {
             AltcraftNSE.handleNotificationRequest(
                 request: request,

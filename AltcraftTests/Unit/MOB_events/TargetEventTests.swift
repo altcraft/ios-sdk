@@ -491,4 +491,28 @@ final class TargetEventTests: IsolatedTestCase {
             "event must be stored after initialization completes"
         )
     }
+
+    /// test_10: a role-token change detected inside the entity queue must not
+    /// deadlock the target queues or leave the start queue suspended.
+    func test_10_rTokenChangeInsideEntityQueue_doesNotDeadlock() async {
+        TargetEventQueues.entityQueue.reset()
+        TargetEventQueues.startQueue.reset()
+
+        let changed = expectation(description: "rToken change completed")
+
+        TargetEventQueues.entityQueue.submit {
+            await TargetModuleLifecycle.shared.onSdkRTokenChanged()
+            changed.fulfill()
+        }
+
+        await fulfillment(of: [changed], timeout: 2.0)
+
+        let usable = expectation(description: "start queue still usable")
+
+        TargetEventQueues.startQueue.submit {
+            usable.fulfill()
+        }
+
+        await fulfillment(of: [usable], timeout: 2.0)
+    }
 }

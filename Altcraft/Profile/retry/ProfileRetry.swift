@@ -27,11 +27,11 @@ private let networkMonitor = NetworkMonitor.shared
 func profileUpdateRetry() {
     let counterKey = ProfileConstants.RetryKey.profileUpdate
     let attempt = RetryCounters.shared.incrementAndGet(counterKey)
-
+    
     guard attempt <= ProfileConstants.Retry.maxLocalRetryCount else {
         return
     }
-
+    
     let work = DispatchWorkItem {
         Task {
             await networkMonitor.performWhenConnected {
@@ -39,10 +39,11 @@ func profileUpdateRetry() {
             }
         }
     }
-
+    
     RetryManager.shared.store(key: counterKey, work: work)
-    RetryManager.shared.queue(ProfileConstants.RetryQueues.profileUpdate).asyncAfter(
-        deadline: .now() + delay(retryCount: attempt),
-        execute: work
-    )
+    RetryManager.shared.queue(ProfileConstants.RetryQueues.profileUpdate)
+        .asyncAfter(
+            deadline: .now() + delay(retryCount: attempt),
+            execute: work
+        )
 }

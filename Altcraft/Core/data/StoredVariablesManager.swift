@@ -134,13 +134,29 @@ import Foundation
         return defaults.bool(forKey: Self.loggingStatusKey)
     }
 
+    /// Defaults used to persist the current role token.
+    ///
+    /// The token is shared through the App Group when one is configured so
+    /// the host application and the Notification Service Extension compare
+    /// the same value. Falls back to the standard defaults otherwise.
+    private nonisolated func currentRTokenDefaults() -> UserDefaults {
+        if let groupName = UserDefaults.standard.string(
+            forKey: Self.appGroupNameKey
+        ),
+           let groupDefaults = UserDefaults(suiteName: groupName) {
+            return groupDefaults
+        }
+
+        return UserDefaults.standard
+    }
+
     /// Stores the current SDK role token used for change detection.
     ///
     /// Mirrors Android `Preferences.setCurrentRToken`.
     ///
     /// - Parameter value: The role token to store, or `nil` to remove it.
     @_spi(_Altcraft) public nonisolated func setCurrentRToken(value: String?) {
-        UserDefaults.standard.set(value, forKey: Self.currentRTokenKey)
+        currentRTokenDefaults().set(value, forKey: Self.currentRTokenKey)
     }
 
     /// Returns the previously stored SDK role token.
@@ -149,7 +165,7 @@ import Foundation
     ///
     /// - Returns: The stored role token, or `nil` if not set.
     @_spi(_Altcraft) public nonisolated func getCurrentRToken() -> String? {
-        UserDefaults.standard.string(forKey: Self.currentRTokenKey)
+        currentRTokenDefaults().string(forKey: Self.currentRTokenKey)
     }
 
     /// Clears all **Core-owned** values stored in UserDefaults.

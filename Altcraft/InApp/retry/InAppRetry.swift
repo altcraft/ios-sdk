@@ -37,11 +37,11 @@ private let networkMonitor = NetworkMonitor.shared
 func inAppSubscribeRetry() {
     let counterKey = InAppConstants.RetryKey.inAppSubscribe
     let attempt = RetryCounters.shared.incrementAndGet(counterKey)
-
+    
     guard attempt <= InAppConstants.Retry.maxLocalRetryCount else {
         return
     }
-
+    
     let work = DispatchWorkItem {
         Task {
             await networkMonitor.performWhenConnected {
@@ -49,12 +49,13 @@ func inAppSubscribeRetry() {
             }
         }
     }
-
+    
     RetryManager.shared.store(key: counterKey, work: work)
-    RetryManager.shared.queue(InAppConstants.RetryQueues.inAppSubscribe).asyncAfter(
-        deadline: .now() + delay(retryCount: attempt),
-        execute: work
-    )
+    RetryManager.shared.queue(InAppConstants.RetryQueues.inAppSubscribe)
+        .asyncAfter(
+            deadline: .now() + delay(retryCount: attempt),
+            execute: work
+        )
 }
 
 /// Retries the per-entity in-app event flow while under the local retry limit.
@@ -67,16 +68,16 @@ func inAppSubscribeRetry() {
 func inAppEventRetry(objectID: NSManagedObjectID) {
     let counterKey = InAppConstants.RetryKey.inAppEvent
     let attempt = RetryCounters.shared.incrementAndGet(counterKey)
-
+    
     guard attempt <= InAppConstants.Retry.maxLocalRetryCount else {
         return
     }
-
+    
     let work = DispatchWorkItem {
         Task {
             await networkMonitor.performWhenConnected {
                 let context = inAppDatabase.getContext()
-
+                
                 await inAppEvent.sendInAppEvent(
                     context: context,
                     event: objectID,
@@ -85,14 +86,15 @@ func inAppEventRetry(objectID: NSManagedObjectID) {
             }
         }
     }
-
+    
     let key = objectID.uriRepresentation().absoluteString
-
+    
     RetryManager.shared.store(key: key, work: work)
-    RetryManager.shared.queue(InAppConstants.RetryQueues.inAppEvent).asyncAfter(
-        deadline: .now() + delay(retryCount: attempt),
-        execute: work
-    )
+    RetryManager.shared.queue(InAppConstants.RetryQueues.inAppEvent)
+        .asyncAfter(
+            deadline: .now() + delay(retryCount: attempt),
+            execute: work
+        )
 }
 
 /// Retries loading in-app static resources while under the local retry limit.
@@ -105,28 +107,29 @@ func inAppEventRetry(objectID: NSManagedObjectID) {
 func inAppStaticRetry() {
     let counterKey = InAppConstants.RetryKey.inAppStatic
     let attempt = RetryCounters.shared.incrementAndGet(counterKey)
-
+    
     guard attempt <= InAppConstants.Retry.maxLocalRetryCount else {
         return
     }
-
+    
     let work = DispatchWorkItem {
         Task {
             await networkMonitor.performWhenConnected {
                 let staticBundle = await inAppStatic.getInAppStatic()
-
+                
                 if staticBundle != nil {
                     RetryCounters.shared.reset(counterKey)
                 }
             }
         }
     }
-
+    
     RetryManager.shared.store(key: counterKey, work: work)
-    RetryManager.shared.queue(InAppConstants.RetryQueues.inAppStatic).asyncAfter(
-        deadline: .now() + delay(retryCount: attempt),
-        execute: work
-    )
+    RetryManager.shared.queue(InAppConstants.RetryQueues.inAppStatic)
+        .asyncAfter(
+            deadline: .now() + delay(retryCount: attempt),
+            execute: work
+        )
 }
 
 /// Retries the in-app placements flow while under the local retry limit.
@@ -145,7 +148,7 @@ func inAppPlacementsRetry(
 ) {
     let counterKey = InAppConstants.RetryKey.inAppPlacements
     let attempt = RetryCounters.shared.incrementAndGet(counterKey)
-
+    
     guard attempt <= InAppConstants.Retry.maxLocalRetryCount else {
         // No further retry is scheduled: release trigger workers parked on
         // the placements readiness gate so they never wait indefinitely.
@@ -154,7 +157,7 @@ func inAppPlacementsRetry(
         }
         return
     }
-
+    
     let work = DispatchWorkItem {
         Task {
             await networkMonitor.performWhenConnected {
@@ -164,10 +167,11 @@ func inAppPlacementsRetry(
             }
         }
     }
-
+    
     RetryManager.shared.store(key: counterKey, work: work)
-    RetryManager.shared.queue(InAppConstants.RetryQueues.inAppPlacements).asyncAfter(
-        deadline: .now() + delay(retryCount: attempt),
-        execute: work
-    )
+    RetryManager.shared.queue(InAppConstants.RetryQueues.inAppPlacements)
+        .asyncAfter(
+            deadline: .now() + delay(retryCount: attempt),
+            execute: work
+        )
 }

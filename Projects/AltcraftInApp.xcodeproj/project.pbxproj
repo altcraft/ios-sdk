@@ -63,7 +63,7 @@
 		C0275E6424E75585D613DF28 /* InAppEnvironment.swift in Sources */ = {isa = PBXBuildFile; fileRef = 19153296F7595A23ADC05AF5 /* InAppEnvironment.swift */; };
 		C5C97FC07C4EC2767903809E /* WebViewPrewarmer.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1AD102FCEC81F7ED76D9478C /* WebViewPrewarmer.swift */; };
 		C7CA084E65CEA3FF27A1FC72 /* InAppRequestData.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3C35CED2A6A61EFE8344A388 /* InAppRequestData.swift */; };
-		CD4C042BEF935115C0E60CD2 /* package.xcworkspace in Resources */ = {isa = PBXBuildFile; fileRef = 08432EFA3E7912D18BF09F98 /* package.xcworkspace */; };
+
 		D0AC9918DA829A94D96DC58C /* InAppPlacementsRequestFactory.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8056F0D64CCB4917D747B3A8 /* InAppPlacementsRequestFactory.swift */; };
 		D5DB442C14920D6AB38737F0 /* InAppSubscribeEntity+CoreDataClass.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5ACCDCB76CC43320F0B9F293 /* InAppSubscribeEntity+CoreDataClass.swift */; };
 		D7619EFCE87CFCAA28863F00 /* InAppSubscribe.swift in Sources */ = {isa = PBXBuildFile; fileRef = 615CE45AADD1A7FCA4C00BCA /* InAppSubscribe.swift */; };
@@ -117,7 +117,7 @@
 /* Begin PBXFileReference section */
 		02C8AA9A6AE51BFC23DE53E3 /* AltcraftCore.xcodeproj */ = {isa = PBXFileReference; lastKnownFileType = "wrapper.pb-project"; path = AltcraftCore.xcodeproj; sourceTree = "<group>"; };
 		05BD103ACE115D2CE65F1035 /* InAppHTMLRewriter.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = InAppHTMLRewriter.swift; sourceTree = "<group>"; };
-		08432EFA3E7912D18BF09F98 /* package.xcworkspace */ = {isa = PBXFileReference; lastKnownFileType = wrapper.workspace; path = package.xcworkspace; sourceTree = "<group>"; };
+
 		0BD32D552B2DB8A9ACC130AD /* InAppStatic.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = InAppStatic.swift; sourceTree = "<group>"; };
 		0D7B95C99AC7DCBD52CBCD41 /* InAppRequestDataFactory.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = InAppRequestDataFactory.swift; sourceTree = "<group>"; };
 		0DC30895539E9F3B29C8951F /* LIFOQueue.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LIFOQueue.swift; sourceTree = "<group>"; };
@@ -240,7 +240,6 @@
 			isa = PBXGroup;
 			children = (
 				DE674B9237AB5E4CEC035508 /* InApp.swift */,
-				95FC354F9694E09731BCB131 /* .swiftpm */,
 				7BD605A4BB1A26A9B2E7017A /* config */,
 				5F33CCFFFCED121D83ADB058 /* data */,
 				2883CCC73953959277BC72FE /* events */,
@@ -419,14 +418,7 @@
 			path = status;
 			sourceTree = "<group>";
 		};
-		95FC354F9694E09731BCB131 /* .swiftpm */ = {
-			isa = PBXGroup;
-			children = (
-				D298403A18B4C00E6C6DB5A6 /* xcode */,
-			);
-			path = .swiftpm;
-			sourceTree = "<group>";
-		};
+
 		96C102C674D272DAB239B2B6 /* webview */ = {
 			isa = PBXGroup;
 			children = (
@@ -514,14 +506,7 @@
 			path = event;
 			sourceTree = "<group>";
 		};
-		D298403A18B4C00E6C6DB5A6 /* xcode */ = {
-			isa = PBXGroup;
-			children = (
-				08432EFA3E7912D18BF09F98 /* package.xcworkspace */,
-			);
-			path = xcode;
-			sourceTree = "<group>";
-		};
+
 		D350395FADD109B9DD7FF26B /* worker */ = {
 			isa = PBXGroup;
 			children = (
@@ -703,7 +688,6 @@
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				CD4C042BEF935115C0E60CD2 /* package.xcworkspace in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

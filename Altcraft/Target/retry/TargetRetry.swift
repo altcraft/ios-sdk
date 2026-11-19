@@ -39,10 +39,11 @@ func mobileEventRetry() {
             }
         }
     }
-
+    
     RetryManager.shared.store(key: counterKey, work: work)
-    RetryManager.shared.queue(TargetConstants.RetryQueues.targetEvent).asyncAfter(
-        deadline: .now() + delay(retryCount: attempt),
-        execute: work
-    )
+    RetryManager.shared.queue(TargetConstants.RetryQueues.targetEvent)
+        .asyncAfter(
+            deadline: .now() + delay(retryCount: attempt),
+            execute: work
+        )
 }

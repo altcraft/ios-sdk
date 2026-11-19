@@ -154,14 +154,7 @@
 /* End PBXFrameworksBuildPhase section */
 
 /* Begin PBXGroup section */
-		00BB291F206FCB72BED36399 /* .swiftpm */ = {
-			isa = PBXGroup;
-			children = (
-				F2775EBF9F93E4485D7862B6 /* xcode */,
-			);
-			path = .swiftpm;
-			sourceTree = "<group>";
-		};
+
 		0AC6805E629C3754BAB15C0E /* util */ = {
 			isa = PBXGroup;
 			children = (
@@ -466,7 +459,6 @@
 			isa = PBXGroup;
 			children = (
 				314DB63CB2F4F4CC3BEAAE43 /* Push.swift */,
-				00BB291F206FCB72BED36399 /* .swiftpm */,
 				543BBA8FCEF80E6D7250E980 /* config */,
 				8914D23C3EBF317D72473964 /* data */,
 				C9484CB334AC6F63AD197DFE /* events */,
@@ -522,13 +514,7 @@
 			path = worker;
 			sourceTree = "<group>";
 		};
-		F2775EBF9F93E4485D7862B6 /* xcode */ = {
-			isa = PBXGroup;
-			children = (
-			);
-			path = xcode;
-			sourceTree = "<group>";
-		};
+
 		F7DAACD7C420C1FCED7F0C0D /* retry */ = {
 			isa = PBXGroup;
 			children = (
