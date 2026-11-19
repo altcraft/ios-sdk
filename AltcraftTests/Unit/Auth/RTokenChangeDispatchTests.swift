@@ -7,9 +7,11 @@
 //  Copyright © 2026 Altcraft. All rights reserved.
 
 import XCTest
-@testable import AltcraftCore
 #if canImport(AltcraftCore)
 @_spi(_Altcraft) import AltcraftCore
+#endif
+#if canImport(AltcraftCore)
+@testable import AltcraftCore
 #endif
 
 /**

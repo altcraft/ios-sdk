@@ -7,8 +7,18 @@
 //  Copyright © 2026 Altcraft. All rights reserved.
 
 import XCTest
+#if canImport(AltcraftCore)
+@_spi(_Altcraft) import AltcraftCore
+#endif
+#if canImport(AltcraftPush)
+@_spi(_Altcraft) import AltcraftPush
+#endif
+#if canImport(AltcraftCore)
 @testable import AltcraftCore
+#endif
+#if canImport(AltcraftPush)
 @testable import AltcraftPush
+#endif
 
 /**
  * PushConfigManagerTests

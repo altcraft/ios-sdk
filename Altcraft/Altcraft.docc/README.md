@@ -69,7 +69,7 @@ Altcraft iOS SDK modules are distributed via Swift Package Manager. Add the modu
 
 ```swift
 dependencies: [
-    .package(url: "https://github.com/altcraft/ios-sdk", from: "2.0.0")
+    .package(url: "https://github.com/altcraft/ios-sdk", from: "2.0.1")
 ]
 ```
 

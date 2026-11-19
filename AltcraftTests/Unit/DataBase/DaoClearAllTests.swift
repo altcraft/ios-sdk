@@ -8,9 +8,18 @@
 
 import XCTest
 import CoreData
-@testable import AltcraftCore
+#if canImport(AltcraftCore)
 @_spi(_Altcraft) import AltcraftCore
+#endif
+#if canImport(AltcraftInApp)
+@_spi(_Altcraft) import AltcraftInApp
+#endif
+#if canImport(AltcraftCore)
+@testable import AltcraftCore
+#endif
+#if canImport(AltcraftInApp)
 @testable import AltcraftInApp
+#endif
 
 /**
  * DaoClearAllTests

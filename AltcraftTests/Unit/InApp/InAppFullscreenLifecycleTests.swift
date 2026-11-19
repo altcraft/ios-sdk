@@ -8,7 +8,12 @@
 
 import XCTest
 import WebKit
+#if canImport(AltcraftInApp)
+@_spi(_Altcraft) import AltcraftInApp
+#endif
+#if canImport(AltcraftInApp)
 @testable import AltcraftInApp
+#endif
 
 /**
  * InAppFullscreenLifecycleTests

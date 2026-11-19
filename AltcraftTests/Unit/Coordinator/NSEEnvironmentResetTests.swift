@@ -8,9 +8,11 @@
 
 import XCTest
 import CoreData
-@testable import AltcraftCore
 #if canImport(AltcraftCore)
 @_spi(_Altcraft) import AltcraftCore
+#endif
+#if canImport(AltcraftCore)
+@testable import AltcraftCore
 #endif
 
 /**
